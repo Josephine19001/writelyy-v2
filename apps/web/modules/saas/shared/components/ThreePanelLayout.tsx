@@ -3,7 +3,7 @@
 import { cn } from "@ui/lib";
 import { useState, type PropsWithChildren } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Button } from "@ui/components/button";
+import { IconButton } from "@ui/components/icon-button";
 import { ChevronLeft, ChevronRight, Search, Bot } from "lucide-react";
 
 interface ThreePanelLayoutProps {
@@ -60,22 +60,23 @@ function CollapseButton({
 	isCollapsed: boolean; 
 	onClick: () => void; 
 }) {
+	const icon = direction === "left" 
+		? (isCollapsed ? <ChevronRight /> : <ChevronLeft />)
+		: (isCollapsed ? <ChevronLeft /> : <ChevronRight />);
+
 	return (
-		<Button
-			variant="outline"
-			size="sm"
-			className={cn(
-				"absolute top-1/2 -translate-y-1/2 z-20 h-10 w-8 p-0 bg-background border-2 border-border shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary",
-				direction === "left" ? "-right-4" : "-left-4"
-			)}
-			onClick={onClick}
-		>
-			{direction === "left" ? (
-				isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />
-			) : (
-				isCollapsed ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />
-			)}
-		</Button>
+		<div className={cn(
+			"absolute top-1/2 -translate-y-1/2 z-20",
+			direction === "left" ? "-right-3" : "-left-3"
+		)}>
+			<IconButton
+				variant="outline"
+				size="sm"
+				icon={icon}
+				onClick={onClick}
+				className="bg-background border-2 border-border shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary"
+			/>
+		</div>
 	);
 }
 
@@ -83,25 +84,23 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 	return (
 		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
 			{/* AI Icon - Main action to open AI panel */}
-			<Button
+			<IconButton
 				variant="ghost"
-				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
+				size="default"
+				icon={<Bot />}
 				onClick={onExpand}
 				title="Open AI Panel"
-			>
-				<Bot className="h-5 w-5" />
-			</Button>
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
+			/>
 
 			{/* Search Icon */}
-			<Button
+			<IconButton
 				variant="ghost"
-				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
+				size="default"
+				icon={<Search />}
 				title="Search"
-			>
-				<Search className="h-5 w-5" />
-			</Button>
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
+			/>
 		</div>
 	);
 }
@@ -110,25 +109,23 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 	return (
 		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
 			{/* File Panel Icon - Main action to open file panel */}
-			<Button
+			<IconButton
 				variant="ghost"
-				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
+				size="default"
+				icon={<ChevronRight />}
 				onClick={onExpand}
 				title="Open File Panel"
-			>
-				<ChevronRight className="h-5 w-5" />
-			</Button>
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
+			/>
 			
 			{/* Quick Search */}
-			<Button
+			<IconButton
 				variant="ghost"
-				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
+				size="default"
+				icon={<Search />}
 				title="Search"
-			>
-				<Search className="h-5 w-5" />
-			</Button>
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
+			/>
 		</div>
 	);
 }

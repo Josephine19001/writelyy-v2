@@ -312,7 +312,7 @@ function AddSourceModal() {
 					<DialogTitle>Add Source</DialogTitle>
 				</DialogHeader>
 				<Tabs defaultValue="image" className="w-full">
-					<TabsList className="grid w-full grid-cols-3">
+					<TabsList className="grid w-full grid-cols-3 mb-4">
 						<TabsTrigger value="image">Image</TabsTrigger>
 						<TabsTrigger value="document">PDF/Doc</TabsTrigger>
 						<TabsTrigger value="link">Link</TabsTrigger>

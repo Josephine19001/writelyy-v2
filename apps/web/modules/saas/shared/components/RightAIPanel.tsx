@@ -1,28 +1,39 @@
 "use client";
 
+import { Badge } from "@ui/components/badge";
+import { Button } from "@ui/components/button";
+import { IconButton } from "@ui/components/icon-button";
+import { Card, CardContent } from "@ui/components/card";
+import { ScrollArea } from "@ui/components/scroll-area";
+import { Tabs, TabsContent } from "@ui/components/tabs";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
 import { cn } from "@ui/lib";
 import {
-	Bot,
-	Send,
-	Sparkles,
-	FileText,
-	Languages,
-	MoreHorizontal,
-	MessageSquare,
+	ArrowUp,
 	BookOpen,
-	Lightbulb,
+	Bot,
+	ChevronDown,
 	File,
+	FileText,
 	Folder,
 	Image,
+	Languages,
+	Lightbulb,
 	Link,
+	MessageSquare,
+	MoreHorizontal,
+	Plus,
+	Sparkles,
+	RotateCcw,
 	X,
 } from "lucide-react";
-import { useState, useRef } from "react";
-import { Button } from "@ui/components/button";
-import { Card, CardContent } from "@ui/components/card";
-import { Badge } from "@ui/components/badge";
-import { ScrollArea } from "@ui/components/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
+import { useRef, useState, useEffect } from "react";
 
 interface ChatMessage {
 	id: string;
@@ -132,9 +143,13 @@ function MentionAutocomplete({
 	onClose: () => void;
 	position: { top: number; left: number };
 }) {
-	const filteredItems = mockMentionItems.filter((item) =>
-		item.name.toLowerCase().includes(query.toLowerCase()),
-	);
+	// Show all items if query is empty, otherwise filter
+	const filteredItems =
+		query.length === 0
+			? mockMentionItems
+			: mockMentionItems.filter((item) =>
+					item.name.toLowerCase().includes(query.toLowerCase()),
+				);
 
 	const getItemIcon = (item: MentionItem) => {
 		switch (item.type) {
@@ -164,14 +179,34 @@ function MentionAutocomplete({
 		return item.type;
 	};
 
+	// Always show some options when autocomplete is open
+	if (filteredItems.length === 0 && query.length > 0) {
+		return (
+			<div
+				className="fixed z-[9999] w-80 max-h-64 bg-background border border-border rounded-md shadow-xl overflow-hidden"
+				style={{
+					top: position.top,
+					left: position.left,
+				}}
+			>
+				<div className="p-4 text-center text-sm text-muted-foreground">
+					No matches found for "{query}"
+				</div>
+			</div>
+		);
+	}
+
 	if (filteredItems.length === 0) {
 		return null;
 	}
 
 	return (
 		<div
-			className="absolute z-50 w-80 max-h-64 bg-background border border-border rounded-md shadow-lg overflow-hidden"
-			style={{ top: position.top, left: position.left }}
+			className="fixed z-[9999] w-80 max-h-64 bg-background border border-border rounded-md shadow-xl overflow-hidden"
+			style={{
+				top: position.top,
+				left: position.left,
+			}}
 		>
 			<div className="p-2 border-b bg-muted">
 				<div className="flex items-center justify-between">
@@ -227,54 +262,57 @@ function ChatInterface() {
 		top: 0,
 		left: 0,
 	});
-	const inputRef = useRef<HTMLInputElement>(null);
+	const inputRef = useRef<HTMLTextAreaElement>(null);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	};
+
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
+
+	const resizeTextarea = (textarea: HTMLTextAreaElement) => {
+		// Reset height to get accurate scrollHeight
+		textarea.style.height = "auto";
+		
+		const scrollHeight = textarea.scrollHeight;
+		const maxHeight = 120; // 120px max height
+		const minHeight = 40; // 2.5rem = 40px
+		
+		// Set height based on content, capped at max
+		const newHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
+		textarea.style.height = `${newHeight}px`;
+		
+		// Enable scroll only if content exceeds max height
+		textarea.style.overflowY = scrollHeight > maxHeight ? "auto" : "hidden";
+	};
+
+	const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const value = e.target.value;
 		setInputValue(value);
+		resizeTextarea(e.target);
+	};
 
-		// Check for @ mentions - Claude Code style
-		const lastAtIndex = value.lastIndexOf("@");
-		if (lastAtIndex !== -1) {
-			const textAfterAt = value.slice(lastAtIndex + 1);
-			
-			// Check if there's a space after the @ (which would close the autocomplete)
-			if (textAfterAt.includes(" ")) {
-				setShowMentionAutocomplete(false);
-				return;
-			}
+	const handleAddContext = () => {
+		setShowMentionAutocomplete(true);
+		setMentionQuery("");
 
-			// Only show autocomplete if @ is at the start or preceded by a space
-			const charBeforeAt = lastAtIndex > 0 ? value[lastAtIndex - 1] : " ";
-
-			if (charBeforeAt === " " || lastAtIndex === 0) {
-				setMentionQuery(textAfterAt);
-				setShowMentionAutocomplete(true);
-
-				// Calculate position for autocomplete
-				if (inputRef.current) {
-					const rect = inputRef.current.getBoundingClientRect();
-					setAutocompletePosition({
-						top: rect.top - 280, // Position above input
-						left: rect.left,
-					});
-				}
-			} else {
-				setShowMentionAutocomplete(false);
-			}
-		} else {
-			setShowMentionAutocomplete(false);
+		// Calculate position for autocomplete
+		if (inputRef.current) {
+			const rect = inputRef.current.getBoundingClientRect();
+			const position = {
+				top: rect.top - 250,
+				left: rect.left,
+			};
+			setAutocompletePosition(position);
 		}
 	};
 
 	const handleMentionSelect = (item: MentionItem) => {
-		const lastAtIndex = inputValue.lastIndexOf("@");
-		if (lastAtIndex !== -1) {
-			const beforeAt = inputValue.slice(0, lastAtIndex);
-			const newValue = `${beforeAt}@${item.name} `;
-			setInputValue(newValue);
-			setSelectedMentions((prev) => [...prev, item]);
-		}
+		setInputValue((prev) => prev + (prev ? " " : "") + `@${item.name}`);
+		setSelectedMentions((prev) => [...prev, item]);
 		setShowMentionAutocomplete(false);
 		inputRef.current?.focus();
 	};
@@ -296,6 +334,11 @@ function ChatInterface() {
 		setSelectedMentions([]);
 		setShowMentionAutocomplete(false);
 
+		// Reset textarea height to minimum
+		if (inputRef.current) {
+			resizeTextarea(inputRef.current);
+		}
+
 		// Simulate AI response
 		setTimeout(() => {
 			const aiResponse: ChatMessage = {
@@ -311,60 +354,67 @@ function ChatInterface() {
 		}, 1000);
 	};
 
-	const handleKeyPress = (e: React.KeyboardEvent) => {
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleSendMessage();
 		}
+		// Allow Shift+Enter for new lines (default textarea behavior)
 	};
 
 	return (
-		<div className="flex flex-col h-full relative">
-			<ScrollArea className="flex-1 p-4">
-				<div className="space-y-4">
-					{messages.map((message) => (
-						<div
-							key={message.id}
-							className={cn(
-								"flex gap-3",
-								message.role === "user"
-									? "justify-end"
-									: "justify-start",
-							)}
-						>
-							{message.role === "ai" && (
-								<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-									<Bot className="w-4 h-4 text-primary" />
-								</div>
-							)}
+		<div className="flex flex-col h-full">
+			{/* Chat Messages - Scrollable Content */}
+			<div className="flex-1 min-h-0 overflow-hidden">
+				<ScrollArea className="h-full p-4">
+					<div className="space-y-4">
+						{messages.map((message) => (
 							<div
+								key={message.id}
 								className={cn(
-									"max-w-[80%] rounded-lg px-3 py-2 text-sm",
+									"flex gap-3",
 									message.role === "user"
-										? "bg-primary text-primary-foreground"
-										: "bg-muted",
+										? "justify-end"
+										: "justify-start",
 								)}
 							>
-								<div>{message.content}</div>
-								{message.mentions &&
-									message.mentions.length > 0 && (
-										<div className="mt-2 flex flex-wrap gap-1">
-											{message.mentions.map((mention) => (
-												<Badge
-													key={mention.id}
-													className="text-xs bg-secondary text-secondary-foreground"
-												>
-													{mention.name}
-												</Badge>
-											))}
-										</div>
+								{message.role === "ai" && (
+									<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+										<Bot className="w-4 h-4 text-primary" />
+									</div>
+								)}
+								<div
+									className={cn(
+										"max-w-[80%] rounded-lg px-3 py-2 text-sm",
+										message.role === "user"
+											? "bg-primary text-primary-foreground"
+											: "bg-muted",
 									)}
+								>
+									<div>{message.content}</div>
+									{message.mentions &&
+										message.mentions.length > 0 && (
+											<div className="mt-2 flex flex-wrap gap-1">
+												{message.mentions.map((mention) => (
+													<Badge
+														key={mention.id}
+														className="text-xs bg-secondary text-secondary-foreground"
+													>
+														{mention.name}
+													</Badge>
+												))}
+											</div>
+										)}
+								</div>
 							</div>
-						</div>
-					))}
-				</div>
-			</ScrollArea>
+						))}
+						<div ref={messagesEndRef} />
+					</div>
+				</ScrollArea>
+			</div>
 
+			{/* Mention Autocomplete */}
 			{showMentionAutocomplete && (
 				<MentionAutocomplete
 					query={mentionQuery}
@@ -374,26 +424,41 @@ function ChatInterface() {
 				/>
 			)}
 
-			<div className="p-4">
-				<div className="flex gap-2">
-					<input
+			{/* Fixed Input Area */}
+			<div className="flex-shrink-0 border-t bg-background p-4">
+				<div className="border border-input rounded-md bg-background">
+					<textarea
 						ref={inputRef}
 						placeholder="Ask AI about your document..."
 						value={inputValue}
 						onChange={handleInputChange}
-						onKeyPress={handleKeyPress}
-						className="flex-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+						onKeyDown={handleKeyDown}
+						rows={1}
+						className="w-full bg-transparent text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 resize-none border-0 p-3 pb-2"
+						style={{
+							height: "auto",
+							minHeight: "2.5rem",
+						}}
 					/>
-					<Button
-						variant="primary"
-						size="sm"
-						onClick={handleSendMessage}
-					>
-						<Send className="w-4 h-4" />
-					</Button>
+					<div className="flex items-center justify-between px-3 pb-2">
+						<IconButton
+							variant="ghost"
+							size="sm"
+							icon={<Plus />}
+							onClick={handleAddContext}
+							title="Add context from files, folders, or sources"
+						/>
+						<IconButton
+							variant="primary"
+							size="sm"
+							icon={<ArrowUp />}
+							onClick={handleSendMessage}
+							disabled={!inputValue.trim()}
+						/>
+					</div>
 				</div>
 				<p className="text-xs text-muted-foreground mt-2">
-					Use @ for references • Shift+Enter for new line
+					Click + to add context • Shift+Enter for new line
 				</p>
 			</div>
 		</div>
@@ -461,7 +526,6 @@ function DocumentAnalysis() {
 												{suggestion.title}
 											</span>
 											<Badge
-												variant="outline"
 												className={cn(
 													"text-xs",
 													getSeverityColor(
@@ -522,6 +586,24 @@ function QuickActions() {
 
 export function RightAIPanel() {
 	const [activeTab, setActiveTab] = useState("chat");
+	const [chatKey, setChatKey] = useState(0);
+
+	const handleResetChat = () => {
+		setChatKey(prev => prev + 1);
+	};
+
+	const getActiveTabLabel = () => {
+		switch (activeTab) {
+			case "chat":
+				return "Chat";
+			case "analysis":
+				return "Analysis";
+			case "actions":
+				return "Actions";
+			default:
+				return "Chat";
+		}
+	};
 
 	return (
 		<div className="flex flex-col h-full">
@@ -531,41 +613,55 @@ export function RightAIPanel() {
 						<Bot className="w-5 h-5 text-primary" />
 						<h2 className="font-medium text-sm">Ask Writelyy</h2>
 					</div>
-					<Tabs
-						value={activeTab}
-						onValueChange={setActiveTab}
-						className=""
-					>
-						<TabsList className="grid grid-cols-3">
-							<TabsTrigger value="chat" className="text-xs">
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="sm" className="gap-1">
+								<span className="text-xs">{getActiveTabLabel()}</span>
+								<ChevronDown className="h-3 w-3" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem onClick={() => setActiveTab("chat")}>
+								<MessageSquare className="h-4 w-4 mr-2" />
 								Chat
-							</TabsTrigger>
-							<TabsTrigger value="analysis" className="text-xs">
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => setActiveTab("analysis")}>
+								<BookOpen className="h-4 w-4 mr-2" />
 								Analysis
-							</TabsTrigger>
-							<TabsTrigger value="actions" className="text-xs">
+							</DropdownMenuItem>
+							<DropdownMenuItem onClick={() => setActiveTab("actions")}>
+								<Sparkles className="h-4 w-4 mr-2" />
 								Actions
-							</TabsTrigger>
-						</TabsList>
-					</Tabs>
+							</DropdownMenuItem>
+							{activeTab === "chat" && (
+								<>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem onClick={handleResetChat}>
+										<RotateCcw className="h-4 w-4 mr-2" />
+										Reset Chat
+									</DropdownMenuItem>
+								</>
+							)}
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			</div>
 
-			<div className="flex-1">
+			<div className="flex-1 min-h-0 overflow-hidden">
 				<Tabs
 					value={activeTab}
 					onValueChange={setActiveTab}
 					className="h-full flex flex-col"
 				>
-					<TabsContent value="chat" className="flex-1 mt-0">
-						<ChatInterface />
+					<TabsContent value="chat" className="flex-1 mt-0 h-full min-h-0 overflow-hidden">
+						<ChatInterface key={chatKey} />
 					</TabsContent>
 
-					<TabsContent value="analysis" className="flex-1 mt-0">
+					<TabsContent value="analysis" className="flex-1 mt-0 h-full overflow-y-auto">
 						<DocumentAnalysis />
 					</TabsContent>
 
-					<TabsContent value="actions" className="flex-1 mt-0">
+					<TabsContent value="actions" className="flex-1 mt-0 h-full overflow-y-auto">
 						<QuickActions />
 					</TabsContent>
 				</Tabs>

@@ -20,7 +20,12 @@ import { UserAvatarForm } from "@saas/settings/components/UserAvatarForm";
 import { UserLanguageForm } from "@saas/settings/components/UserLanguageForm";
 // Import the actual settings components
 import { SettingsList } from "@saas/shared/components/SettingsList";
-import { Dialog, DialogContent } from "@ui/components/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@ui/components/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui/components/tabs";
 import { AlertTriangle, CreditCard, Shield, User } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -50,6 +55,9 @@ export function AccountSettingsModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
+			<DialogHeader>
+				<DialogTitle />
+			</DialogHeader>
 			<DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-4">
 				<div className="flex h-[600px]">
 					{/* Sidebar Navigation */}
