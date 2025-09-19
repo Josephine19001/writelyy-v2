@@ -32,12 +32,14 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { AccountSettingsModal } from "@saas/shared/components/AccountSettingsModal";
 
 export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 	const t = useTranslations();
 	const { user } = useSession();
 	const { setTheme: setCurrentTheme, theme: currentTheme } = useTheme();
 	const [theme, setTheme] = useState<string>(currentTheme ?? "system");
+	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
 	const colorModeOptions = [
 		{
@@ -143,11 +145,9 @@ export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 
 				<DropdownMenuSeparator />
 
-				<DropdownMenuItem asChild>
-					<Link href="/app/settings/general">
-						<SettingsIcon className="mr-2 size-4" />
-						{t("app.userMenu.accountSettings")}
-					</Link>
+				<DropdownMenuItem onSelect={() => setIsSettingsModalOpen(true)}>
+					<SettingsIcon className="mr-2 size-4" />
+					{t("app.userMenu.accountSettings")}
 				</DropdownMenuItem>
 
 				<DropdownMenuItem asChild>
@@ -169,6 +169,11 @@ export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 					{t("app.userMenu.logout")}
 				</DropdownMenuItem>
 			</DropdownMenuContent>
+
+			<AccountSettingsModal 
+				isOpen={isSettingsModalOpen} 
+				onClose={() => setIsSettingsModalOpen(false)} 
+			/>
 		</DropdownMenu>
 	);
 }

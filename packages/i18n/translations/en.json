@@ -334,6 +334,20 @@
 			"createNewWorkspace": "Create new workspace",
 			"title": "Your workspaces"
 		},
+		"dashboard": {
+			"title": "Workspaces",
+			"subtitle": "Manage and access your workspaces",
+			"noWorkspaces": "No workspaces yet",
+			"createFirstWorkspace": "Create your first workspace to get started with collaborative writing.",
+			"createWorkspace": "Create Workspace",
+			"createNew": "New Workspace",
+			"searchPlaceholder": "Search workspaces...",
+			"sortByUpdated": "Recently Updated",
+			"sortByCreated": "Recently Created",
+			"sortByName": "Name",
+			"noWorkspacesFound": "No workspaces found"
+		},
+		"create": "Create Workspace",
 		"roles": {
 			"admin": "Admin",
 			"member": "Member",
@@ -512,6 +526,15 @@
 		"perSeat": "seat"
 	},
 	"settings": {
+		"title": "Account Settings",
+		"general": "General",
+		"security": "Security",
+		"dangerZone": "Danger Zone",
+		"profile": "Profile",
+		"profileDescription": "Update your personal information.",
+		"billingDescription": "Manage your subscription and billing.",
+		"securityDescription": "Manage your account security settings.",
+		"dangerZoneDescription": "Irreversible and destructive actions.",
 		"account": {
 			"avatar": {
 				"description": "To change your avatar click the picture in this block and select a file from your computer to upload.",
@@ -699,6 +722,13 @@
 			}
 		},
 		"save": "Save"
+	},
+	"navigation": {
+		"allWorkspaces": "All Workspaces",
+		"general": "General",
+		"billing": "Billing",
+		"security": "Security",
+		"dangerZone": "Danger Zone"
 	},
 	"start": {
 		"subtitle": "See the latest stats of your awesome business.",

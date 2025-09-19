@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { Button } from "@ui/components/button";
 import { Separator } from "@ui/components/separator";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
+import { WorkspaceDashboard } from "@saas/shared/components/WorkspaceDashboard";
 
 function EditorToolbar({ 
 	onToggleAI, 
@@ -154,6 +156,18 @@ export function EditorPlaceholder({
 	onToggleAI?: () => void;
 	isAIPanelOpen?: boolean; 
 }) {
+	const { activeWorkspace } = useActiveWorkspace();
+	
+	// If no workspace is selected, show workspace dashboard
+	if (!activeWorkspace) {
+		return (
+			<div className="flex flex-col h-full bg-card">
+				<WorkspaceDashboard />
+			</div>
+		);
+	}
+	
+	// If workspace is selected, show editor placeholder
 	return (
 		<div className="flex flex-col h-full bg-card">
 			<EditorToolbar onToggleAI={onToggleAI} isAIPanelOpen={isAIPanelOpen} />

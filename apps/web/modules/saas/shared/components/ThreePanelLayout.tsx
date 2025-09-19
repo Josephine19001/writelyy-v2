@@ -11,6 +11,7 @@ interface ThreePanelLayoutProps {
 	rightPanel: React.ReactNode;
 	className?: string;
 	onAIToggle?: (isOpen: boolean) => void;
+	initialRightPanelCollapsed?: boolean;
 }
 
 interface PanelProps extends PropsWithChildren {
@@ -83,9 +84,9 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
 			{/* AI Icon - Main action to open AI panel */}
 			<Button
-				variant="outline"
+				variant="ghost"
 				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary border-2 border-border shadow-md"
+				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
 				onClick={onExpand}
 				title="Open AI Panel"
 			>
@@ -94,9 +95,9 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 
 			{/* Search Icon */}
 			<Button
-				variant="outline"
+				variant="ghost"
 				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary border-2 border-border shadow-md"
+				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
 				title="Search"
 			>
 				<Search className="h-5 w-5" />
@@ -110,9 +111,9 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
 			{/* File Panel Icon - Main action to open file panel */}
 			<Button
-				variant="outline"
+				variant="ghost"
 				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary border-2 border-border shadow-md"
+				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
 				onClick={onExpand}
 				title="Open File Panel"
 			>
@@ -121,9 +122,9 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 			
 			{/* Quick Search */}
 			<Button
-				variant="outline"
+				variant="ghost"
 				size="sm"
-				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground hover:border-primary border-2 border-border shadow-md"
+				className="h-10 w-10 p-0 bg-background hover:bg-primary hover:text-primary-foreground shadow-md border-0"
 				title="Search"
 			>
 				<Search className="h-5 w-5" />
@@ -137,10 +138,11 @@ export function ThreePanelLayout({
 	rightPanel, 
 	children, 
 	className,
-	onAIToggle 
+	onAIToggle,
+	initialRightPanelCollapsed = false
 }: ThreePanelLayoutProps & PropsWithChildren) {
 	const [leftCollapsed, setLeftCollapsed] = useState(false);
-	const [rightCollapsed, setRightCollapsed] = useState(false);
+	const [rightCollapsed, setRightCollapsed] = useState(initialRightPanelCollapsed);
 
 	const toggleRightPanel = (collapsed: boolean) => {
 		setRightCollapsed(collapsed);

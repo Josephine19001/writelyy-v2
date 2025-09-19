@@ -20,6 +20,7 @@ import {
 } from "@ui/components/dropdown-menu";
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { WorkspaceLogo } from "./WorkspaceLogo";
 
@@ -27,8 +28,11 @@ export function OrganzationSelect({ className }: { className?: string }) {
 	const t = useTranslations();
 	const { user } = useSession();
 	const router = useRouter();
+	const pathname = usePathname();
 	const { activeWorkspace, setActiveWorkspace } = useActiveWorkspace();
 	const { data: allWorkspaces } = useWorkspaceListQuery();
+	
+	const isOnAllWorkspacesRoute = pathname === '/app';
 
 	if (!user) {
 		return null;
@@ -39,7 +43,16 @@ export function OrganzationSelect({ className }: { className?: string }) {
 			<DropdownMenu>
 				<DropdownMenuTrigger className="flex w-full items-center justify-between gap-2 rounded-md border p-2 text-left outline-none focus-visible:bg-primary/10 focus-visible:ring-none">
 					<div className="flex flex-1 items-center justify-start gap-2 text-sm overflow-hidden">
-						{activeWorkspace ? (
+						{isOnAllWorkspacesRoute ? (
+							<>
+								<div className="hidden size-6 sm:flex rounded-md bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center">
+									<ChevronsUpDownIcon className="size-4 text-white" />
+								</div>
+								<span className="block flex-1 truncate">
+									All Workspaces
+								</span>
+							</>
+						) : activeWorkspace ? (
 							<>
 								<WorkspaceLogo
 									name={activeWorkspace.name}
