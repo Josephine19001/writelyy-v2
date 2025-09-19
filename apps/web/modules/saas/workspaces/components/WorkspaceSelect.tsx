@@ -77,6 +77,7 @@ export function OrganzationSelect({ className }: { className?: string }) {
 					<ChevronsUpDownIcon className="block size-4 opacity-50" />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="w-full">
+					{/* Commented out personal account section - workspace-only context
 					{!config.workspaces.requireWorkspace && (
 						<>
 							<DropdownMenuRadioGroup
@@ -110,6 +111,25 @@ export function OrganzationSelect({ className }: { className?: string }) {
 							<DropdownMenuSeparator />
 						</>
 					)}
+					*/}
+					
+					{/* All Workspaces Option */}
+					<DropdownMenuGroup>
+						<DropdownMenuItem
+							asChild
+							className="cursor-pointer text-sm"
+						>
+							<Link href="/app">
+								<div className="flex flex-1 items-center justify-start gap-2">
+									<div className="size-8 rounded-md bg-muted flex items-center justify-center">
+										<ChevronsUpDownIcon className="size-4" />
+									</div>
+									All Workspaces
+								</div>
+							</Link>
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+					<DropdownMenuSeparator />
 					<DropdownMenuRadioGroup
 						value={activeWorkspace?.slug}
 						onValueChange={async (workspaceSlug: string) => {
