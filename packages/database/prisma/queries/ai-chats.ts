@@ -21,15 +21,15 @@ export async function getAiChatsByUserId({
 export async function getAiChatsByWorkspaceId({
 	limit,
 	offset,
-	workspaceId,
+	organizationId,
 }: {
 	limit: number;
 	offset: number;
-	workspaceId: string;
+	organizationId: string;
 }) {
 	return await db.aiChat.findMany({
 		where: {
-			workspaceId,
+			organizationId,
 		},
 		take: limit,
 		skip: offset,
@@ -45,17 +45,17 @@ export async function getAiChatById(id: string) {
 }
 
 export async function createAiChat({
-	workspaceId,
+	organizationId,
 	userId,
 	title,
 }: {
-	workspaceId?: string;
+	organizationId?: string;
 	userId: string;
 	title?: string;
 }) {
 	return await db.aiChat.create({
 		data: {
-			workspaceId,
+			organizationId,
 			userId,
 			title,
 		},

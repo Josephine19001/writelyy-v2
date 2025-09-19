@@ -17,9 +17,9 @@ export const getSession = cache(async () => {
 
 export const getActiveWorkspace = cache(async (slug: string) => {
 	try {
-		const activeWorkspace = await auth.api.getFullWorkspace({
+		const activeWorkspace = await auth.api.getFullOrganization({
 			query: {
-				workspaceSlug: slug,
+				organizationSlug: slug,
 			},
 			headers: await headers(),
 		});
@@ -32,7 +32,7 @@ export const getActiveWorkspace = cache(async (slug: string) => {
 
 export const getWorkspaceList = cache(async () => {
 	try {
-		const workspaceList = await auth.api.listWorkspaces({
+		const workspaceList = await auth.api.listOrganizations({
 			headers: await headers(),
 		});
 

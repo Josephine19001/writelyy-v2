@@ -20,7 +20,7 @@ export default async function AppStartPage() {
 	) {
 		const workspace =
 			workspaces.find(
-				(org) => org.id === session?.session.activeWorkspaceId,
+				(org) => org.id === session?.session.activeOrganizationId,
 			) || workspaces[0];
 
 		if (!workspace) {

@@ -18,7 +18,7 @@ export type UserScalarFieldEnum = z.infer<typeof UserScalarFieldEnumSchema>;
 
 // File: SessionScalarFieldEnum.schema.ts
 
-export const SessionScalarFieldEnumSchema = z.enum(['id', 'expiresAt', 'ipAddress', 'userAgent', 'userId', 'impersonatedBy', 'activeWorkspaceId', 'token', 'createdAt', 'updatedAt'])
+export const SessionScalarFieldEnumSchema = z.enum(['id', 'expiresAt', 'ipAddress', 'userAgent', 'userId', 'impersonatedBy', 'activeOrganizationId', 'token', 'createdAt', 'updatedAt'])
 
 export type SessionScalarFieldEnum = z.infer<typeof SessionScalarFieldEnumSchema>;
 
@@ -54,25 +54,25 @@ export type OrganizationScalarFieldEnum = z.infer<typeof OrganizationScalarField
 
 // File: MemberScalarFieldEnum.schema.ts
 
-export const MemberScalarFieldEnumSchema = z.enum(['id', 'workspaceId', 'userId', 'role', 'createdAt'])
+export const MemberScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'userId', 'role', 'createdAt'])
 
 export type MemberScalarFieldEnum = z.infer<typeof MemberScalarFieldEnumSchema>;
 
 // File: InvitationScalarFieldEnum.schema.ts
 
-export const InvitationScalarFieldEnumSchema = z.enum(['id', 'workspaceId', 'email', 'role', 'status', 'expiresAt', 'inviterId'])
+export const InvitationScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'email', 'role', 'status', 'expiresAt', 'inviterId'])
 
 export type InvitationScalarFieldEnum = z.infer<typeof InvitationScalarFieldEnumSchema>;
 
 // File: PurchaseScalarFieldEnum.schema.ts
 
-export const PurchaseScalarFieldEnumSchema = z.enum(['id', 'workspaceId', 'userId', 'type', 'customerId', 'subscriptionId', 'productId', 'status', 'createdAt', 'updatedAt'])
+export const PurchaseScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'userId', 'type', 'customerId', 'subscriptionId', 'productId', 'status', 'createdAt', 'updatedAt'])
 
 export type PurchaseScalarFieldEnum = z.infer<typeof PurchaseScalarFieldEnumSchema>;
 
 // File: AiChatScalarFieldEnum.schema.ts
 
-export const AiChatScalarFieldEnumSchema = z.enum(['id', 'workspaceId', 'userId', 'title', 'messages', 'createdAt', 'updatedAt'])
+export const AiChatScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'userId', 'title', 'messages', 'createdAt', 'updatedAt'])
 
 export type AiChatScalarFieldEnum = z.infer<typeof AiChatScalarFieldEnumSchema>;
 
@@ -145,7 +145,7 @@ export const SessionSchema = z.object({
   userAgent: z.string().nullish(),
   userId: z.string(),
   impersonatedBy: z.string().nullish(),
-  activeWorkspaceId: z.string().nullish(),
+  activeOrganizationId: z.string().nullish(),
   token: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -239,7 +239,7 @@ export type OrganizationType = z.infer<typeof OrganizationSchema>;
 
 export const MemberSchema = z.object({
   id: z.string(),
-  workspaceId: z.string(),
+  organizationId: z.string(),
   userId: z.string(),
   role: z.string(),
   createdAt: z.date(),
@@ -252,7 +252,7 @@ export type MemberType = z.infer<typeof MemberSchema>;
 
 export const InvitationSchema = z.object({
   id: z.string(),
-  workspaceId: z.string(),
+  organizationId: z.string(),
   email: z.string(),
   role: z.string().nullish(),
   status: z.string(),
@@ -267,7 +267,7 @@ export type InvitationType = z.infer<typeof InvitationSchema>;
 
 export const PurchaseSchema = z.object({
   id: z.string(),
-  workspaceId: z.string().nullish(),
+  organizationId: z.string().nullish(),
   userId: z.string().nullish(),
   type: PurchaseTypeSchema,
   customerId: z.string(),
@@ -285,7 +285,7 @@ export type Purchase = z.infer<typeof PurchaseSchema>;
 
 export const AiChatSchema = z.object({
   id: z.string(),
-  workspaceId: z.string().nullish(),
+  organizationId: z.string().nullish(),
   userId: z.string().nullish(),
   title: z.string().nullish(),
   messages: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("[]"),

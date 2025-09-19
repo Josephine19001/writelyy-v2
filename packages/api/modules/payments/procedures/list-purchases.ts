@@ -16,12 +16,12 @@ export const listPurchases = protectedProcedure
 	})
 	.input(
 		z.object({
-			workspaceId: z.string().optional(),
+			organizationId: z.string().optional(),
 		}),
 	)
-	.handler(async ({ input: { workspaceId }, context: { user } }) => {
-		if (workspaceId) {
-			const purchases = await getPurchasesByWorkspaceId(workspaceId);
+	.handler(async ({ input: { organizationId }, context: { user } }) => {
+		if (organizationId) {
+			const purchases = await getPurchasesByWorkspaceId(organizationId);
 
 			return { purchases };
 		}

@@ -16,14 +16,14 @@ export const listChats = protectedProcedure
 	.input(
 		z
 			.object({
-				workspaceId: z.string().optional(),
+				organizationId: z.string().optional(),
 			})
 			.optional(),
 	)
 	.handler(async ({ input, context }) => {
-		if (input?.workspaceId) {
+		if (input?.organizationId) {
 			const membership = await verifyWorkspaceMembership(
-				input.workspaceId,
+				input.organizationId,
 				context.user.id,
 			);
 
@@ -32,11 +32,11 @@ export const listChats = protectedProcedure
 			}
 		}
 
-		const chats = await (input?.workspaceId
+		const chats = await (input?.organizationId
 			? getAiChatsByWorkspaceId({
 					limit: 10,
 					offset: 0,
-					workspaceId: input.workspaceId,
+					organizationId: input.organizationId,
 				})
 			: getAiChatsByUserId({
 					limit: 10,

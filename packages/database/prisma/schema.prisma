@@ -56,7 +56,7 @@ model Session {
 
     impersonatedBy String?
 
-    activeWorkspaceId String?
+    activeOrganizationId String?
 
     token     String
     createdAt DateTime
@@ -144,21 +144,21 @@ model Organization {
 
 model Member {
     id             String       @id @default(cuid())
-    workspaceId String
-    workspace   Organization @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
     userId         String
     user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
     role           String
     createdAt      DateTime
 
-    @@unique([workspaceId, userId])
+    @@unique([organizationId, userId])
     @@map("member")
 }
 
 model Invitation {
     id             String       @id @default(cuid())
-    workspaceId String
-    workspace   Organization @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
     email          String
     role           String?
     status         String
@@ -176,8 +176,8 @@ enum PurchaseType {
 
 model Purchase {
     id             String        @id @default(cuid())
-    workspace   Organization? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-    workspaceId String?
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    organizationId String?
     user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId         String?
     type           PurchaseType
@@ -194,8 +194,8 @@ model Purchase {
 
 model AiChat {
     id             String        @id @default(cuid())
-    workspaceId String?
-    workspace   Organization? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+    organizationId String?
+    organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
     userId         String?
     user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
     title          String?

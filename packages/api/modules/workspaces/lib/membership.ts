@@ -1,17 +1,17 @@
 import { getWorkspaceMembership } from "@repo/database";
 
 export async function verifyWorkspaceMembership(
-	workspaceId: string,
+	organizationId: string,
 	userId: string,
 ) {
-	const membership = await getWorkspaceMembership(workspaceId, userId);
+	const membership = await getWorkspaceMembership(organizationId, userId);
 
 	if (!membership) {
 		return null;
 	}
 
 	return {
-		workspace: membership.workspace,
+		workspace: membership.organization,
 		role: membership.role,
 	};
 }

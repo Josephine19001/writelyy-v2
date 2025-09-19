@@ -26,9 +26,9 @@ export default async function WorkspaceFormPage({
 	await queryClient.prefetchQuery({
 		queryKey: fullWorkspaceQueryKey(id),
 		queryFn: async () =>
-			await auth.api.getFullWorkspace({
+			await auth.api.getFullOrganization({
 				query: {
-					workspaceId: id,
+					organizationId: id,
 				},
 				headers: await headers(),
 			}),

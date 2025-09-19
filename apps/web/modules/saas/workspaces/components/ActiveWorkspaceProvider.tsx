@@ -41,13 +41,13 @@ export function ActiveWorkspaceProvider({ children }: { children: ReactNode }) {
 	const setActiveWorkspace = async (workspaceSlug: string | null) => {
 		nProgress.start();
 		const { data: newActiveWorkspace } =
-			await authClient.workspace.setActive(
+			await authClient.organization.setActive(
 				workspaceSlug
 					? {
-							workspaceSlug,
+							organizationSlug: workspaceSlug,
 						}
 					: {
-							workspaceId: null,
+							organizationId: null,
 						},
 			);
 
@@ -62,7 +62,7 @@ export function ActiveWorkspaceProvider({ children }: { children: ReactNode }) {
 			await queryClient.prefetchQuery(
 				orpc.payments.listPurchases.queryOptions({
 					input: {
-						workspaceId: newActiveWorkspace.id,
+						organizationId: newActiveWorkspace.id,
 					},
 				}),
 			);
@@ -73,7 +73,7 @@ export function ActiveWorkspaceProvider({ children }: { children: ReactNode }) {
 				...data,
 				session: {
 					...data?.session,
-					activeWorkspaceId: newActiveWorkspace.id,
+					activeOrganizationId: newActiveWorkspace.id,
 				},
 			};
 		});

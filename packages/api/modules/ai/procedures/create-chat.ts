@@ -15,16 +15,16 @@ export const createChat = protectedProcedure
 	.input(
 		z.object({
 			title: z.string().optional(),
-			workspaceId: z.string().optional(),
+			organizationId: z.string().optional(),
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { title, workspaceId } = input;
+		const { title, organizationId } = input;
 		const user = context.user;
 
-		if (workspaceId) {
+		if (organizationId) {
 			const membership = await verifyWorkspaceMembership(
-				workspaceId,
+				organizationId,
 				user.id,
 			);
 
@@ -35,7 +35,7 @@ export const createChat = protectedProcedure
 
 		const chat = await createAiChat({
 			title: title,
-			workspaceId,
+			organizationId,
 			userId: user.id,
 		});
 

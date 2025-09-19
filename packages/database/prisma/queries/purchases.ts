@@ -8,10 +8,10 @@ export async function getPurchaseById(id: string) {
 	});
 }
 
-export async function getPurchasesByWorkspaceId(workspaceId: string) {
+export async function getPurchasesByWorkspaceId(organizationId: string) {
 	return db.purchase.findMany({
 		where: {
-			workspaceId,
+			organizationId,
 		},
 	});
 }

@@ -75,16 +75,16 @@ export const auth = betterAuth({
 				}
 
 				await updateSeatsInWorkspaceSubscription(
-					invitation.workspaceId,
+					invitation.organizationId,
 				);
 			} else if (ctx.path.startsWith("/organization/remove-member")) {
-				const { workspaceId } = ctx.body;
+				const { organizationId } = ctx.body;
 
-				if (!workspaceId) {
+				if (!organizationId) {
 					return;
 				}
 
-				await updateSeatsInWorkspaceSubscription(workspaceId);
+				await updateSeatsInWorkspaceSubscription(organizationId);
 			}
 		}),
 		before: createAuthMiddleware(async (ctx) => {
@@ -93,11 +93,11 @@ export const auth = betterAuth({
 				ctx.path.startsWith("/organization/delete")
 			) {
 				const userId = ctx.context.session?.session.userId;
-				const { workspaceId } = ctx.body;
+				const { organizationId } = ctx.body;
 
-				if (userId || workspaceId) {
-					const purchases = workspaceId
-						? await getPurchasesByWorkspaceId(workspaceId)
+				if (userId || organizationId) {
+					const purchases = organizationId
+						? await getPurchasesByWorkspaceId(organizationId)
 						: // biome-ignore lint/style/noNonNullAssertion: This is a valid case
 							await getPurchasesByUserId(userId!);
 					const subscriptions = purchases.filter(
@@ -220,18 +220,6 @@ export const auth = betterAuth({
 			},
 		}),
 		organization({
-			schema: {
-				member: {
-					fields: {
-						organizationId: "workspaceId"
-					}
-				},
-				invitation: {
-					fields: {
-						organizationId: "workspaceId"
-					}
-				}
-			},
 			sendInvitationEmail: async (
 				{ email, id, organization },
 				request,

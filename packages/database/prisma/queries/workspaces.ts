@@ -52,7 +52,7 @@ export async function getInvitationById(id: string) {
 	return db.invitation.findUnique({
 		where: { id },
 		include: {
-			workspace: true,
+			organization: true,
 		},
 	});
 }
@@ -64,28 +64,28 @@ export async function getWorkspaceBySlug(slug: string) {
 }
 
 export async function getWorkspaceMembership(
-	workspaceId: string,
+	organizationId: string,
 	userId: string,
 ) {
 	return db.member.findUnique({
 		where: {
-			workspaceId_userId: {
-				workspaceId,
+			organizationId_userId: {
+				organizationId,
 				userId,
 			},
 		},
 		include: {
-			workspace: true,
+			organization: true,
 		},
 	});
 }
 
 export async function getWorkspaceWithPurchasesAndMembersCount(
-	workspaceId: string,
+	organizationId: string,
 ) {
 	const workspace = await db.organization.findUnique({
 		where: {
-			id: workspaceId,
+			id: organizationId,
 		},
 		include: {
 			purchases: true,

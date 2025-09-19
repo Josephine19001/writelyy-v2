@@ -25,18 +25,18 @@ export const createCheckoutLink = protectedProcedure
 			type: z.enum(["one-time", "subscription"]),
 			productId: z.string(),
 			redirectUrl: z.string().optional(),
-			workspaceId: z.string().optional(),
+			organizationId: z.string().optional(),
 		}),
 	)
 	.handler(
 		async ({
-			input: { productId, redirectUrl, type, workspaceId },
+			input: { productId, redirectUrl, type, organizationId },
 			context: { user },
 		}) => {
 			const customerId = await getCustomerIdFromEntity(
-				workspaceId
+				organizationId
 					? {
-							workspaceId,
+							workspaceId: organizationId,
 						}
 					: {
 							userId: user.id,
@@ -56,8 +56,8 @@ export const createCheckoutLink = protectedProcedure
 					? price.trialPeriodDays
 					: undefined;
 
-			const workspace = workspaceId
-				? await getWorkspaceById(workspaceId)
+			const workspace = organizationId
+				? await getWorkspaceById(organizationId)
 				: undefined;
 
 			if (workspace === null) {
@@ -76,7 +76,7 @@ export const createCheckoutLink = protectedProcedure
 					email: user.email,
 					name: user.name ?? "",
 					redirectUrl,
-					...(workspaceId ? { workspaceId } : { userId: user.id }),
+					...(organizationId ? { workspaceId: organizationId } : { userId: user.id }),
 					trialPeriodDays,
 					seats,
 					customerId: customerId ?? undefined,

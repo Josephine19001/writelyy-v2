@@ -25,7 +25,7 @@ export default async function Layout({ children }: PropsWithChildren) {
 	if (config.workspaces.enable && config.workspaces.requireWorkspace) {
 		const workspace =
 			workspaces.find(
-				(org) => org.id === session?.session.activeWorkspaceId,
+				(org) => org.id === session?.session.activeOrganizationId,
 			) || workspaces[0];
 
 		if (!workspace) {
@@ -43,7 +43,7 @@ export default async function Layout({ children }: PropsWithChildren) {
 		!hasFreePlan
 	) {
 		const workspaceId = config.workspaces.enable
-			? session?.session.activeWorkspaceId || workspaces?.at(0)?.id
+			? session?.session.activeOrganizationId || workspaces?.at(0)?.id
 			: undefined;
 
 		const [error, data] = await attemptAsync(() =>
