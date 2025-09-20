@@ -1,6 +1,6 @@
 import { config } from "@repo/config";
 import { getActiveWorkspace } from "@saas/auth/lib/server";
-import { AppWrapper } from "@saas/shared/components/AppWrapper";
+import { NewAppWrapper } from "@saas/shared/components/NewAppWrapper";
 import { activeWorkspaceQueryKey } from "@saas/workspaces/lib/api";
 import { orpc } from "@shared/lib/orpc-query-utils";
 import { getServerQueryClient } from "@shared/lib/server";
@@ -40,5 +40,5 @@ export default async function WorkspaceLayout({
 		);
 	}
 
-	return <AppWrapper>{children}</AppWrapper>;
+	return <NewAppWrapper>{children}</NewAppWrapper>;
 }

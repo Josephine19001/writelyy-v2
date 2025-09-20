@@ -70,9 +70,51 @@ export const PurchaseScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'us
 
 export type PurchaseScalarFieldEnum = z.infer<typeof PurchaseScalarFieldEnumSchema>;
 
+// File: FolderScalarFieldEnum.schema.ts
+
+export const FolderScalarFieldEnumSchema = z.enum(['id', 'name', 'organizationId', 'parentFolderId', 'createdAt', 'updatedAt', 'createdBy'])
+
+export type FolderScalarFieldEnum = z.infer<typeof FolderScalarFieldEnumSchema>;
+
+// File: DocumentScalarFieldEnum.schema.ts
+
+export const DocumentScalarFieldEnumSchema = z.enum(['id', 'title', 'content', 'organizationId', 'folderId', 'createdBy', 'lastEditedBy', 'slug', 'description', 'tags', 'isTemplate', 'isPublic', 'wordCount', 'extractedText', 'createdAt', 'updatedAt'])
+
+export type DocumentScalarFieldEnum = z.infer<typeof DocumentScalarFieldEnumSchema>;
+
+// File: DocumentVersionScalarFieldEnum.schema.ts
+
+export const DocumentVersionScalarFieldEnumSchema = z.enum(['id', 'documentId', 'content', 'version', 'createdBy', 'createdAt'])
+
+export type DocumentVersionScalarFieldEnum = z.infer<typeof DocumentVersionScalarFieldEnumSchema>;
+
+// File: DocumentCommentScalarFieldEnum.schema.ts
+
+export const DocumentCommentScalarFieldEnumSchema = z.enum(['id', 'documentId', 'position', 'content', 'authorId', 'isResolved', 'createdAt', 'updatedAt'])
+
+export type DocumentCommentScalarFieldEnum = z.infer<typeof DocumentCommentScalarFieldEnumSchema>;
+
+// File: DocumentShareScalarFieldEnum.schema.ts
+
+export const DocumentShareScalarFieldEnumSchema = z.enum(['id', 'documentId', 'userId', 'email', 'permission', 'token', 'expiresAt', 'createdAt'])
+
+export type DocumentShareScalarFieldEnum = z.infer<typeof DocumentShareScalarFieldEnumSchema>;
+
+// File: SourceScalarFieldEnum.schema.ts
+
+export const SourceScalarFieldEnumSchema = z.enum(['id', 'name', 'organizationId', 'type', 'url', 'filePath', 'originalFileName', 'extractedText', 'metadata', 'processingStatus', 'createdBy', 'createdAt', 'updatedAt'])
+
+export type SourceScalarFieldEnum = z.infer<typeof SourceScalarFieldEnumSchema>;
+
+// File: DocumentSourceScalarFieldEnum.schema.ts
+
+export const DocumentSourceScalarFieldEnumSchema = z.enum(['id', 'documentId', 'sourceId', 'context', 'usage', 'createdAt'])
+
+export type DocumentSourceScalarFieldEnum = z.infer<typeof DocumentSourceScalarFieldEnumSchema>;
+
 // File: AiChatScalarFieldEnum.schema.ts
 
-export const AiChatScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'userId', 'title', 'messages', 'createdAt', 'updatedAt'])
+export const AiChatScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'userId', 'documentId', 'title', 'messages', 'workspaceContext', 'createdAt', 'updatedAt'])
 
 export type AiChatScalarFieldEnum = z.infer<typeof AiChatScalarFieldEnumSchema>;
 
@@ -87,6 +129,12 @@ export type SortOrder = z.infer<typeof SortOrderSchema>;
 export const JsonNullValueInputSchema = z.enum(['JsonNull'])
 
 export type JsonNullValueInput = z.infer<typeof JsonNullValueInputSchema>;
+
+// File: NullableJsonNullValueInput.schema.ts
+
+export const NullableJsonNullValueInputSchema = z.enum(['DbNull', 'JsonNull'])
+
+export type NullableJsonNullValueInput = z.infer<typeof NullableJsonNullValueInputSchema>;
 
 // File: QueryMode.schema.ts
 
@@ -281,14 +329,136 @@ export const PurchaseSchema = z.object({
 export type Purchase = z.infer<typeof PurchaseSchema>;
 
 
+// File: Folder.schema.ts
+
+export const FolderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organizationId: z.string(),
+  parentFolderId: z.string().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  createdBy: z.string(),
+});
+
+export type FolderType = z.infer<typeof FolderSchema>;
+
+
+// File: Document.schema.ts
+
+export const DocumentSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}"),
+  organizationId: z.string(),
+  folderId: z.string().nullish(),
+  createdBy: z.string(),
+  lastEditedBy: z.string().nullish(),
+  slug: z.string().nullish(),
+  description: z.string().nullish(),
+  tags: z.array(z.string()),
+  isTemplate: z.boolean(),
+  isPublic: z.boolean(),
+  wordCount: z.number().int(),
+  extractedText: z.string().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type DocumentType = z.infer<typeof DocumentSchema>;
+
+
+// File: DocumentVersion.schema.ts
+
+export const DocumentVersionSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  content: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10"),
+  version: z.number().int(),
+  createdBy: z.string(),
+  createdAt: z.date(),
+});
+
+export type DocumentVersionType = z.infer<typeof DocumentVersionSchema>;
+
+
+// File: DocumentComment.schema.ts
+
+export const DocumentCommentSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  position: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10"),
+  content: z.string(),
+  authorId: z.string(),
+  isResolved: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type DocumentCommentType = z.infer<typeof DocumentCommentSchema>;
+
+
+// File: DocumentShare.schema.ts
+
+export const DocumentShareSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  userId: z.string().nullish(),
+  email: z.string().nullish(),
+  permission: z.string(),
+  token: z.string().nullish(),
+  expiresAt: z.date().nullish(),
+  createdAt: z.date(),
+});
+
+export type DocumentShareType = z.infer<typeof DocumentShareSchema>;
+
+
+// File: Source.schema.ts
+
+export const SourceSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  organizationId: z.string(),
+  type: z.string(),
+  url: z.string().nullish(),
+  filePath: z.string().nullish(),
+  originalFileName: z.string().nullish(),
+  extractedText: z.string().nullish(),
+  metadata: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}"),
+  processingStatus: z.string().default("pending"),
+  createdBy: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type SourceType = z.infer<typeof SourceSchema>;
+
+
+// File: DocumentSource.schema.ts
+
+export const DocumentSourceSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  sourceId: z.string(),
+  context: z.string().nullish(),
+  usage: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}").nullish(),
+  createdAt: z.date(),
+});
+
+export type DocumentSourceType = z.infer<typeof DocumentSourceSchema>;
+
+
 // File: AiChat.schema.ts
 
 export const AiChatSchema = z.object({
   id: z.string(),
   organizationId: z.string().nullish(),
   userId: z.string().nullish(),
+  documentId: z.string().nullish(),
   title: z.string().nullish(),
   messages: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("[]"),
+  workspaceContext: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}").nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

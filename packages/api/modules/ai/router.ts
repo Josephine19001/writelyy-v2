@@ -1,4 +1,5 @@
 import { addMessageToChat } from "./procedures/add-message-to-chat";
+import { addMessageWithContext } from "./procedures/add-message-with-context";
 import { createChat } from "./procedures/create-chat";
 import { deleteChat } from "./procedures/delete-chat";
 import { findChat } from "./procedures/find-chat";
@@ -14,6 +15,7 @@ export const aiRouter = {
 		delete: deleteChat,
 		messages: {
 			add: addMessageToChat,
+			addWithContext: addMessageWithContext,
 		},
 	},
 };
