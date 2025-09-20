@@ -10,7 +10,8 @@ export const createSource = protectedProcedure
 		path: "/sources",
 		tags: ["Sources"],
 		summary: "Create source",
-		description: "Create a new source (file, image, or URL) in the workspace",
+		description:
+			"Create a new source (file, image, or URL) in the workspace",
 	})
 	.input(
 		z.object({
@@ -20,26 +21,41 @@ export const createSource = protectedProcedure
 			url: z.string().optional(),
 			filePath: z.string().optional(),
 			originalFileName: z.string().optional(),
-			metadata: z.record(z.any()).optional(),
+			metadata: z.record(z.string(), z.any()).optional(),
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { name, organizationId, type, url, filePath, originalFileName, metadata } = input;
+		const {
+			name,
+			organizationId,
+			type,
+			url,
+			filePath,
+			originalFileName,
+			metadata,
+		} = input;
 		const user = context.user;
 
 		// Verify workspace membership
-		const membership = await verifyWorkspaceMembership(organizationId, user.id);
+		const membership = await verifyWorkspaceMembership(
+			organizationId,
+			user.id,
+		);
 		if (!membership) {
 			throw new ORPCError("FORBIDDEN");
 		}
 
 		// Validate input based on type
 		if (type === "url" && !url) {
-			throw new ORPCError("BAD_REQUEST", { message: "URL is required for URL sources" });
+			throw new ORPCError("BAD_REQUEST", {
+				message: "URL is required for URL sources",
+			});
 		}
 
 		if (type !== "url" && !filePath) {
-			throw new ORPCError("BAD_REQUEST", { message: "File path is required for file sources" });
+			throw new ORPCError("BAD_REQUEST", {
+				message: "File path is required for file sources",
+			});
 		}
 
 		const source = await db.source.create({
@@ -69,7 +85,7 @@ export const createSource = protectedProcedure
 		// TODO: Trigger background processing for text extraction
 		// This would typically involve:
 		// - For PDFs: Extract text using pdf-parse or similar
-		// - For DOCs: Extract text using mammoth or similar  
+		// - For DOCs: Extract text using mammoth or similar
 		// - For images: Extract text using OCR (Tesseract)
 		// - For URLs: Scrape and extract content
 
