@@ -4,6 +4,8 @@
 		"plugins": [{ "name": "next" }],
 		"paths": {
 			"@analytics": ["./modules/analytics"],
+			"@shared/tiptap": ["./modules/shared/tiptap"],
+			"@analyticsui/*": ["./modules/saas/shared/*"],
 			"@marketing/*": ["./modules/marketing/*"],
 			"@saas/*": ["./modules/saas/*"],
 			"@ui/*": ["./modules/ui/*"],
