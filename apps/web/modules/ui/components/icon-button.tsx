@@ -1,6 +1,6 @@
-import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 import { cn } from "../lib";
 
 const iconButtonVariants = cva(
@@ -8,16 +8,18 @@ const iconButtonVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: "bg-primary text-primary-foreground hover:bg-primary/90",
+				default:
+					"bg-primary text-primary-foreground hover:bg-primary/90",
 				destructive:
 					"bg-destructive text-destructive-foreground hover:bg-destructive/90",
 				outline:
 					"border border-input bg-background hover:bg-accent hover:text-accent-foreground",
 				secondary:
-					"bg-secondary text-secondary-foreground hover:bg-secondary/80",
-				ghost: "hover:bg-accent hover:text-accent-foreground",
+					"bg-primary text-primary-foreground hover:bg-primary/80",
+				ghost: "hover:bg-primary hover:text-primary-foreground",
 				link: "text-primary underline-offset-4 hover:underline",
-				primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+				primary:
+					"bg-primary text-primary-foreground hover:bg-primary/90",
 				muted: "bg-muted text-muted-foreground hover:bg-muted/80",
 			},
 			size: {
@@ -29,7 +31,7 @@ const iconButtonVariants = cva(
 			},
 			iconSize: {
 				12: "[&>svg]:h-3 [&>svg]:w-3",
-				14: "[&>svg]:h-3.5 [&>svg]:w-3.5", 
+				14: "[&>svg]:h-3.5 [&>svg]:w-3.5",
 				16: "[&>svg]:h-4 [&>svg]:w-4",
 				18: "[&>svg]:h-[18px] [&>svg]:w-[18px]",
 				20: "[&>svg]:h-5 [&>svg]:w-5",
@@ -54,11 +56,16 @@ export interface IconButtonProps
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-	({ className, variant, size, iconSize, asChild = false, icon, ...props }, ref) => {
+	(
+		{ className, variant, size, iconSize, asChild = false, icon, ...props },
+		ref,
+	) => {
 		const Comp = asChild ? Slot : "button";
 		return (
 			<Comp
-				className={cn(iconButtonVariants({ variant, size, iconSize, className }))}
+				className={cn(
+					iconButtonVariants({ variant, size, iconSize, className }),
+				)}
 				ref={ref}
 				{...props}
 			>

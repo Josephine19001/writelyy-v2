@@ -14,11 +14,13 @@ import { toast } from "sonner";
 interface DocumentContextMenuProps {
 	documentId: string;
 	onDelete?: () => void;
+	onRename?: () => void;
 }
 
 export function DocumentContextMenu({
 	documentId,
 	onDelete,
+	onRename,
 }: DocumentContextMenuProps) {
 	const deleteDocumentMutation = useDeleteDocumentMutation();
 
@@ -44,7 +46,7 @@ export function DocumentContextMenu({
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				<DropdownMenuItem>
+				<DropdownMenuItem onClick={onRename}>
 					<Edit className="h-4 w-4 mr-2" />
 					Rename
 				</DropdownMenuItem>

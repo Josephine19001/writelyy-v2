@@ -18,6 +18,7 @@ import {
 	useCreateFolderMutation,
 } from "@saas/lib/api";
 import { toast } from "sonner";
+import { useEditorContext } from "../NewAppWrapper";
 
 interface QuickCreateDialogProps {
 	type: "document" | "folder";
@@ -27,6 +28,7 @@ export function QuickCreateDialog({ type }: QuickCreateDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState("");
 	const { activeWorkspace } = useActiveWorkspace();
+	const { selectedFolderId } = useEditorContext();
 	const createDocumentMutation = useCreateDocumentMutation();
 	const createFolderMutation = useCreateFolderMutation();
 
@@ -39,14 +41,16 @@ export function QuickCreateDialog({ type }: QuickCreateDialogProps) {
 				await createDocumentMutation.mutateAsync({
 					title: name.trim(),
 					organizationId: activeWorkspace.id,
+					folderId: selectedFolderId,
 				});
-				toast.success("Document created successfully");
+				toast.success(`Document created successfully${selectedFolderId ? ' in selected folder' : ''}`);
 			} else {
 				await createFolderMutation.mutateAsync({
 					name: name.trim(),
 					organizationId: activeWorkspace.id,
+					parentFolderId: selectedFolderId,
 				});
-				toast.success("Folder created successfully");
+				toast.success(`Folder created successfully${selectedFolderId ? ' in selected folder' : ''}`);
 			}
 			
 			setName("");

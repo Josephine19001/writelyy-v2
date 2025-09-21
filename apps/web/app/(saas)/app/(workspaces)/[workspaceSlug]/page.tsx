@@ -1,8 +1,6 @@
 import { getActiveWorkspace } from "@saas/auth/lib/server";
-import { PageHeader } from "@saas/shared/components/PageHeader";
-import WorkspaceStart from "@saas/workspaces/components/WorkspaceStart";
+import { WorkspaceEditor } from "@saas/shared/components/WorkspaceEditor";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
 	params,
@@ -14,7 +12,7 @@ export async function generateMetadata({
 	const activeWorkspace = await getActiveWorkspace(workspaceSlug as string);
 
 	return {
-		title: activeWorkspace?.name,
+		title: activeWorkspace?.name || "Workspace",
 	};
 }
 
@@ -24,7 +22,6 @@ export default async function WorkspacePage({
 	params: Promise<{ workspaceSlug: string }>;
 }) {
 	const { workspaceSlug } = await params;
-	const t = await getTranslations();
 
 	const activeWorkspace = await getActiveWorkspace(workspaceSlug as string);
 
@@ -32,14 +29,6 @@ export default async function WorkspacePage({
 		return notFound();
 	}
 
-	return (
-		<div>
-			<PageHeader
-				title={activeWorkspace.name}
-				subtitle={t("workspaces.start.subtitle")}
-			/>
-
-			<WorkspaceStart />
-		</div>
-	);
+	// Return the workspace editor that can interact with the sidebar
+	return <WorkspaceEditor />;
 }

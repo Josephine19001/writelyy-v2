@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 export const documentsQueryKey = (organizationId: string) =>
 	["documents", organizationId] as const;
 export const documentQueryKey = (id: string) => ["document", id] as const;
-export const documentsByFolderQueryKey = (organizationId: string, folderId?: string) =>
+export const documentsByFolderQueryKey = (organizationId: string, folderId?: string | null) =>
 	["documents", organizationId, "folder", folderId] as const;
 
 /*
@@ -27,14 +27,28 @@ export const useDocumentsQuery = (
 	return useQuery({
 		queryKey: documentsQueryKey(organizationId),
 		queryFn: async () => {
-			const { documents, total, hasMore } = await orpcClient.documents.list({
+			// Build the request params, only including defined values
+			const params: any = {
 				organizationId,
-				folderId: options?.folderId,
-				isTemplate: options?.isTemplate,
-				search: options?.search,
 				limit: options?.limit || 50,
 				offset: options?.offset || 0,
-			});
+			};
+
+			// Only add optional parameters if they're defined
+			if (options?.folderId !== undefined) {
+				params.folderId = options.folderId;
+			}
+			if (options?.isTemplate !== undefined) {
+				params.isTemplate = options.isTemplate;
+			}
+			if (options?.search !== undefined) {
+				params.search = options.search;
+			}
+			
+			// Don't pass rootOnly or folderId when we want ALL documents
+			// The backend will return all documents when neither is specified
+
+			const { documents, total, hasMore } = await orpcClient.documents.list(params);
 
 			return { documents, total, hasMore };
 		},
@@ -188,7 +202,7 @@ export const useDeleteDocumentMutation = () => {
  */
 export const useDocumentsByFolderQuery = (
 	organizationId: string,
-	folderId?: string,
+	folderId?: string | null,
 	options?: {
 		enabled?: boolean;
 	}
@@ -198,7 +212,8 @@ export const useDocumentsByFolderQuery = (
 		queryFn: async () => {
 			const { documents } = await orpcClient.documents.list({
 				organizationId,
-				folderId,
+				folderId: folderId || undefined,
+				rootOnly: folderId === null, // Use rootOnly flag when folderId is null
 				limit: 100, // Get all documents in folder
 			});
 

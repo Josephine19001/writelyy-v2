@@ -44,31 +44,44 @@ function RightPanel({ children, className }: PanelProps) {
 
 function ResizeHandle() {
 	return (
-		<PanelResizeHandle className={cn(
-			"w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize",
-			"data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40"
-		)} />
+		<PanelResizeHandle
+			className={cn(
+				"w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize",
+				"data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40",
+			)}
+		/>
 	);
 }
 
-function CollapseButton({ 
-	direction, 
-	isCollapsed, 
-	onClick 
-}: { 
-	direction: "left" | "right"; 
-	isCollapsed: boolean; 
-	onClick: () => void; 
+function CollapseButton({
+	direction,
+	isCollapsed,
+	onClick,
+}: {
+	direction: "left" | "right";
+	isCollapsed: boolean;
+	onClick: () => void;
 }) {
-	const icon = direction === "left" 
-		? (isCollapsed ? <ChevronRight /> : <ChevronLeft />)
-		: (isCollapsed ? <ChevronLeft /> : <ChevronRight />);
+	const icon =
+		direction === "left" ? (
+			isCollapsed ? (
+				<ChevronRight />
+			) : (
+				<ChevronLeft />
+			)
+		) : isCollapsed ? (
+			<ChevronLeft />
+		) : (
+			<ChevronRight />
+		);
 
 	return (
-		<div className={cn(
-			"absolute top-1/2 -translate-y-1/2 z-20",
-			direction === "left" ? "-right-3" : "-left-3"
-		)}>
+		<div
+			className={cn(
+				"absolute top-1/2 -translate-y-1/2 z-20",
+				direction === "left" ? "-right-3" : "-left-3",
+			)}
+		>
 			<IconButton
 				variant="outline"
 				size="sm"
@@ -117,7 +130,7 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 				title="Open File Panel"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
 			/>
-			
+
 			{/* Quick Search */}
 			<IconButton
 				variant="ghost"
@@ -130,16 +143,18 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 	);
 }
 
-export function ThreePanelLayout({ 
-	leftPanel, 
-	rightPanel, 
-	children, 
+export function ThreePanelLayout({
+	leftPanel,
+	rightPanel,
+	children,
 	className,
 	onAIToggle,
-	initialRightPanelCollapsed = false
+	initialRightPanelCollapsed = false,
 }: ThreePanelLayoutProps & PropsWithChildren) {
 	const [leftCollapsed, setLeftCollapsed] = useState(false);
-	const [rightCollapsed, setRightCollapsed] = useState(initialRightPanelCollapsed);
+	const [rightCollapsed, setRightCollapsed] = useState(
+		initialRightPanelCollapsed,
+	);
 
 	const toggleRightPanel = (collapsed: boolean) => {
 		setRightCollapsed(collapsed);
@@ -149,18 +164,24 @@ export function ThreePanelLayout({
 	return (
 		<div className={cn("h-screen bg-background", className)}>
 			<PanelGroup direction="horizontal">
-				{/* Left Panel */}
-				{!leftCollapsed && (
+				{/* Left Panel or Collapsed Left Panel */}
+				{leftCollapsed ? (
+					<Panel defaultSize={3} minSize={3} maxSize={3}>
+						<CollapsedLeftPanel
+							onExpand={() => setLeftCollapsed(false)}
+						/>
+					</Panel>
+				) : (
 					<>
-						<Panel 
-							defaultSize={20} 
-							minSize={15} 
-							maxSize={30}
+						<Panel
+							defaultSize={16}
+							minSize={12}
+							maxSize={25}
 							className="min-w-[200px] relative overflow-visible"
 						>
 							<div className="relative h-full overflow-visible">
 								<LeftPanel>{leftPanel}</LeftPanel>
-								<CollapseButton 
+								<CollapseButton
 									direction="left"
 									isCollapsed={leftCollapsed}
 									onClick={() => setLeftCollapsed(true)}
@@ -171,45 +192,41 @@ export function ThreePanelLayout({
 					</>
 				)}
 
-				{/* Collapsed Left Panel */}
-				{leftCollapsed && (
-					<Panel defaultSize={3} minSize={3} maxSize={3}>
-						<CollapsedLeftPanel onExpand={() => setLeftCollapsed(false)} />
-					</Panel>
-				)}
-
 				{/* Editor Panel - Takes remaining space */}
-				<Panel 
+				<Panel
 					defaultSize={
-						leftCollapsed && rightCollapsed ? 94 : 
-						leftCollapsed ? 72 : 
-						rightCollapsed ? 72 : 55
-					} 
+						leftCollapsed && rightCollapsed
+							? 94
+							: leftCollapsed
+								? 78
+								: rightCollapsed
+									? 81
+									: 64
+					}
 					minSize={30}
 				>
 					<EditorPanel>{children}</EditorPanel>
 				</Panel>
 
-				{/* Collapsed Right Panel */}
-				{rightCollapsed && (
+				{/* Right Panel or Collapsed Right Panel */}
+				{rightCollapsed ? (
 					<Panel defaultSize={3} minSize={3} maxSize={3}>
-						<CollapsedRightPanel onExpand={() => toggleRightPanel(false)} />
+						<CollapsedRightPanel
+							onExpand={() => toggleRightPanel(false)}
+						/>
 					</Panel>
-				)}
-
-				{/* Right Panel */}
-				{!rightCollapsed && (
+				) : (
 					<>
 						<ResizeHandle />
-						<Panel 
-							defaultSize={25} 
-							minSize={20} 
-							maxSize={35}
-							className="min-w-[300px] relative overflow-visible"
+						<Panel
+							defaultSize={20}
+							minSize={15}
+							maxSize={30}
+							className="min-w-[280px] relative overflow-visible"
 						>
 							<div className="relative h-full overflow-visible">
 								<RightPanel>{rightPanel}</RightPanel>
-								<CollapseButton 
+								<CollapseButton
 									direction="right"
 									isCollapsed={rightCollapsed}
 									onClick={() => toggleRightPanel(true)}

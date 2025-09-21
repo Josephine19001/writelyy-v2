@@ -1,34 +1,34 @@
 "use client";
 
 import { UserMenu } from "@saas/shared/components/UserMenu";
-import { Button } from "@ui/components/button";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
+import { IconButton } from "@ui/components/icon-button";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
 	TooltipTrigger,
 } from "@ui/components/tooltip";
-import { Search } from "lucide-react";
-import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
-import { QuickCreateDialog } from "./QuickCreateDialog";
+import { FileText, FolderPlus, Search } from "lucide-react";
+import { useEditorContext } from "../NewAppWrapper";
 
 export function TopIconBar() {
 	const { activeWorkspace } = useActiveWorkspace();
-	
+	const { onInlineCreate, selectedFolderId } = useEditorContext();
+
 	return (
-		<div className="flex items-center justify-between p-3 border-b bg-background">
+		<div className="flex items-center justify-between px-3 py-1 border-b bg-background">
 			<div className="flex items-center space-x-2">
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<Button
+							<IconButton
 								variant="ghost"
-								size="sm"
-								className="h-8 w-8 p-0"
-								disabled={!activeWorkspace}
-							>
-								<Search className="h-4 w-4" />
-							</Button>
+								size="xs"
+								icon={<Search />}
+								onClick={() => {}}
+								className="py-0"
+							/>
 						</TooltipTrigger>
 						<TooltipContent>
 							<p>Search workspace</p>
@@ -40,7 +40,18 @@ export function TopIconBar() {
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<QuickCreateDialog type="document" />
+								<IconButton
+									variant="ghost"
+									size="xs"
+									icon={<FileText />}
+									onClick={() =>
+										onInlineCreate?.(
+											"document",
+											selectedFolderId || undefined,
+										)
+									}
+									className="py-0"
+								/>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p>New document</p>
@@ -53,7 +64,18 @@ export function TopIconBar() {
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<QuickCreateDialog type="folder" />
+								<IconButton
+									variant="ghost"
+									size="xs"
+									icon={<FolderPlus />}
+									onClick={() =>
+										onInlineCreate?.(
+											"folder",
+											selectedFolderId || undefined,
+										)
+									}
+									className="py-0"
+								/>
 							</TooltipTrigger>
 							<TooltipContent>
 								<p>New folder</p>
@@ -66,7 +88,7 @@ export function TopIconBar() {
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className="h-8 w-8">
+						<div>
 							<UserMenu />
 						</div>
 					</TooltipTrigger>

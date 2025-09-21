@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@ui/components/button";
+import { cn } from "@ui/lib";
 import { FileImage } from "lucide-react";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { useSourcesQuery } from "@saas/lib/api";
@@ -58,15 +59,22 @@ export function WorkspaceSourcesList({
 			<div className="space-y-1">
 				{sources.map((source: any) => {
 					const processingStatus = getProcessingStatus(source.processingStatus);
+					const isSelected = selectedSourceId === source.id;
 					
 					return (
 						<div
 							key={source.id}
-							className="group flex items-center justify-between hover:bg-accent rounded-sm"
+							className={cn(
+								"group flex items-center justify-between hover:bg-primary/10 rounded-sm",
+								isSelected && "bg-primary/20"
+							)}
 						>
 							<Button
 								variant="ghost"
-								className="flex-1 justify-start h-auto p-1 px-2 text-sm"
+								className={cn(
+									"flex-1 justify-start h-auto p-1 px-2 text-sm hover:bg-transparent",
+									isSelected && "bg-primary/20"
+								)}
 								onClick={() => onSourceSelect?.(source.id)}
 							>
 								<div className="flex items-center space-x-2 min-w-0">

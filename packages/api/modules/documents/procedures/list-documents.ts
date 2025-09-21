@@ -15,7 +15,8 @@ export const listDocuments = protectedProcedure
 	.input(
 		z.object({
 			organizationId: z.string(),
-			folderId: z.string().optional(),
+			folderId: z.string().nullable().optional(),
+			rootOnly: z.boolean().optional(), // Explicitly filter for root documents only
 			isTemplate: z.boolean().optional(),
 			search: z.string().optional(),
 			limit: z.number().min(1).max(100).default(50),
@@ -23,7 +24,7 @@ export const listDocuments = protectedProcedure
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { organizationId, folderId, isTemplate, search, limit, offset } = input;
+		const { organizationId, folderId, rootOnly, isTemplate, search, limit, offset } = input;
 		const user = context.user;
 
 		// Verify workspace membership
@@ -36,9 +37,14 @@ export const listDocuments = protectedProcedure
 			organizationId,
 		};
 
-		if (folderId !== undefined) {
+		if (rootOnly) {
+			// Explicitly filter for documents with no folder (root level only)
+			where.folderId = null;
+		} else if (folderId !== undefined) {
+			// Filter for documents in a specific folder
 			where.folderId = folderId;
 		}
+		// If neither rootOnly nor folderId is specified, return all documents
 
 		if (isTemplate !== undefined) {
 			where.isTemplate = isTemplate;
