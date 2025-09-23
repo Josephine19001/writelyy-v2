@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@ui/components/alert";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
-import { CheckCircleIcon, KeyIcon } from "lucide-react";
+import { CheckCircleIcon, RocketIcon } from "lucide-react";
 
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
@@ -38,15 +38,15 @@ export function Newsletter() {
 	});
 
 	return (
-		<section className="py-16">
+		<section id="newsletter" className="py-16">
 			<div className="container">
 				<div className="mb-8 text-center">
-					<KeyIcon className="mx-auto mb-3 size-8 text-primary" />
+					<RocketIcon className="mx-auto mb-3 size-8 text-primary" />
 					<h1 className="font-bold text-3xl lg:text-4xl">
-						{t("newsletter.title")}
+						Join the early access program
 					</h1>
 					<p className="mt-3 text-lg opacity-70">
-						{t("newsletter.subtitle")}
+						Be among the first to experience AI-native documentation. Get early access and help shape the future of workplace productivity.
 					</p>
 				</div>
 
@@ -55,10 +55,10 @@ export function Newsletter() {
 						<Alert variant="success">
 							<CheckCircleIcon />
 							<AlertTitle>
-								{t("newsletter.hints.success.title")}
+								Welcome to early access!
 							</AlertTitle>
 							<AlertDescription>
-								{t("newsletter.hints.success.message")}
+								You're all set! We'll send you an invite when Writelyy is ready for beta testing.
 							</AlertDescription>
 						</Alert>
 					) : (
@@ -67,7 +67,7 @@ export function Newsletter() {
 								<Input
 									type="email"
 									required
-									placeholder={t("newsletter.email")}
+									placeholder="Enter your email for early access"
 									{...form.register("email")}
 								/>
 
@@ -76,7 +76,7 @@ export function Newsletter() {
 									className="ml-4"
 									loading={form.formState.isSubmitting}
 								>
-									{t("newsletter.submit")}
+									Join waitlist
 								</Button>
 							</div>
 							{form.formState.errors.email && (

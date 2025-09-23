@@ -6,20 +6,20 @@ export function FaqSection({ className }: { className?: string }) {
 
 	const items = [
 		{
-			question: "What is the refund policy?",
-			answer: "We offer a 30-day money-back guarantee if you're not happy with our product.",
+			question: "How is this different from Google Docs?",
+			answer: "AI is built-in. No switching between tools for writing help.",
 		},
 		{
-			question: "How do I cancel my subscription?",
-			answer: "You can cancel your subscription by visiting the billing page.",
+			question: "When is it ready?",
+			answer: "Soon! Join early access to get notified.",
 		},
 		{
-			question: "Can I change my plan?",
-			answer: "Yes, you can change your plan at any time by visiting the billing page.",
+			question: "Is it hard to learn?",
+			answer: "Nope. Feels just like Google Docs.",
 		},
 		{
-			question: "Do you offer a free trial?",
-			answer: "Yes, we offer a 14-day free trial.",
+			question: "Can I import my docs?",
+			answer: "Yes. Works with Google Docs, Word, and more.",
 		},
 	];
 
@@ -33,11 +33,11 @@ export function FaqSection({ className }: { className?: string }) {
 			id="faq"
 		>
 			<div className="container max-w-5xl">
-				<div className="mb-12 lg:text-center">
+				<div className="mb-12 text-center">
 					<h1 className="mb-2 font-bold text-4xl lg:text-5xl">
-						{t("faq.title")}
+						Quick questions
 					</h1>
-					<p className="text-lg opacity-50">{t("faq.description")}</p>
+					<p className="text-lg opacity-50">The basics, no fluff</p>
 				</div>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					{items.map((item, i) => (
