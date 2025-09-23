@@ -62,7 +62,14 @@ export function canExecuteUndoRedoAction(
 	if (!editor || !editor.isEditable) return false;
 	if (isNodeTypeSelected(editor, ["image"])) return false;
 
-	return action === "undo" ? editor.can().undo() : editor.can().redo();
+	// Check if undo/redo commands are available on the editor
+	try {
+		return action === "undo" ? editor.can().undo() : editor.can().redo();
+	} catch (error) {
+		// If undo/redo is disabled in the editor configuration, the methods won't exist
+		console.warn(`Undo/redo functionality is not available. Make sure to enable it in your editor configuration.`);
+		return false;
+	}
 }
 
 /**
@@ -75,8 +82,14 @@ export function executeUndoRedoAction(
 	if (!editor || !editor.isEditable) return false;
 	if (!canExecuteUndoRedoAction(editor, action)) return false;
 
-	const chain = editor.chain().focus();
-	return action === "undo" ? chain.undo().run() : chain.redo().run();
+	try {
+		const chain = editor.chain().focus();
+		return action === "undo" ? chain.undo().run() : chain.redo().run();
+	} catch (error) {
+		// If undo/redo is disabled in the editor configuration, the methods won't exist
+		console.warn(`Cannot execute ${action}: Undo/redo functionality is not available.`);
+		return false;
+	}
 }
 
 /**

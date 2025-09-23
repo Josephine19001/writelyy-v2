@@ -1,40 +1,36 @@
 "use client";
 
-import * as React from "react";
-import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
-import type { Doc as YDoc } from "yjs";
-import type { TiptapCollabProvider } from "@tiptap-pro/provider";
-import { createPortal } from "react-dom";
-
-// --- Tiptap Core Extensions ---
-import { StarterKit } from "@tiptap/starter-kit";
-import { Mention } from "@tiptap/extension-mention";
-import { TaskList, TaskItem } from "@tiptap/extension-list";
-import { Color, TextStyle } from "@tiptap/extension-text-style";
-import { Placeholder, Selection } from "@tiptap/extensions";
-import { Collaboration, isChangeOrigin } from "@tiptap/extension-collaboration";
-import { CollaborationCaret } from "@tiptap/extension-collaboration-caret";
-import { Typography } from "@tiptap/extension-typography";
-import { Highlight } from "@tiptap/extension-highlight";
-import { Superscript } from "@tiptap/extension-superscript";
-import { Subscript } from "@tiptap/extension-subscript";
-import { TextAlign } from "@tiptap/extension-text-align";
-import { Mathematics } from "@tiptap/extension-mathematics";
-import { Ai } from "@tiptap-pro/extension-ai";
-import { UniqueID } from "@tiptap/extension-unique-id";
-import { Emoji, gitHubEmojis } from "@tiptap/extension-emoji";
-
-// --- Hooks ---
-import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
-import { useScrollToHash } from "@shared/tiptap/components/tiptap-ui/copy-anchor-link-button/use-scroll-to-hash";
-
+import { UiState } from "@shared/tiptap/components/tiptap-extension/ui-state-extension";
 // --- Custom Extensions ---
 import { HorizontalRule } from "@shared/tiptap/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
-import { UiState } from "@shared/tiptap/components/tiptap-extension/ui-state-extension";
 import { Image } from "@shared/tiptap/components/tiptap-node/image-node/image-node-extension";
-
 // --- Tiptap Node ---
 import { ImageUploadNode } from "@shared/tiptap/components/tiptap-node/image-upload-node/image-upload-node-extension";
+import { useScrollToHash } from "@shared/tiptap/components/tiptap-ui/copy-anchor-link-button/use-scroll-to-hash";
+// --- Hooks ---
+import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
+import { Collaboration, isChangeOrigin } from "@tiptap/extension-collaboration";
+import { CollaborationCaret } from "@tiptap/extension-collaboration-caret";
+import { Emoji, gitHubEmojis } from "@tiptap/extension-emoji";
+import { Highlight } from "@tiptap/extension-highlight";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { Mathematics } from "@tiptap/extension-mathematics";
+import { Mention } from "@tiptap/extension-mention";
+import { Subscript } from "@tiptap/extension-subscript";
+import { Superscript } from "@tiptap/extension-superscript";
+import { TextAlign } from "@tiptap/extension-text-align";
+import { Color, TextStyle } from "@tiptap/extension-text-style";
+import { Typography } from "@tiptap/extension-typography";
+import { UniqueID } from "@tiptap/extension-unique-id";
+import { Placeholder, Selection } from "@tiptap/extensions";
+import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
+// --- Tiptap Core Extensions ---
+import { StarterKit } from "@tiptap/starter-kit";
+import { Ai } from "@tiptap-pro/extension-ai";
+import type { TiptapCollabProvider } from "@tiptap-pro/provider";
+import * as React from "react";
+import { createPortal } from "react-dom";
+import type { Doc as YDoc } from "yjs";
 import "@shared/tiptap/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "@shared/tiptap/components/tiptap-node/code-block-node/code-block-node.scss";
 import "@shared/tiptap/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
@@ -43,28 +39,26 @@ import "@shared/tiptap/components/tiptap-node/image-node/image-node.scss";
 import "@shared/tiptap/components/tiptap-node/heading-node/heading-node.scss";
 import "@shared/tiptap/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
+import { AiMenu } from "@shared/tiptap/components/tiptap-ui/ai-menu";
+import { DragContextMenu } from "@shared/tiptap/components/tiptap-ui/drag-context-menu";
 // --- Tiptap UI ---
 import { EmojiDropdownMenu } from "@shared/tiptap/components/tiptap-ui/emoji-dropdown-menu";
 import { MentionDropdownMenu } from "@shared/tiptap/components/tiptap-ui/mention-dropdown-menu";
 import { SlashDropdownMenu } from "@shared/tiptap/components/tiptap-ui/slash-dropdown-menu";
-import { DragContextMenu } from "@shared/tiptap/components/tiptap-ui/drag-context-menu";
-import { AiMenu } from "@shared/tiptap/components/tiptap-ui/ai-menu";
-
+import { AiProvider, useAi } from "@shared/tiptap/contexts/ai-context";
 // --- Contexts ---
 import { AppProvider } from "@shared/tiptap/contexts/app-context";
-import { UserProvider, useUser } from "@shared/tiptap/contexts/user-context";
 import {
 	CollabProvider,
 	useCollab,
 } from "@shared/tiptap/contexts/collab-context";
-import { AiProvider, useAi } from "@shared/tiptap/contexts/ai-context";
-
+import { UserProvider, useUser } from "@shared/tiptap/contexts/user-context";
+import { TIPTAP_AI_APP_ID } from "@shared/tiptap/lib/tiptap-collab-utils";
 // --- Lib ---
 import {
 	handleImageUpload,
 	MAX_FILE_SIZE,
 } from "@shared/tiptap/lib/tiptap-utils";
-import { TIPTAP_AI_APP_ID } from "@shared/tiptap/lib/tiptap-collab-utils";
 
 // --- Styles ---
 import "@analyticsui/components/tiptap-templates/notion-like/notion-like-editor.scss";
@@ -80,7 +74,7 @@ export interface NotionEditorProps {
 }
 
 export interface EditorProviderProps {
-	provider: TiptapCollabProvider;
+	provider: TiptapCollabProvider | null;
 	ydoc: YDoc;
 	placeholder?: string;
 	aiToken: string | null;
@@ -184,7 +178,9 @@ export function EditorProvider(props: EditorProviderProps) {
 		},
 		extensions: [
 			StarterKit.configure({
-				undoRedo: false,
+				// Enable undo/redo when not using collaboration
+				// When using collaboration, undo/redo should be disabled to avoid conflicts
+				undoRedo: provider ? false : {},
 				horizontalRule: false,
 				dropcursor: {
 					width: 2,
@@ -193,11 +189,19 @@ export function EditorProvider(props: EditorProviderProps) {
 			}),
 			HorizontalRule,
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
-			Collaboration.configure({ document: ydoc }),
-			CollaborationCaret.configure({
-				provider,
-				user: { id: user.id, name: user.name, color: user.color },
-			}),
+			...(provider
+				? [
+						Collaboration.configure({ document: ydoc }),
+						CollaborationCaret.configure({
+							provider,
+							user: {
+								id: user.id,
+								name: user.name,
+								color: user.color,
+							},
+						}),
+					]
+				: []),
 			Placeholder.configure({
 				placeholder,
 				emptyNodeClass: "is-empty with-slash",
@@ -241,29 +245,33 @@ export function EditorProvider(props: EditorProviderProps) {
 			}),
 			Typography,
 			UiState,
-			Ai.configure({
-				appId: TIPTAP_AI_APP_ID,
-				token: aiToken || undefined,
-				autocompletion: false,
-				showDecorations: true,
-				hideDecorationsOnStreamEnd: false,
-				onLoading: (context) => {
-					context.editor.commands.aiGenerationSetIsLoading(true);
-					context.editor.commands.aiGenerationHasMessage(false);
-				},
-				onChunk: (context) => {
-					context.editor.commands.aiGenerationSetIsLoading(true);
-					context.editor.commands.aiGenerationHasMessage(true);
-				},
-				onSuccess: (context) => {
-					const hasMessage = !!context.response;
-					context.editor.commands.aiGenerationSetIsLoading(false);
-					context.editor.commands.aiGenerationHasMessage(hasMessage);
-				},
-			}),
+			// Only include AI extension if we have a token
+			...(aiToken ? [
+				Ai.configure({
+					appId: TIPTAP_AI_APP_ID,
+					token: aiToken,
+					autocompletion: false,
+					showDecorations: true,
+					hideDecorationsOnStreamEnd: false,
+					onLoading: (context) => {
+						context.editor.commands.aiGenerationSetIsLoading(true);
+						context.editor.commands.aiGenerationHasMessage(false);
+					},
+					onChunk: (context) => {
+						context.editor.commands.aiGenerationSetIsLoading(true);
+						context.editor.commands.aiGenerationHasMessage(true);
+					},
+					onSuccess: (context) => {
+						const hasMessage = !!context.response;
+						context.editor.commands.aiGenerationSetIsLoading(false);
+						context.editor.commands.aiGenerationHasMessage(hasMessage);
+					},
+				}),
+			] : []),
 		],
 	});
 
+	console.log("--editor", editor);
 	if (!editor) {
 		return <LoadingSpinner />;
 	}
@@ -305,13 +313,17 @@ export function NotionEditorContent({ placeholder }: { placeholder?: string }) {
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
 
-	if (!provider || !aiToken) {
+	// Since collaboration is disabled, only wait for AI token (if needed)
+	// If AI token is null, we'll just disable AI features but still show editor
+	const isWaitingForRequiredTokens = false; // No required tokens for now
+	
+	if (isWaitingForRequiredTokens) {
 		return <LoadingSpinner />;
 	}
 
 	return (
 		<EditorProvider
-			provider={provider}
+			provider={provider || null}
 			ydoc={ydoc}
 			placeholder={placeholder}
 			aiToken={aiToken}
