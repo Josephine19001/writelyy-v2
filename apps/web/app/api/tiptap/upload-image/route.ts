@@ -1,96 +1,119 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { v4 as uuidv4 } from 'uuid'
-import { auth } from '@repo/auth'
-import { headers } from 'next/headers'
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
 const s3Client = new S3Client({
-  region: process.env.S3_REGION || 'eu-north-1',
-  endpoint: process.env.S3_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
-  },
-  forcePathStyle: true, // Required for Supabase S3
-})
+	region: process.env.S3_REGION || "eu-north-1",
+	endpoint: process.env.S3_ENDPOINT,
+	credentials: {
+		accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+		secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+	},
+	forcePathStyle: true, // Required for Supabase S3
+});
 
 export async function POST(request: NextRequest) {
-  try {
-    // Get the authenticated user
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    })
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+	console.log("=== Image Upload API Called ===");
+	console.log("Environment variables:", {
+		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+		S3_ENDPOINT: process.env.S3_ENDPOINT,
+		NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME: process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME
+	});
+	try {
+		// Get the authenticated user
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		});
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
-    }
+		if (!session?.user?.id) {
+			return NextResponse.json(
+				{ error: "Unauthorized" },
+				{ status: 401 },
+			);
+		}
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Only images are allowed.' },
-        { status: 400 }
-      )
-    }
+		const formData = await request.formData();
+		const file = formData.get("file") as File;
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'File too large. Maximum size is 10MB.' },
-        { status: 400 }
-      )
-    }
+		if (!file) {
+			return NextResponse.json(
+				{ error: "No file provided" },
+				{ status: 400 },
+			);
+		}
 
-    // Generate user-specific file path
-    const fileExtension = file.name.split('.').pop()
-    const fileName = `users/${session.user.id}/editor-images/${Date.now()}-${uuidv4()}.${fileExtension}`
-    
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+		// Validate file type
+		const allowedTypes = [
+			"image/jpeg",
+			"image/jpg",
+			"image/png",
+			"image/gif",
+			"image/webp",
+		];
+		if (!allowedTypes.includes(file.type)) {
+			return NextResponse.json(
+				{ error: "Invalid file type. Only images are allowed." },
+				{ status: 400 },
+			);
+		}
 
-    // Upload to documents bucket
-    const uploadCommand = new PutObjectCommand({
-      Bucket: process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME || 'documents',
-      Key: fileName,
-      Body: buffer,
-      ContentType: file.type,
-      ACL: 'public-read', // Make images publicly accessible
-    })
+		// Validate file size (max 10MB)
+		const maxSize = 10 * 1024 * 1024; // 10MB
+		if (file.size > maxSize) {
+			return NextResponse.json(
+				{ error: "File too large. Maximum size is 10MB." },
+				{ status: 400 },
+			);
+		}
 
-    await s3Client.send(uploadCommand)
+		// Generate user-specific file path
+		const fileExtension = file.name.split(".").pop();
+		const fileName = `users/${session.user.id}/editor-images/${Date.now()}-${uuidv4()}.${fileExtension}`;
 
-    // Return the public URL
-    const publicUrl = `${process.env.S3_ENDPOINT}/object/public/${process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME}/${fileName}`
+		// Convert file to buffer
+		const bytes = await file.arrayBuffer();
+		const buffer = Buffer.from(bytes);
 
-    return NextResponse.json({
-      success: true,
-      url: publicUrl,
-      filename: fileName,
-      size: file.size,
-      type: file.type
-    })
+		// Upload to documents bucket
+		const bucketName = process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME || "document-images";
+		const uploadCommand = new PutObjectCommand({
+			Bucket: bucketName,
+			Key: fileName,
+			Body: buffer,
+			ContentType: file.type,
+			// Note: ACL is not supported in Supabase S3
+		});
 
-  } catch (error) {
-    console.error('Error uploading image:', error)
-    return NextResponse.json(
-      { error: 'Failed to upload image' },
-      { status: 500 }
-    )
-  }
+		console.log("Uploading to bucket:", bucketName, "with key:", fileName);
+		await s3Client.send(uploadCommand);
+		console.log("Upload successful");
+
+		// Return the correct Supabase Storage public URL
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+		if (!supabaseUrl) {
+			throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is not set");
+		}
+		const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+
+		return NextResponse.json({
+			success: true,
+			url: publicUrl,
+			filename: fileName,
+			size: file.size,
+			type: file.type,
+		});
+	} catch (error) {
+		console.error("Error uploading image:", error);
+		console.error("S3 Config:", {
+			endpoint: process.env.S3_ENDPOINT,
+			region: process.env.S3_REGION,
+			bucket: process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME,
+		});
+		return NextResponse.json(
+			{ error: "Failed to upload image", details: error instanceof Error ? error.message : "Unknown error" },
+			{ status: 500 },
+		);
+	}
 }

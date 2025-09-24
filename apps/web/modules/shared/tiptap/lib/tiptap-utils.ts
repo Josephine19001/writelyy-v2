@@ -302,17 +302,65 @@ export const handleImageUpload = async (
     )
   }
 
-  // For demo/testing: Simulate upload progress. In production, replace the following code
-  // with your own upload implementation.
-  for (let progress = 0; progress <= 100; progress += 10) {
-    if (abortSignal?.aborted) {
-      throw new Error("Upload cancelled")
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    onProgress?.({ progress })
-  }
+  try {
+    // Create FormData for the upload
+    const formData = new FormData()
+    formData.append("file", file)
 
-  return "/images/tiptap-ui-placeholder-image.jpg"
+    // Create XMLHttpRequest to support progress tracking
+    return new Promise<string>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+
+      // Handle abort signal
+      if (abortSignal) {
+        abortSignal.addEventListener("abort", () => {
+          xhr.abort()
+          reject(new Error("Upload cancelled"))
+        })
+      }
+
+      // Track upload progress
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100)
+          onProgress({ progress })
+        }
+      })
+
+      // Handle successful response
+      xhr.addEventListener("load", () => {
+        if (xhr.status === 200) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.success && response.url) {
+              resolve(response.url)
+            } else {
+              reject(new Error(response.error || "Upload failed"))
+            }
+          } catch (error) {
+            reject(new Error("Invalid response format"))
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`))
+        }
+      })
+
+      // Handle errors
+      xhr.addEventListener("error", () => {
+        reject(new Error("Network error during upload"))
+      })
+
+      xhr.addEventListener("abort", () => {
+        reject(new Error("Upload cancelled"))
+      })
+
+      // Start the upload
+      xhr.open("POST", "/api/tiptap/upload-image")
+      xhr.send(formData)
+    })
+  } catch (error) {
+    throw new Error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
 }
 
 type ProtocolOptions = {

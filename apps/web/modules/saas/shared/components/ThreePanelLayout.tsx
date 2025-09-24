@@ -12,6 +12,7 @@ interface ThreePanelLayoutProps {
 	className?: string;
 	onAIToggle?: (isOpen: boolean) => void;
 	initialRightPanelCollapsed?: boolean;
+	initialLeftPanelCollapsed?: boolean;
 }
 
 interface PanelProps extends PropsWithChildren {
@@ -150,8 +151,9 @@ export function ThreePanelLayout({
 	className,
 	onAIToggle,
 	initialRightPanelCollapsed = false,
+	initialLeftPanelCollapsed = false,
 }: ThreePanelLayoutProps & PropsWithChildren) {
-	const [leftCollapsed, setLeftCollapsed] = useState(false);
+	const [leftCollapsed, setLeftCollapsed] = useState(initialLeftPanelCollapsed);
 	const [rightCollapsed, setRightCollapsed] = useState(
 		initialRightPanelCollapsed,
 	);

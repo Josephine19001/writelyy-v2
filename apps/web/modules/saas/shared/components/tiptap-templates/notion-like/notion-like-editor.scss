@@ -1,5 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
+// Import the variables to ensure all CSS variables are available
+@import "@shared/tiptap/styles/_variables.scss";
+
 body {
   --tt-toolbar-height: 44px;
   --tt-theme-text: var(--tt-gray-light-900);
@@ -82,6 +85,40 @@ body,
   .notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
     padding: 1.5rem 1.5rem 30vh;
   }
+}
+
+// Enhanced paragraph selection styles
+.notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+  // Ensure paragraph nodes are selectable
+  p {
+    cursor: text;
+    position: relative;
+    
+    // Make selection more visible when paragraph is selected
+    &.ProseMirror-selectednode {
+      background-color: var(--tt-selection-color);
+      border-radius: var(--tt-radius-sm);
+      outline: 2px solid rgba(157, 138, 255, 0.3);
+      outline-offset: 2px;
+    }
+  }
+  
+  // Improve general text selection visibility
+  ::selection {
+    background-color: var(--tt-selection-color);
+  }
+  
+  .selection {
+    background-color: var(--tt-selection-color);
+    border-radius: 2px;
+  }
+}
+
+// Ensure floating toolbar has proper background
+.tiptap-toolbar[data-variant="floating"] {
+  background-color: var(--tt-toolbar-bg-color) !important;
+  border: 1px solid var(--tt-toolbar-border-color) !important;
+  box-shadow: var(--tt-shadow-elevated-md) !important;
 }
 
 // Spinner

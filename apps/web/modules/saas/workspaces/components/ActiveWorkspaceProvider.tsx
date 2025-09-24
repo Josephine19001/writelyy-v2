@@ -79,6 +79,7 @@ export function ActiveWorkspaceProvider({ children }: { children: ReactNode }) {
 		});
 
 		router.push(`/app/${newActiveWorkspace.slug}`);
+		nProgress.done();
 	};
 
 	const [loaded, setLoaded] = useState(activeWorkspace !== undefined);

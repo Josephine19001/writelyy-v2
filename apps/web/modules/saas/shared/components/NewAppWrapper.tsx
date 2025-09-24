@@ -5,6 +5,7 @@ import { LeftSidebar } from "@saas/shared/components/LeftSidebar";
 import { RightAIPanel } from "@saas/shared/components/RightAIPanel";
 import { useState, useEffect, type PropsWithChildren, createContext, useContext } from "react";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
+import { WorkspaceWelcome } from "./WorkspaceWelcome";
 
 // Context for editor interactions
 interface EditorContextType {
@@ -77,8 +78,9 @@ export function NewAppWrapper({ children }: PropsWithChildren) {
 					rightPanel={<RightAIPanel />}
 					onAIToggle={setIsAIPanelOpen}
 					initialRightPanelCollapsed={true}
+					initialLeftPanelCollapsed={!activeWorkspace}
 				>
-					{children}
+					{!activeWorkspace ? <WorkspaceWelcome /> : children}
 				</ThreePanelLayout>
 			</div>
 		</EditorContext.Provider>

@@ -1,11 +1,11 @@
 :root {
   --tt-notion-like-editor-header-border: var(--tt-gray-light-a-200);
-  --tt-notion-like-editor-header-bg: var(--white);
+  --tt-notion-like-editor-header-bg: hsl(var(--background));
 }
 
 .dark {
   --tt-notion-like-editor-header-border: var(--tt-gray-dark-a-200);
-  --tt-notion-like-editor-header-bg: var(--black);
+  --tt-notion-like-editor-header-bg: hsl(var(--background));
 }
 
 .notion-like-editor-header {
@@ -13,17 +13,161 @@
   top: 0;
   width: 100%;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  height: 3rem;
-  padding: 0.5rem 0.75rem;
+  justify-content:center;
+  min-height: 3.5rem;
+  padding: 0.75rem;
   z-index: 50;
   background-color: var(--tt-notion-like-editor-header-bg);
   border-bottom: 1px solid var(--tt-notion-like-editor-header-border);
+  flex-wrap: nowrap;
+  gap: 1rem;
+
+  &-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    gap: 0.5rem;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-right: 0.5rem;
+    white-space: nowrap;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    // Force all direct children to display horizontally
+    > * {
+      flex-shrink: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      vertical-align: middle !important;
+    }
+
+    // Force button groups to stay horizontal with highest specificity
+    .tiptap-button-group {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 0.125rem !important;
+      flex-shrink: 0 !important;
+      flex-wrap: nowrap !important;
+      
+      // Override any orientation data attributes
+      &[data-orientation="vertical"] {
+        flex-direction: row !important;
+        align-items: center !important;
+      }
+      
+      > * {
+        display: inline-flex !important;
+        flex-shrink: 0 !important;
+      }
+    }
+
+    // Force separators to display inline
+    [class*="separator"],
+    .tiptap-separator,
+    .separator {
+      display: inline-block !important;
+      flex-shrink: 0 !important;
+      height: 1.5rem !important;
+      width: 1px !important;
+      margin: 0 0.25rem !important;
+      vertical-align: middle !important;
+    }
+
+    // Force dropdown components to stay inline
+    [class*="dropdown"],
+    [class*="popover"] {
+      display: inline-flex !important;
+      flex-shrink: 0 !important;
+    }
+  }
 
   &-actions {
     display: flex;
     align-items: center;
     flex-direction: row;
     gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  // Hide spacer as we're using flex gap
+  .spacer {
+    display: none;
+  }
+
+  // Mobile responsive design - only wrap when absolutely necessary
+  @media (max-width: 900px) {
+    min-height: auto;
+    flex-wrap: wrap;
+    
+    &-toolbar {
+      order: 2;
+      width: 100%;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--tt-notion-like-editor-header-border);
+      gap: 0.25rem;
+      flex-direction: row;
+      
+      .tiptap-separator {
+        margin: 0 0.125rem;
+      }
+    }
+
+    &-actions {
+      order: 1;
+      margin-left: auto;
+      flex-direction: row;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+    
+    &-toolbar {
+      gap: 0.25rem;
+      padding-top: 0.5rem;
+      
+      .tiptap-button-group {
+        gap: 0.125rem;
+      }
+      
+      .tiptap-separator {
+        margin: 0 0.125rem;
+      }
+    }
+  }
+}
+
+// Emergency override to force horizontal layout - highest specificity
+.notion-like-editor-header .notion-like-editor-toolbar {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+
+  > * {
+    display: inline-flex !important;
+    flex-shrink: 0 !important;
+  }
+
+  .tiptap-button-group,
+  [data-radix-popper-content-wrapper],
+  [class*="button-group"] {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .tiptap-separator,
+  [class*="separator"] {
+    display: inline-block !important;
   }
 }

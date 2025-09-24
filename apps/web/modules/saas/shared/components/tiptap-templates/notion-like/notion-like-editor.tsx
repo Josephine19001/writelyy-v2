@@ -171,21 +171,43 @@ export function EditorProvider(props: EditorProviderProps) {
 	const editor = useEditor({
 		immediatelyRender: false,
 		shouldRerenderOnTransaction: false,
+		enableInputRules: true,
+		enablePasteRules: true,
+		enableCoreExtensions: true,
 		editorProps: {
 			attributes: {
 				class: "notion-like-editor",
+			},
+			handleKeyDown: (view, event) => {
+				// Allow default behavior for all keys to ensure proper functionality
+				return false;
 			},
 		},
 		extensions: [
 			StarterKit.configure({
 				// Enable undo/redo when not using collaboration
 				// When using collaboration, undo/redo should be disabled to avoid conflicts
-				undoRedo: provider ? false : {},
+				history: provider ? false : {},
 				horizontalRule: false,
 				dropcursor: {
 					width: 2,
 				},
-				link: { openOnClick: false },
+				// Ensure all essential extensions are enabled
+				paragraph: {},
+				heading: {},
+				bulletList: {},
+				orderedList: {},
+				listItem: {},
+				blockquote: {},
+				codeBlock: {},
+				bold: {},
+				italic: {},
+				strike: {},
+				code: {},
+				// Essential for proper text transformation
+				gapcursor: {},
+				document: {},
+				text: {},
 			}),
 			HorizontalRule,
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -221,7 +243,11 @@ export function EditorProvider(props: EditorProviderProps) {
 			TaskList,
 			TaskItem.configure({ nested: true }),
 			Highlight.configure({ multicolor: true }),
-			Selection,
+			Selection.configure({
+				// Ensure the selection extension can handle node selection properly
+				createSelectionBetween: () => null,
+				disableClick: false,
+			}),
 			Image,
 			ImageUploadNode.configure({
 				accept: "image/*",
