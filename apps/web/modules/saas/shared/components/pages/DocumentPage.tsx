@@ -2,6 +2,7 @@
 
 import { useDocumentQuery } from "@saas/lib/api";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
+import { debounce } from "lodash";
 import React, { useEffect, useState } from "react";
 import {
 	useDocumentKeyboardNavigation,
@@ -58,21 +59,15 @@ export function DocumentPage({
 	const [isSaving, setIsSaving] = useState(false);
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-	// Auto-save document changes
-	const handleDocumentChange = React.useCallback(
+	// Save function
+	const saveDocument = React.useCallback(
 		async (content: any) => {
 			if (!document) return;
 
 			try {
+				console.log("=== Starting document save ===");
+				console.log("Document ID:", document.id);
 				setIsSaving(true);
-
-				// Optimistic update
-				const updatedDoc = {
-					...document,
-					content,
-					updatedAt: new Date().toISOString(),
-				};
-				updateDocumentCache(updatedDoc);
 
 				// Save to server
 				await updateDocument.mutateAsync({
@@ -80,6 +75,7 @@ export function DocumentPage({
 					content,
 				});
 
+				console.log("Document saved successfully");
 				setLastSaved(new Date());
 			} catch (error) {
 				console.error("Failed to save document:", error);
@@ -87,8 +83,45 @@ export function DocumentPage({
 				setIsSaving(false);
 			}
 		},
-		[document, updateDocumentCache, updateDocument],
+		[document, updateDocument],
 	);
+
+	// Debounced save function
+	const debouncedSave = React.useMemo(
+		() => debounce(saveDocument, 1000),
+		[saveDocument],
+	);
+
+	// Auto-save document changes with debouncing
+	const handleDocumentChange = React.useCallback(
+		(content: any) => {
+			if (!document) return;
+			
+			console.log("=== Document change detected ===");
+			console.log("Document ID:", document.id);
+			console.log("Content:", content);
+
+			// Optimistic update immediately
+			const updatedDoc = {
+				...document,
+				content,
+				updatedAt: new Date().toISOString(),
+			};
+			updateDocumentCache(updatedDoc);
+
+			// Debounced save to server
+			console.log("Calling debounced save...");
+			debouncedSave(content);
+		},
+		[document, updateDocumentCache, debouncedSave],
+	);
+
+	// Cleanup debounced function on unmount
+	React.useEffect(() => {
+		return () => {
+			debouncedSave.cancel();
+		};
+	}, [debouncedSave]);
 
 	// Share document functionality
 	const handleShare = React.useCallback(() => {
@@ -202,6 +235,8 @@ export function DocumentPage({
 						<NotionEditor
 							room={document.id}
 							placeholder="Start writing..."
+							initialContent={document.content}
+							onChange={handleDocumentChange}
 						/>
 					</div>
 				</div>

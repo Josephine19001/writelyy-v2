@@ -1,7 +1,7 @@
 "use client";
 
 import { AiSparklesIcon } from "@shared/tiptap/components/tiptap-icons/ai-sparkles-icon";
-import { AtSignIcon } from "@shared/tiptap/components/tiptap-icons/at-sign-icon";
+// import { AtSignIcon } from "@shared/tiptap/components/tiptap-icons/at-sign-icon";
 import { BlockquoteIcon } from "@shared/tiptap/components/tiptap-icons/blockquote-icon";
 // --- Icons ---
 import { CodeBlockIcon } from "@shared/tiptap/components/tiptap-icons/code-block-icon";
@@ -16,7 +16,7 @@ import { MinusIcon } from "@shared/tiptap/components/tiptap-icons/minus-icon";
 import { SmilePlusIcon } from "@shared/tiptap/components/tiptap-icons/smile-plus-icon";
 import { TypeIcon } from "@shared/tiptap/components/tiptap-icons/type-icon";
 import { addEmojiTrigger } from "@shared/tiptap/components/tiptap-ui/emoji-trigger-button";
-import { addMentionTrigger } from "@shared/tiptap/components/tiptap-ui/mention-trigger-button";
+// import { addMentionTrigger } from "@shared/tiptap/components/tiptap-ui/mention-trigger-button";
 // --- Tiptap UI ---
 import type { SuggestionItem } from "@shared/tiptap/components/tiptap-ui-utils/suggestion-menu";
 import {
@@ -123,13 +123,13 @@ const texts = {
 	},
 
 	// Insert
-	mention: {
-		title: "Mention",
-		subtext: "Mention a user or item",
-		keywords: ["mention", "user", "item", "tag"],
-		badge: AtSignIcon,
-		group: "Insert",
-	},
+	// mention: {
+	// 	title: "Mention",
+	// 	subtext: "Mention a user or item",
+	// 	keywords: ["mention", "user", "item", "tag"],
+	// 	badge: AtSignIcon,
+	// 	group: "Insert",
+	// },
 	emoji: {
 		title: "Emoji",
 		subtext: "Insert an emoji",
@@ -293,12 +293,12 @@ const getItemImplementations = () => {
 		},
 
 		// Insert
-		mention: {
-			check: (editor: Editor) =>
-				isExtensionAvailable(editor, ["mention", "mentionAdvanced"]),
-			action: ({ editor }: { editor: Editor }) =>
-				addMentionTrigger(editor),
-		},
+		// mention: {
+		// 	check: (editor: Editor) =>
+		// 		isExtensionAvailable(editor, ["mention", "mentionAdvanced"]),
+		// 	action: ({ editor }: { editor: Editor }) =>
+		// 		addMentionTrigger(editor),
+		// },
 		emoji: {
 			check: (editor: Editor) =>
 				isExtensionAvailable(editor, ["emoji", "emojiPicker"]),

@@ -466,7 +466,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 					const filename =
 						files[index]?.name.replace(/\.[^/.]+$/, "") ||
 						"unknown";
-					return {
+					const imageNode = {
 						type: extension.options.type,
 						attrs: {
 							...extension.options,
@@ -475,6 +475,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 							title: filename,
 						},
 					};
+					return imageNode;
 				});
 
 				props.editor

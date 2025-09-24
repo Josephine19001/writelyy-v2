@@ -15,7 +15,7 @@ import { Emoji, gitHubEmojis } from "@tiptap/extension-emoji";
 import { Highlight } from "@tiptap/extension-highlight";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Mathematics } from "@tiptap/extension-mathematics";
-import { Mention } from "@tiptap/extension-mention";
+// import { Mention } from "@tiptap/extension-mention";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { TextAlign } from "@tiptap/extension-text-align";
@@ -71,6 +71,8 @@ import { NotionToolbarFloating } from "@analyticsui/components/tiptap-templates/
 export interface NotionEditorProps {
 	room: string;
 	placeholder?: string;
+	onChange?: (content: any) => void;
+	initialContent?: any;
 }
 
 export interface EditorProviderProps {
@@ -78,6 +80,8 @@ export interface EditorProviderProps {
 	ydoc: YDoc;
 	placeholder?: string;
 	aiToken: string | null;
+	onChange?: (content: any) => void;
+	initialContent?: any;
 }
 
 /**
@@ -164,7 +168,7 @@ export function EditorContentArea() {
  * Component that creates and provides the editor instance
  */
 export function EditorProvider(props: EditorProviderProps) {
-	const { provider, ydoc, placeholder = "Start writing...", aiToken } = props;
+	const { provider, ydoc, placeholder = "Start writing...", aiToken, onChange, initialContent } = props;
 
 	const { user } = useUser();
 
@@ -174,6 +178,16 @@ export function EditorProvider(props: EditorProviderProps) {
 		enableInputRules: true,
 		enablePasteRules: true,
 		enableCoreExtensions: true,
+		content: initialContent,
+		onUpdate: ({ editor }) => {
+			if (onChange) {
+				const content = editor.getJSON();
+				console.log("Editor onUpdate triggered, calling onChange with:", content);
+				onChange(content);
+			} else {
+				console.log("Editor onUpdate triggered, but no onChange callback");
+			}
+		},
 		editorProps: {
 			attributes: {
 				class: "notion-like-editor",
@@ -187,7 +201,7 @@ export function EditorProvider(props: EditorProviderProps) {
 			StarterKit.configure({
 				// Enable undo/redo when not using collaboration
 				// When using collaboration, undo/redo should be disabled to avoid conflicts
-				history: provider ? false : {},
+				...(provider ? { history: false } : {}),
 				horizontalRule: false,
 				dropcursor: {
 					width: 2,
@@ -204,10 +218,7 @@ export function EditorProvider(props: EditorProviderProps) {
 				italic: {},
 				strike: {},
 				code: {},
-				// Essential for proper text transformation
-				gapcursor: {},
-				document: {},
-				text: {},
+				// Essential extensions use default config (just enabled)
 			}),
 			HorizontalRule,
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -228,7 +239,7 @@ export function EditorProvider(props: EditorProviderProps) {
 				placeholder,
 				emptyNodeClass: "is-empty with-slash",
 			}),
-			Mention,
+			// Mention,
 			Emoji.configure({
 				emojis: gitHubEmojis.filter(
 					(emoji) => !emoji.name.includes("regional"),
@@ -255,6 +266,7 @@ export function EditorProvider(props: EditorProviderProps) {
 				limit: 3,
 				upload: handleImageUpload,
 				onError: (error) => console.error("Upload failed:", error),
+				onSuccess: (url) => console.log("Upload successful, URL:", url),
 			}),
 			UniqueID.configure({
 				types: [
@@ -272,30 +284,44 @@ export function EditorProvider(props: EditorProviderProps) {
 			Typography,
 			UiState,
 			// Only include AI extension if we have a token
-			...(aiToken ? [
-				Ai.configure({
-					appId: TIPTAP_AI_APP_ID,
-					token: aiToken,
-					autocompletion: false,
-					showDecorations: true,
-					hideDecorationsOnStreamEnd: false,
-					onLoading: (context) => {
-						context.editor.commands.aiGenerationSetIsLoading(true);
-						context.editor.commands.aiGenerationHasMessage(false);
-					},
-					onChunk: (context) => {
-						context.editor.commands.aiGenerationSetIsLoading(true);
-						context.editor.commands.aiGenerationHasMessage(true);
-					},
-					onSuccess: (context) => {
-						const hasMessage = !!context.response;
-						context.editor.commands.aiGenerationSetIsLoading(false);
-						context.editor.commands.aiGenerationHasMessage(hasMessage);
-					},
-				}),
-			] : []),
+			...(aiToken
+				? [
+						Ai.configure({
+							appId: TIPTAP_AI_APP_ID,
+							token: aiToken,
+							autocompletion: false,
+							showDecorations: true,
+							hideDecorationsOnStreamEnd: false,
+							onLoading: (context) => {
+								context.editor.commands.aiGenerationSetIsLoading(
+									true,
+								);
+								context.editor.commands.aiGenerationHasMessage(
+									false,
+								);
+							},
+							onChunk: (context) => {
+								context.editor.commands.aiGenerationSetIsLoading(
+									true,
+								);
+								context.editor.commands.aiGenerationHasMessage(
+									true,
+								);
+							},
+							onSuccess: (context) => {
+								const hasMessage = !!context.response;
+								context.editor.commands.aiGenerationSetIsLoading(
+									false,
+								);
+								context.editor.commands.aiGenerationHasMessage(
+									hasMessage,
+								);
+							},
+						}),
+					]
+				: []),
 		],
-	});
+	}, [onChange, initialContent]);
 
 	console.log("--editor", editor);
 	if (!editor) {
@@ -318,13 +344,19 @@ export function EditorProvider(props: EditorProviderProps) {
 export function NotionEditor({
 	room,
 	placeholder = "Start writing...",
+	onChange,
+	initialContent,
 }: NotionEditorProps) {
 	return (
 		<UserProvider>
 			<AppProvider>
 				<CollabProvider room={room}>
 					<AiProvider>
-						<NotionEditorContent placeholder={placeholder} />
+						<NotionEditorContent 
+							placeholder={placeholder}
+							onChange={onChange}
+							initialContent={initialContent}
+						/>
 					</AiProvider>
 				</CollabProvider>
 			</AppProvider>
@@ -335,14 +367,22 @@ export function NotionEditor({
 /**
  * Internal component that handles the editor loading state
  */
-export function NotionEditorContent({ placeholder }: { placeholder?: string }) {
+export function NotionEditorContent({ 
+	placeholder, 
+	onChange, 
+	initialContent 
+}: { 
+	placeholder?: string;
+	onChange?: (content: any) => void;
+	initialContent?: any;
+}) {
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
 
 	// Since collaboration is disabled, only wait for AI token (if needed)
 	// If AI token is null, we'll just disable AI features but still show editor
 	const isWaitingForRequiredTokens = false; // No required tokens for now
-	
+
 	if (isWaitingForRequiredTokens) {
 		return <LoadingSpinner />;
 	}
@@ -353,6 +393,8 @@ export function NotionEditorContent({ placeholder }: { placeholder?: string }) {
 			ydoc={ydoc}
 			placeholder={placeholder}
 			aiToken={aiToken}
+			onChange={onChange}
+			initialContent={initialContent}
 		/>
 	);
 }

@@ -332,7 +332,9 @@ export const handleImageUpload = async (
         if (xhr.status === 200) {
           try {
             const response = JSON.parse(xhr.responseText)
+            console.log("Upload response received:", response)
             if (response.success && response.url) {
+              console.log("Image URL resolved:", response.url)
               resolve(response.url)
             } else {
               reject(new Error(response.error || "Upload failed"))

@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content:center;
+  justify-content: space-between;
   min-height: 3.5rem;
   padding: 0.75rem;
   z-index: 50;
@@ -82,9 +82,9 @@
       vertical-align: middle !important;
     }
 
-    // Force dropdown components to stay inline
-    [class*="dropdown"],
-    [class*="popover"] {
+    // Force dropdown trigger components to stay inline (but not their content)
+    [class*="dropdown"]:not([class*="content"]):not([class*="menu"]),
+    [class*="popover"]:not([class*="content"]) {
       display: inline-flex !important;
       flex-shrink: 0 !important;
     }
@@ -169,5 +169,12 @@
   .tiptap-separator,
   [class*="separator"] {
     display: inline-block !important;
+  }
+
+  // Ensure dropdown content displays as column
+  [class*="dropdown"][class*="content"],
+  [class*="dropdown"][class*="menu"] {
+    display: flex !important;
+    flex-direction: column !important;
   }
 }

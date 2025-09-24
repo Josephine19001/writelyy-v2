@@ -96,14 +96,18 @@ export async function POST(request: NextRequest) {
 			throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is not set");
 		}
 		const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
+		console.log("Generated public URL:", publicUrl);
 
-		return NextResponse.json({
+		const response = {
 			success: true,
 			url: publicUrl,
 			filename: fileName,
 			size: file.size,
 			type: file.type,
-		});
+		};
+		console.log("API response:", response);
+
+		return NextResponse.json(response);
 	} catch (error) {
 		console.error("Error uploading image:", error);
 		console.error("S3 Config:", {
