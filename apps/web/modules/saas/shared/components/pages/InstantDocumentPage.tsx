@@ -1,274 +1,299 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useDocumentRouter, useDocumentKeyboardNavigation } from "../../hooks/use-document-router";
-import { useAggressiveWorkspaceCacheContext } from "../providers/AggressiveWorkspaceCacheProvider";
-import { DocumentBreadcrumbs, CompactDocumentBreadcrumbs } from "../navigation/DocumentBreadcrumbs";
-import { InstantWorkspaceDocumentTree } from "../workspace/InstantWorkspaceDocumentTree";
-import { useOptimizedDocumentMutations } from "../../hooks/use-optimized-mutations";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
-import { NotionEditor } from "../tiptap-templates/notion-like/notion-like-editor";
+import React, { useEffect, useState } from "react";
+import {
+	useDocumentKeyboardNavigation,
+	useDocumentRouter,
+} from "../../hooks/use-document-router";
+import { useOptimizedDocumentMutations } from "../../hooks/use-optimized-mutations";
+import {
+	CompactDocumentBreadcrumbs,
+	DocumentBreadcrumbs,
+} from "../navigation/DocumentBreadcrumbs";
+import { useAggressiveWorkspaceCacheContext } from "../providers/AggressiveWorkspaceCacheProvider";
+import { Editor } from "../tiptap-templates/notion-like/editor";
+import { InstantWorkspaceDocumentTree } from "../workspace/InstantWorkspaceDocumentTree";
 
 interface InstantDocumentPageProps {
-  showSidebar?: boolean;
-  showBreadcrumbs?: boolean;
-  compactBreadcrumbs?: boolean;
-  className?: string;
+	showSidebar?: boolean;
+	showBreadcrumbs?: boolean;
+	compactBreadcrumbs?: boolean;
+	className?: string;
 }
 
 export function InstantDocumentPage({
-  showSidebar = true,
-  showBreadcrumbs = true,
-  compactBreadcrumbs = false,
-  className = "",
+	showSidebar = true,
+	showBreadcrumbs = true,
+	compactBreadcrumbs = false,
+	className = "",
 }: InstantDocumentPageProps) {
-  const { activeWorkspace } = useActiveWorkspace();
-  const {
-    currentDocumentId,
-    getShareableUrl,
-    navigateToWorkspace,
-  } = useDocumentRouter();
+	const { activeWorkspace } = useActiveWorkspace();
+	const { currentDocumentId, getShareableUrl, navigateToWorkspace } =
+		useDocumentRouter();
 
-  const { 
-    getDocument, 
-    accessDocument, 
-    updateDocument: updateDocumentCache,
-    isReady,
-  } = useAggressiveWorkspaceCacheContext();
+	const {
+		getDocument,
+		accessDocument,
+		updateDocument: updateDocumentCache,
+		isReady,
+	} = useAggressiveWorkspaceCacheContext();
 
-  const { updateDocument } = useOptimizedDocumentMutations(activeWorkspace?.id || "");
+	const { updateDocument } = useOptimizedDocumentMutations(
+		activeWorkspace?.id || "",
+	);
 
-  // Enable keyboard navigation
-  useDocumentKeyboardNavigation();
+	// Enable keyboard navigation
+	useDocumentKeyboardNavigation();
 
-  // Get document instantly from cache
-  const document = currentDocumentId ? getDocument(currentDocumentId) : null;
+	// Get document instantly from cache
+	const document = currentDocumentId ? getDocument(currentDocumentId) : null;
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [lastSaved, setLastSaved] = useState<Date | null>(null);
+	const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Load document if not in cache
-  useEffect(() => {
-    if (currentDocumentId && !document && isReady) {
-      console.log("📄 Loading document not in cache:", currentDocumentId);
-      accessDocument(currentDocumentId);
-    }
-  }, [currentDocumentId, document, isReady, accessDocument]);
+	// Load document if not in cache
+	useEffect(() => {
+		if (currentDocumentId && !document && isReady) {
+			console.log("📄 Loading document not in cache:", currentDocumentId);
+			accessDocument(currentDocumentId);
+		}
+	}, [currentDocumentId, document, isReady, accessDocument]);
 
-  // Auto-save document changes
-  const handleDocumentChange = React.useCallback(async (content: any) => {
-    if (!document || !currentDocumentId) return;
+	// Auto-save document changes
+	const handleDocumentChange = React.useCallback(
+		async (content: any) => {
+			if (!document || !currentDocumentId) return;
 
-    try {
-      setIsSaving(true);
-      setSaveError(null);
-      
-      // Optimistic update in cache
-      updateDocumentCache(currentDocumentId, { 
-        content, 
-        updatedAt: new Date().toISOString() 
-      });
+			try {
+				setIsSaving(true);
+				setSaveError(null);
 
-      // Save to server
-      await updateDocument.mutateAsync({
-        id: document.id,
-        content,
-      });
+				// Optimistic update in cache
+				updateDocumentCache(currentDocumentId, {
+					content,
+					updatedAt: new Date().toISOString(),
+				});
 
-      setLastSaved(new Date());
-    } catch (error) {
-      console.error("Failed to save document:", error);
-      setSaveError(error instanceof Error ? error.message : "Failed to save");
-    } finally {
-      setIsSaving(false);
-    }
-  }, [document, currentDocumentId, updateDocumentCache, updateDocument]);
+				// Save to server
+				await updateDocument.mutateAsync({
+					id: document.id,
+					content,
+				});
 
-  // Auto-save document title changes
-  const handleTitleChange = React.useCallback(async (newTitle: string) => {
-    if (!document || !currentDocumentId || newTitle === document.title) return;
+				setLastSaved(new Date());
+			} catch (error) {
+				console.error("Failed to save document:", error);
+				setSaveError(
+					error instanceof Error ? error.message : "Failed to save",
+				);
+			} finally {
+				setIsSaving(false);
+			}
+		},
+		[document, currentDocumentId, updateDocumentCache, updateDocument],
+	);
 
-    try {
-      // Optimistic update
-      updateDocumentCache(currentDocumentId, { 
-        title: newTitle,
-        updatedAt: new Date().toISOString() 
-      });
+	// Auto-save document title changes
+	const handleTitleChange = React.useCallback(
+		async (newTitle: string) => {
+			if (!document || !currentDocumentId || newTitle === document.title)
+				return;
 
-      // Save to server
-      await updateDocument.mutateAsync({
-        id: document.id,
-        title: newTitle,
-      });
-    } catch (error) {
-      console.error("Failed to save title:", error);
-      // Revert optimistic update
-      updateDocumentCache(currentDocumentId, { title: document.title });
-    }
-  }, [document, currentDocumentId, updateDocumentCache, updateDocument]);
+			try {
+				// Optimistic update
+				updateDocumentCache(currentDocumentId, {
+					title: newTitle,
+					updatedAt: new Date().toISOString(),
+				});
 
-  // Share document functionality
-  const handleShare = React.useCallback(async () => {
-    const shareableUrl = getShareableUrl();
-    if (shareableUrl) {
-      try {
-        await navigator.clipboard.writeText(shareableUrl);
-        // You could show a toast notification here
-        console.log("✅ Document URL copied to clipboard");
-      } catch (error) {
-        console.error("Failed to copy URL:", error);
-      }
-    }
-  }, [getShareableUrl]);
+				// Save to server
+				await updateDocument.mutateAsync({
+					id: document.id,
+					title: newTitle,
+				});
+			} catch (error) {
+				console.error("Failed to save title:", error);
+				// Revert optimistic update
+				updateDocumentCache(currentDocumentId, {
+					title: document.title,
+				});
+			}
+		},
+		[document, currentDocumentId, updateDocumentCache, updateDocument],
+	);
 
-  // If no document selected, show workspace view
-  if (!currentDocumentId) {
-    return (
-      <div className="document-page-workspace-view">
-        {showBreadcrumbs && (
-          <div className="document-breadcrumbs-container">
-            {compactBreadcrumbs ? (
-              <CompactDocumentBreadcrumbs />
-            ) : (
-              <DocumentBreadcrumbs />
-            )}
-          </div>
-        )}
+	// Share document functionality
+	const handleShare = React.useCallback(async () => {
+		const shareableUrl = getShareableUrl();
+		if (shareableUrl) {
+			try {
+				await navigator.clipboard.writeText(shareableUrl);
+				// You could show a toast notification here
+				console.log("✅ Document URL copied to clipboard");
+			} catch (error) {
+				console.error("Failed to copy URL:", error);
+			}
+		}
+	}, [getShareableUrl]);
 
-        <div className="workspace-content">
-          {showSidebar && (
-            <div className="document-sidebar">
-              <div className="sidebar-header">
-                <h3>Documents</h3>
-              </div>
-              <InstantWorkspaceDocumentTree
-                useUrlRouting={true}
-                className="document-tree"
-                showFileCount={true}
-              />
-            </div>
-          )}
+	// If no document selected, show workspace view
+	if (!currentDocumentId) {
+		return (
+			<div className="document-page-workspace-view">
+				{showBreadcrumbs && (
+					<div className="document-breadcrumbs-container">
+						{compactBreadcrumbs ? (
+							<CompactDocumentBreadcrumbs />
+						) : (
+							<DocumentBreadcrumbs />
+						)}
+					</div>
+				)}
 
-          <div className="workspace-main">
-            <div className="workspace-welcome">
-              <h1>Welcome to {activeWorkspace?.name}</h1>
-              <p>Select a document from the sidebar to start editing, or create a new one.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+				<div className="workspace-content">
+					{showSidebar && (
+						<div className="document-sidebar">
+							<div className="sidebar-header">
+								<h3>Documents</h3>
+							</div>
+							<InstantWorkspaceDocumentTree
+								useUrlRouting={true}
+								className="document-tree"
+								showFileCount={true}
+							/>
+						</div>
+					)}
 
-  // Show loading only if document not in cache and cache is ready
-  if (!document && isReady) {
-    return (
-      <div className="document-page-loading">
-        <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p>Loading document...</p>
-        </div>
-      </div>
-    );
-  }
+					<div className="workspace-main">
+						<div className="workspace-welcome">
+							<h1>Welcome to {activeWorkspace?.name}</h1>
+							<p>
+								Select a document from the sidebar to start
+								editing, or create a new one.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-  // Show error if document not found
-  if (isReady && !document) {
-    return (
-      <div className="document-page-error">
-        <div className="error-content">
-          <h2>Document Not Found</h2>
-          <p>The requested document could not be found.</p>
-          <button onClick={() => navigateToWorkspace()}>
-            Back to Workspace
-          </button>
-        </div>
-      </div>
-    );
-  }
+	// Show loading only if document not in cache and cache is ready
+	if (!document && isReady) {
+		return (
+			<div className="document-page-loading">
+				<div className="loading-content">
+					<div className="loading-spinner" />
+					<p>Loading document...</p>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <div className={`instant-document-page ${className}`}>
-      {showBreadcrumbs && (
-        <div className="document-breadcrumbs-container">
-          {compactBreadcrumbs ? (
-            <CompactDocumentBreadcrumbs />
-          ) : (
-            <DocumentBreadcrumbs />
-          )}
-        </div>
-      )}
+	// Show error if document not found
+	if (isReady && !document) {
+		return (
+			<div className="document-page-error">
+				<div className="error-content">
+					<h2>Document Not Found</h2>
+					<p>The requested document could not be found.</p>
+					<button onClick={() => navigateToWorkspace()}>
+						Back to Workspace
+					</button>
+				</div>
+			</div>
+		);
+	}
 
-      <div className="document-content">
-        {showSidebar && (
-          <div className="document-sidebar">
-            <div className="sidebar-header">
-              <h3>Documents</h3>
-            </div>
-            <InstantWorkspaceDocumentTree
-              useUrlRouting={true}
-              className="document-tree"
-              showFileCount={true}
-            />
-          </div>
-        )}
+	return (
+		<div className={`instant-document-page ${className}`}>
+			{showBreadcrumbs && (
+				<div className="document-breadcrumbs-container">
+					{compactBreadcrumbs ? (
+						<CompactDocumentBreadcrumbs />
+					) : (
+						<DocumentBreadcrumbs />
+					)}
+				</div>
+			)}
 
-        <div className="document-main">
-          <div className="document-header">
-            <div className="document-title-section">
-              <input
-                type="text"
-                value={document?.title || ""}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                className="document-title-input"
-                placeholder="Document title..."
-                onBlur={() => {
-                  // Auto-save on blur
-                  if (document?.title) {
-                    handleTitleChange(document.title);
-                  }
-                }}
-              />
-              <div className="document-meta">
-                {lastSaved && (
-                  <span className="last-saved">
-                    Saved {lastSaved.toLocaleTimeString()}
-                  </span>
-                )}
-                {isSaving && (
-                  <span className="saving-indicator">Saving...</span>
-                )}
-                {saveError && (
-                  <span className="save-error">Error: {saveError}</span>
-                )}
-              </div>
-            </div>
+			<div className="document-content">
+				{showSidebar && (
+					<div className="document-sidebar">
+						<div className="sidebar-header">
+							<h3>Documents</h3>
+						</div>
+						<InstantWorkspaceDocumentTree
+							useUrlRouting={true}
+							className="document-tree"
+							showFileCount={true}
+						/>
+					</div>
+				)}
 
-            <div className="document-actions">
-              <button
-                onClick={handleShare}
-                className="share-button"
-                type="button"
-                title="Copy document link"
-              >
-                🔗 Share
-              </button>
-            </div>
-          </div>
+				<div className="document-main">
+					<div className="document-header">
+						<div className="document-title-section">
+							<input
+								type="text"
+								value={document?.title || ""}
+								onChange={(e) =>
+									handleTitleChange(e.target.value)
+								}
+								className="document-title-input"
+								placeholder="Document title..."
+								onBlur={() => {
+									// Auto-save on blur
+									if (document?.title) {
+										handleTitleChange(document.title);
+									}
+								}}
+							/>
+							<div className="document-meta">
+								{lastSaved && (
+									<span className="last-saved">
+										Saved {lastSaved.toLocaleTimeString()}
+									</span>
+								)}
+								{isSaving && (
+									<span className="saving-indicator">
+										Saving...
+									</span>
+								)}
+								{saveError && (
+									<span className="save-error">
+										Error: {saveError}
+									</span>
+								)}
+							</div>
+						</div>
 
-          <div className="document-editor">
-            {document && (
-              <NotionEditor
-                room={document.id}
-                placeholder="Start writing..."
-              />
-            )}
-          </div>
-        </div>
-      </div>
+						<div className="document-actions">
+							<button
+								onClick={handleShare}
+								className="share-button"
+								type="button"
+								title="Copy document link"
+							>
+								🔗 Share
+							</button>
+						</div>
+					</div>
 
-      <style jsx>{`
+					<div className="document-editor">
+						{document && (
+							<Editor
+								room={document.id}
+								placeholder="Start writing..."
+							/>
+						)}
+					</div>
+				</div>
+			</div>
+
+			<style jsx>{`
         .instant-document-page,
         .document-page-workspace-view {
           height: 100vh;
@@ -523,19 +548,23 @@ export function InstantDocumentPage({
           }
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }
 
 /**
  * Focused document page without sidebar (for distraction-free editing)
  */
-export function FocusedInstantDocumentPage({ className = "" }: { className?: string }) {
-  return (
-    <InstantDocumentPage
-      showSidebar={false}
-      compactBreadcrumbs={true}
-      className={`focused-document ${className}`}
-    />
-  );
+export function FocusedInstantDocumentPage({
+	className = "",
+}: {
+	className?: string;
+}) {
+	return (
+		<InstantDocumentPage
+			showSidebar={false}
+			compactBreadcrumbs={true}
+			className={`focused-document ${className}`}
+		/>
+	);
 }

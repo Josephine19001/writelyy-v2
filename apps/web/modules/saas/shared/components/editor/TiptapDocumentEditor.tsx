@@ -1,7 +1,7 @@
 "use client";
 
 import { useDocumentQuery } from "@saas/lib/api";
-import { NotionEditor } from "../tiptap-templates/notion-like/notion-like-editor";
+import { Editor } from "../tiptap-templates/notion-like/editor";
 
 interface TiptapDocumentEditorProps {
 	documentId: string;
@@ -34,7 +34,7 @@ export function TiptapDocumentEditor({
 
 	return (
 		<div className="h-full flex flex-col bg-card">
-			<NotionEditor
+			<Editor
 				room={room}
 				placeholder={
 					document?.title

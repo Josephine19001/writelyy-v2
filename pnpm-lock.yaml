@@ -193,6 +193,9 @@ importers:
       '@tiptap-pro/extension-import-docx':
         specifier: 1.0.0-beta.3
         version: 1.0.0-beta.3(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
+      '@tiptap-pro/extension-pages':
+        specifier: 1.0.0-alpha.8
+        version: 1.0.0-alpha.8(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-table@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
       '@tiptap-pro/extension-snapshot':
         specifier: ^3.2.1
         version: 3.2.1(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(@hocuspocus/transformer@3.2.3(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)(y-prosemirror@1.3.7(prosemirror-model@1.25.3)(prosemirror-state@1.4.3)(prosemirror-view@1.41.0)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(yjs@13.6.27))(@tiptap-pro/provider@3.2.1(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(lib0@0.2.114)(yjs@13.6.27))(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)(yjs@13.6.27)
@@ -3819,6 +3822,13 @@ packages:
     peerDependencies:
       '@tiptap/core': ^3.0.7
       '@tiptap/pm': ^3.0.7
+
+  '@tiptap-pro/extension-pages@1.0.0-alpha.8':
+    resolution: {integrity: sha512-gwy8CRJpVOdVUCa/YI2carj0elOh0/Mocdppks7CxPtI6274BwIydXgidk5FxfhpaqMCxOSFODN3XV1AdUwdLg==}
+    peerDependencies:
+      '@tiptap/core': ^3.4.3
+      '@tiptap/extension-table': ^3.4.3
+      '@tiptap/pm': ^3.4.3
 
   '@tiptap-pro/extension-snapshot-compare@3.0.2-beta.2':
     resolution: {integrity: sha512-7QdQP1QO8TrU4rKV5uJgq1K3mtEq+8AWwQs7FNOjFur6AAPQI5sSYMF4NSi+BC/uYvrI5PCMBuTmsfUZzgzD8Q==}
@@ -10736,6 +10746,12 @@ snapshots:
   '@tiptap-pro/extension-import-docx@1.0.0-beta.3(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)':
     dependencies:
       '@tiptap/core': 3.4.4(@tiptap/pm@3.4.4)
+      '@tiptap/pm': 3.4.4
+
+  '@tiptap-pro/extension-pages@1.0.0-alpha.8(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-table@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)':
+    dependencies:
+      '@tiptap/core': 3.4.4(@tiptap/pm@3.4.4)
+      '@tiptap/extension-table': 3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
       '@tiptap/pm': 3.4.4
 
   '@tiptap-pro/extension-snapshot-compare@3.0.2-beta.2(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(@tiptap-pro/provider@3.2.1(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(lib0@0.2.114)(yjs@13.6.27))(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)(@tiptap/y-tiptap@3.0.0(prosemirror-model@1.25.3)(prosemirror-state@1.4.3)(prosemirror-view@1.41.0)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(yjs@13.6.27)':

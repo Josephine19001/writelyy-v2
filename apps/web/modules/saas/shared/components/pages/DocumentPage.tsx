@@ -16,7 +16,7 @@ import {
 } from "../navigation/DocumentBreadcrumbs";
 import { CompactTabBar, TabBar } from "../navigation/TabBar";
 import { useWorkspaceCacheContext } from "../providers/WorkspaceCacheProvider";
-import { NotionEditor } from "../tiptap-templates/notion-like/notion-like-editor";
+import { Editor } from "../tiptap-templates/notion-like/editor";
 import { CachedWorkspaceDocumentTree } from "../workspace/CachedWorkspaceDocumentTree";
 import "./DocumentPage.scss";
 
@@ -75,11 +75,6 @@ export function DocumentPage({
 			}
 
 			try {
-				console.log("=== Starting document save ===");
-				console.log("Document ID:", document.id);
-				console.log("Content type:", typeof content);
-				console.log("Content value:", content);
-				console.log("Content stringified:", JSON.stringify(content));
 				setIsSaving(true);
 
 				// Save to server
@@ -88,7 +83,6 @@ export function DocumentPage({
 					content,
 				});
 
-				console.log("Document saved successfully");
 				setLastSaved(new Date());
 				setHasUnsavedChanges(false);
 
@@ -130,10 +124,6 @@ export function DocumentPage({
 			return;
 		}
 
-		console.log("=== Document change detected ===");
-		console.log("Document ID:", currentDocument.id);
-		console.log("Content being saved:", content);
-
 		// Immediately save to localStorage (like Google Docs)
 		const localKey = `doc-draft-${currentDocument.id}`;
 		const draft = {
@@ -146,10 +136,7 @@ export function DocumentPage({
 		try {
 			const draftString = JSON.stringify(draft);
 			localStorage.setItem(localKey, draftString);
-			console.log("✅ Successfully saved to localStorage:", localKey, {
-				size: draftString.length,
-				timestamp: draft.timestamp,
-			});
+
 			setLocalContent(content);
 
 			// Also save a backup with timestamp
@@ -169,7 +156,6 @@ export function DocumentPage({
 				const keysToRemove = backupKeys.slice(5);
 				for (const key of keysToRemove) {
 					localStorage.removeItem(key);
-					console.log("🧹 Cleaned old backup:", key);
 				}
 			}
 		} catch (error) {
@@ -184,7 +170,6 @@ export function DocumentPage({
 					localStorage.removeItem(key);
 				}
 				localStorage.setItem(localKey, JSON.stringify(draft));
-				console.log("✅ Saved to localStorage after cleanup");
 			} catch (retryError) {
 				console.error(
 					"❌ Failed to save even after cleanup:",
@@ -205,14 +190,12 @@ export function DocumentPage({
 		updateDocumentCacheRef.current(updatedDoc);
 
 		// Debounced save to server (this can be slow)
-		console.log("Calling debounced save...");
 		debouncedSaveRef.current(content);
 	}, []); // Empty dependency array makes this callback stable
 
 	// Save before page unload and cleanup
 	React.useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-			console.log("🚨 beforeunload triggered - forcing save");
 			// Force save any pending changes before leaving
 			debouncedSave.flush();
 			// If there are unsaved changes, show confirmation
@@ -224,28 +207,20 @@ export function DocumentPage({
 
 		const handleVisibilityChange = () => {
 			if (typeof window === "undefined" || !window.document) return;
-			console.log(
-				"👁️ visibilitychange triggered:",
-				window.document.visibilityState,
-			);
+
 			if (window.document.visibilityState === "hidden") {
-				console.log("🔄 Tab hidden - forcing save");
 				// Force save when tab becomes hidden
 				debouncedSave.flush();
 			}
 		};
 
 		const handlePageHide = () => {
-			console.log("🚪 pagehide triggered - forcing save");
 			debouncedSave.flush();
 		};
 
-		const handleFocus = () => {
-			console.log("🎯 window focus triggered");
-		};
+		const handleFocus = () => {};
 
 		const handleBlur = () => {
-			console.log("😶‍🌫️ window blur triggered - forcing save");
 			debouncedSave.flush();
 		};
 
@@ -255,7 +230,7 @@ export function DocumentPage({
 			window.addEventListener("pagehide", handlePageHide);
 			window.addEventListener("focus", handleFocus);
 			window.addEventListener("blur", handleBlur);
-			
+
 			if (window.document) {
 				window.document.addEventListener(
 					"visibilitychange",
@@ -266,14 +241,13 @@ export function DocumentPage({
 
 		return () => {
 			// Force flush any pending saves before cleanup
-			console.log("🧹 Component cleanup - forcing save");
 			debouncedSave.flush();
 			if (typeof window !== "undefined") {
 				window.removeEventListener("beforeunload", handleBeforeUnload);
 				window.removeEventListener("pagehide", handlePageHide);
 				window.removeEventListener("focus", handleFocus);
 				window.removeEventListener("blur", handleBlur);
-				
+
 				if (window.document) {
 					window.document.removeEventListener(
 						"visibilitychange",
@@ -288,7 +262,6 @@ export function DocumentPage({
 	React.useEffect(() => {
 		const interval = setInterval(() => {
 			if (hasUnsavedChanges && !isSaving) {
-				console.log("⏰ Periodic auto-save triggered");
 				debouncedSave.flush();
 			}
 		}, 5000); // 5 seconds (more frequent)
@@ -302,7 +275,6 @@ export function DocumentPage({
 		if (shareableUrl) {
 			navigator.clipboard.writeText(shareableUrl);
 			// You could show a toast notification here
-			console.log("Document URL copied to clipboard");
 		}
 	}, [getShareableUrl]);
 
@@ -320,11 +292,6 @@ export function DocumentPage({
 	// Initialize lastSaved when document loads and restore from localStorage if needed
 	React.useEffect(() => {
 		if (document?.id) {
-			console.log(
-				"🔄 Document changed, resetting state for:",
-				document.id,
-			);
-
 			// CRITICAL: Reset local content state when switching documents
 			setLocalContent(null);
 			setHasUnsavedChanges(false);
@@ -333,19 +300,11 @@ export function DocumentPage({
 			const localKey = `doc-draft-${document.id}`;
 			const storedDraft = localStorage.getItem(localKey);
 
-			console.log("🔍 Checking for local draft:", localKey);
-
 			if (storedDraft) {
 				try {
 					const parsedDraft = JSON.parse(storedDraft);
 					const draftTime = new Date(parsedDraft.timestamp);
 					const serverTime = new Date(document.updatedAt || 0);
-
-					console.log("📋 Found local draft:", {
-						draftTime: draftTime.toISOString(),
-						serverTime: serverTime.toISOString(),
-						isNewer: draftTime > serverTime,
-					});
 
 					// Verify the draft is actually for this document
 					if (
@@ -354,13 +313,7 @@ export function DocumentPage({
 					) {
 						setHasUnsavedChanges(true);
 						setLocalContent(parsedDraft.content);
-						console.log(
-							"✅ Found newer local draft, restoring content",
-						);
 					} else {
-						console.log(
-							"🆕 Server version is newer or wrong document, ignoring local draft",
-						);
 						localStorage.removeItem(localKey);
 						setLocalContent(null);
 						setHasUnsavedChanges(false);
@@ -372,7 +325,6 @@ export function DocumentPage({
 					setHasUnsavedChanges(false);
 				}
 			} else {
-				console.log("📄 No local draft found");
 				setLocalContent(null);
 				setHasUnsavedChanges(false);
 			}
@@ -495,35 +447,20 @@ export function DocumentPage({
 					</div>
 
 					<div className="document-editor">
-						<NotionEditor
+						<Editor
 							room={document.id}
 							placeholder="Start writing..."
 							initialContent={(() => {
 								const content =
 									localContent || document.content;
-								console.log(
-									"🔧 Initial content type:",
-									typeof content,
-								);
-								console.log(
-									"🔧 Initial content value:",
-									content,
-								);
 
 								// If content is a string, try to parse it as JSON
 								if (typeof content === "string") {
 									try {
 										const parsed = JSON.parse(content);
-										console.log(
-											"✅ Parsed string content:",
-											parsed,
-										);
+
 										return parsed;
 									} catch (error) {
-										console.log(
-											"❌ Failed to parse content as JSON, treating as HTML:",
-											error,
-										);
 										// If parsing fails, it might be plain HTML, wrap it in a basic doc structure
 										return {
 											type: "doc",
@@ -543,7 +480,6 @@ export function DocumentPage({
 								}
 
 								// If it's already an object, return as-is
-								console.log("✅ Content is already an object");
 								return content;
 							})()}
 							onChange={handleDocumentChange}
