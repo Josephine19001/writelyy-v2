@@ -30,7 +30,7 @@ export function useWorkspaceCache(organizationId: string | null) {
   });
 
   const sourcesQuery = useSourcesQuery(organizationId!, {
-    enabled: !!organizationId,
+    enabled: false, // Temporarily disabled due to validation issues
     limit: 1000,
   });
 

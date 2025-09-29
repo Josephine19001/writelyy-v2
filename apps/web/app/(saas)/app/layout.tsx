@@ -53,7 +53,12 @@ export default async function Layout({ children }: PropsWithChildren) {
 		);
 
 		if (error) {
-			throw new Error("Failed to fetch purchases");
+			// If it's an unauthorized error, treat as no purchases (free tier)
+			if (error.message === "Unauthorized") {
+				console.warn("No billing access, treating as free tier");
+			} else {
+				throw new Error("Failed to fetch purchases");
+			}
 		}
 
 		const purchases = data?.purchases ?? [];

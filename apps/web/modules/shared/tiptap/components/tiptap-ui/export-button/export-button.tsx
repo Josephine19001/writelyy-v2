@@ -1,36 +1,38 @@
 "use client";
 
-import { Download } from "lucide-react";
-import * as React from "react";
-import { 
+import { ChevronDownIcon } from "@shared/tiptap/components/tiptap-icons/chevron-down-icon";
+import {
+	Button,
+	ButtonGroup,
+} from "@shared/tiptap/components/tiptap-ui-primitive/button";
+import {
+	Card,
+	CardBody,
+	CardGroupLabel,
+	CardItemGroup,
+} from "@shared/tiptap/components/tiptap-ui-primitive/card";
+import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@shared/tiptap/components/tiptap-ui-primitive/dropdown-menu";
-import { Button } from "@shared/tiptap/components/tiptap-ui-primitive/button";
-import { ChevronDownIcon } from "@shared/tiptap/components/tiptap-icons/chevron-down-icon";
 import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
 import type { Editor } from "@tiptap/react";
+import { Download } from "lucide-react";
+import * as React from "react";
 
 export interface ExportButtonProps {
 	editor?: Editor | null;
-	onExport?: (format: 'docx' | 'pdf' | 'doc') => void;
+	onExport?: (format: "docx" | "pdf" | "doc") => void;
 }
 
 // Export utilities
-const exportToHTML = (editor: Editor): string => {
-	return editor.getHTML();
-};
-
-const exportToText = (editor: Editor): string => {
-	return editor.getText();
-};
 
 const downloadFile = (content: string, filename: string, mimeType: string) => {
 	const blob = new Blob([content], { type: mimeType });
 	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
+	const a = document.createElement("a");
 	a.href = url;
 	a.download = filename;
 	document.body.appendChild(a);
@@ -43,7 +45,7 @@ const exportToPDF = async (editor: Editor) => {
 	try {
 		// For now, we'll export as HTML and let the browser print to PDF
 		const htmlContent = editor.getHTML();
-		const printWindow = window.open('', '_blank');
+		const printWindow = window.open("", "_blank");
 		if (printWindow) {
 			printWindow.document.write(`
 				<!DOCTYPE html>
@@ -73,8 +75,8 @@ const exportToPDF = async (editor: Editor) => {
 			}, 250);
 		}
 	} catch (error) {
-		console.error('Error exporting to PDF:', error);
-		alert('Error exporting to PDF. Please try again.');
+		console.error("Error exporting to PDF:", error);
+		alert("Error exporting to PDF. Please try again.");
 	}
 };
 
@@ -114,11 +116,15 @@ const exportToDOCX = async (editor: Editor) => {
 			</body>
 			</html>
 		`;
-		
-		downloadFile(docxContent, `document-${Date.now()}.doc`, 'application/msword');
+
+		downloadFile(
+			docxContent,
+			`document-${Date.now()}.doc`,
+			"application/msword",
+		);
 	} catch (error) {
-		console.error('Error exporting to DOCX:', error);
-		alert('Error exporting to DOCX. Please try again.');
+		console.error("Error exporting to DOCX:", error);
+		alert("Error exporting to DOCX. Please try again.");
 	}
 };
 
@@ -129,13 +135,69 @@ export const ExportButton = React.forwardRef<
 	HTMLButtonElement,
 	ExportButtonProps
 >(({ editor: providedEditor, onExport }, ref) => {
+	const triggerRef = React.useRef<HTMLDivElement>(null);
+	const contentRef = React.useRef<HTMLDivElement>(null);
+	const [isOpen, setIsOpen] = React.useState(false);
 	const { editor } = useTiptapEditor(providedEditor);
 
-	const handleExport = async (format: 'docx' | 'pdf' | 'doc') => {
+	// Handle Radix UI's onOpenChange and our outside click detection
+	const handleOpenChange = React.useCallback((open: boolean) => {
+		setIsOpen(open);
+	}, []);
+
+	// Simple outside click detection with delay to avoid Radix UI conflicts
+	React.useEffect(() => {
+		if (!isOpen) return;
+
+		let cleanupFn: (() => void) | null = null;
+
+		// Add a small delay to let Radix UI finish its setup
+		const timeoutId = setTimeout(() => {
+			const handleClickOutside = (event: MouseEvent) => {
+				const target = event.target as Node;
+
+				// Check if click is outside trigger
+				const clickedOutsideTrigger =
+					triggerRef.current && !triggerRef.current.contains(target);
+
+				// Check if click is outside content (if content exists, otherwise assume outside)
+				const clickedOutsideContent =
+					!contentRef.current || !contentRef.current.contains(target);
+
+				if (clickedOutsideTrigger && clickedOutsideContent) {
+					handleOpenChange(false);
+				}
+			};
+
+			// Add event listener WITHOUT capture to avoid conflicts
+			document.addEventListener("mousedown", handleClickOutside, false);
+
+			// Store the cleanup function
+			cleanupFn = () => {
+				document.removeEventListener(
+					"mousedown",
+					handleClickOutside,
+					false,
+				);
+			};
+		}, 100);
+
+		return () => {
+			clearTimeout(timeoutId);
+			if (cleanupFn) {
+				cleanupFn();
+			}
+		};
+	}, [isOpen, handleOpenChange]);
+
+	const handleExport = async (format: "docx" | "pdf" | "doc") => {
 		if (!editor) {
-			console.warn('No editor available for export');
+			console.warn("No editor available for export");
 			return;
 		}
+
+		// Close the dropdown after selection
+		handleOpenChange(false);
 
 		try {
 			// Call custom export handler if provided
@@ -146,11 +208,11 @@ export const ExportButton = React.forwardRef<
 
 			// Default export behavior
 			switch (format) {
-				case 'docx':
-				case 'doc':
+				case "docx":
+				case "doc":
 					await exportToDOCX(editor);
 					break;
-				case 'pdf':
+				case "pdf":
 					await exportToPDF(editor);
 					break;
 				default:
@@ -158,38 +220,90 @@ export const ExportButton = React.forwardRef<
 			}
 		} catch (error) {
 			console.error(`Error exporting as ${format}:`, error);
-			alert(`Error exporting document as ${format.toUpperCase()}. Please try again.`);
+			alert(
+				`Error exporting document as ${format.toUpperCase()}. Please try again.`,
+			);
 		}
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button
-					ref={ref}
-					type="button"
-					data-style="ghost"
-					role="button"
-					aria-label="Export document"
-					tooltip="Export document"
-				>
-					<Download size={16} className="tiptap-button-icon" />
-					<span className="tiptap-button-text">Export</span>
-					<ChevronDownIcon className="tiptap-button-icon" />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" sideOffset={5}>
-				<DropdownMenuItem onClick={() => handleExport('docx')}>
-					<span className="tiptap-button-text">DOCX</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={() => handleExport('pdf')}>
-					<span className="tiptap-button-text">PDF</span>
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={() => handleExport('doc')}>
-					<span className="tiptap-button-text">DOC</span>
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<div ref={triggerRef}>
+			<DropdownMenu
+				open={isOpen}
+				onOpenChange={handleOpenChange}
+				modal={false}
+			>
+				<DropdownMenuTrigger asChild>
+					<Button
+						ref={ref}
+						type="button"
+						data-style="ghost"
+						role="button"
+						aria-label="Export document"
+						tooltip="Export document"
+					>
+						<Download size={16} className="tiptap-button-icon" />
+						<span className="tiptap-button-text">Export</span>
+						<ChevronDownIcon className="tiptap-button-icon" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="start">
+					<div ref={contentRef}>
+						<Card>
+							<CardBody>
+								<CardItemGroup>
+									<CardGroupLabel>Export as</CardGroupLabel>
+									<ButtonGroup>
+										<DropdownMenuItem asChild>
+											<Button
+												type="button"
+												data-style="ghost"
+												showTooltip={false}
+												onClick={() =>
+													handleExport("docx")
+												}
+											>
+												<span className="tiptap-button-text">
+													DOCX
+												</span>
+											</Button>
+										</DropdownMenuItem>
+										<DropdownMenuItem asChild>
+											<Button
+												type="button"
+												data-style="ghost"
+												showTooltip={false}
+												onClick={() =>
+													handleExport("pdf")
+												}
+											>
+												<span className="tiptap-button-text">
+													PDF
+												</span>
+											</Button>
+										</DropdownMenuItem>
+										<DropdownMenuItem asChild>
+											<Button
+												type="button"
+												data-style="ghost"
+												showTooltip={false}
+												onClick={() =>
+													handleExport("doc")
+												}
+											>
+												<span className="tiptap-button-text">
+													DOC
+												</span>
+											</Button>
+										</DropdownMenuItem>
+									</ButtonGroup>
+								</CardItemGroup>
+							</CardBody>
+						</Card>
+					</div>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</div>
 	);
 });
 

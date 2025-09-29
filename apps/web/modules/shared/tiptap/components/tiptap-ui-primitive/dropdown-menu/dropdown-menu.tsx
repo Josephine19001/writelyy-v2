@@ -6,9 +6,10 @@ import * as React from "react";
 import "@shared/tiptap/components/tiptap-ui-primitive/dropdown-menu/dropdown-menu.scss";
 
 function DropdownMenu({
+	modal = false,
 	...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-	return <DropdownMenuPrimitive.Root modal={false} {...props} />;
+	return <DropdownMenuPrimitive.Root modal={modal} {...props} />;
 }
 
 function DropdownMenuPortal({

@@ -31,8 +31,8 @@ export function OrganzationSelect({ className }: { className?: string }) {
 	const pathname = usePathname();
 	const { activeWorkspace, setActiveWorkspace } = useActiveWorkspace();
 	const { data: allWorkspaces } = useWorkspaceListQuery();
-	
-	const isOnAllWorkspacesRoute = pathname === '/app';
+
+	const isOnAllWorkspacesRoute = pathname === "/app";
 
 	if (!user) {
 		return null;
@@ -125,7 +125,7 @@ export function OrganzationSelect({ className }: { className?: string }) {
 						</>
 					)}
 					*/}
-					
+
 					{/* All Workspaces Option */}
 					<DropdownMenuGroup>
 						<DropdownMenuItem
@@ -134,9 +134,6 @@ export function OrganzationSelect({ className }: { className?: string }) {
 						>
 							<Link href="/app">
 								<div className="flex flex-1 items-center justify-start gap-2">
-									<div className="size-8 rounded-md bg-muted flex items-center justify-center">
-										<ChevronsUpDownIcon className="size-4" />
-									</div>
 									All Workspaces
 								</div>
 							</Link>
@@ -160,11 +157,11 @@ export function OrganzationSelect({ className }: { className?: string }) {
 								className="flex cursor-pointer items-center justify-center gap-2 pl-3"
 							>
 								<div className="flex flex-1 items-center justify-start gap-2">
-									<WorkspaceLogo
+									{/* <WorkspaceLogo
 										className="size-8"
 										name={workspace.name}
 										logoUrl={workspace.logo}
-									/>
+									/> */}
 									{workspace.name}
 								</div>
 							</DropdownMenuRadioItem>

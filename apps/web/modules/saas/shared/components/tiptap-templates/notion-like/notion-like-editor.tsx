@@ -168,162 +168,214 @@ export function EditorContentArea() {
  * Component that creates and provides the editor instance
  */
 export function EditorProvider(props: EditorProviderProps) {
-	const { provider, ydoc, placeholder = "Start writing...", aiToken, onChange, initialContent } = props;
+	const {
+		provider,
+		ydoc,
+		placeholder = "Start writing...",
+		aiToken,
+		onChange,
+		initialContent,
+	} = props;
 
 	const { user } = useUser();
 
-	const editor = useEditor({
-		immediatelyRender: false,
-		shouldRerenderOnTransaction: false,
-		enableInputRules: true,
-		enablePasteRules: true,
-		enableCoreExtensions: true,
-		content: initialContent,
-		onUpdate: ({ editor }) => {
-			if (onChange) {
-				const content = editor.getJSON();
-				console.log("Editor onUpdate triggered, calling onChange with:", content);
-				onChange(content);
-			} else {
-				console.log("Editor onUpdate triggered, but no onChange callback");
-			}
-		},
-		editorProps: {
-			attributes: {
-				class: "notion-like-editor",
-			},
-			handleKeyDown: (view, event) => {
-				// Allow default behavior for all keys to ensure proper functionality
-				return false;
-			},
-		},
-		extensions: [
-			StarterKit.configure({
-				// Enable undo/redo when not using collaboration
-				// When using collaboration, undo/redo should be disabled to avoid conflicts
-				...(provider ? { history: false } : {}),
-				horizontalRule: false,
-				dropcursor: {
-					width: 2,
-				},
-				// Ensure all essential extensions are enabled
-				paragraph: {},
-				heading: {},
-				bulletList: {},
-				orderedList: {},
-				listItem: {},
-				blockquote: {},
-				codeBlock: {},
-				bold: {},
-				italic: {},
-				strike: {},
-				code: {},
-				// Essential extensions use default config (just enabled)
-			}),
-			HorizontalRule,
-			TextAlign.configure({ types: ["heading", "paragraph"] }),
-			...(provider
-				? [
-						Collaboration.configure({ document: ydoc }),
-						CollaborationCaret.configure({
-							provider,
-							user: {
-								id: user.id,
-								name: user.name,
-								color: user.color,
-							},
-						}),
-					]
-				: []),
-			Placeholder.configure({
-				placeholder,
-				emptyNodeClass: "is-empty with-slash",
-			}),
-			// Mention,
-			Emoji.configure({
-				emojis: gitHubEmojis.filter(
-					(emoji) => !emoji.name.includes("regional"),
-				),
-				forceFallbackImages: true,
-			}),
-			Mathematics,
-			Superscript,
-			Subscript,
-			Color,
-			TextStyle,
-			TaskList,
-			TaskItem.configure({ nested: true }),
-			Highlight.configure({ multicolor: true }),
-			Selection.configure({
-				// Ensure the selection extension can handle node selection properly
-				createSelectionBetween: () => null,
-				disableClick: false,
-			}),
-			Image,
-			ImageUploadNode.configure({
-				accept: "image/*",
-				maxSize: MAX_FILE_SIZE,
-				limit: 3,
-				upload: handleImageUpload,
-				onError: (error) => console.error("Upload failed:", error),
-				onSuccess: (url) => console.log("Upload successful, URL:", url),
-			}),
-			UniqueID.configure({
-				types: [
-					"paragraph",
-					"bulletList",
-					"orderedList",
-					"taskList",
-					"heading",
-					"blockquote",
-					"codeBlock",
-				],
-				filterTransaction: (transaction) =>
-					!isChangeOrigin(transaction),
-			}),
-			Typography,
-			UiState,
-			// Only include AI extension if we have a token
-			...(aiToken
-				? [
-						Ai.configure({
-							appId: TIPTAP_AI_APP_ID,
-							token: aiToken,
-							autocompletion: false,
-							showDecorations: true,
-							hideDecorationsOnStreamEnd: false,
-							onLoading: (context) => {
-								context.editor.commands.aiGenerationSetIsLoading(
-									true,
-								);
-								context.editor.commands.aiGenerationHasMessage(
-									false,
-								);
-							},
-							onChunk: (context) => {
-								context.editor.commands.aiGenerationSetIsLoading(
-									true,
-								);
-								context.editor.commands.aiGenerationHasMessage(
-									true,
-								);
-							},
-							onSuccess: (context) => {
-								const hasMessage = !!context.response;
-								context.editor.commands.aiGenerationSetIsLoading(
-									false,
-								);
-								context.editor.commands.aiGenerationHasMessage(
-									hasMessage,
-								);
-							},
-						}),
-					]
-				: []),
-		],
+	console.log("🔧 EditorProvider rendered with onChange:", !!onChange);
+
+	// Use refs to store current values to avoid recreating editor
+	const onChangeRef = React.useRef(onChange);
+	const initialContentRef = React.useRef(initialContent);
+
+	// Update refs when values change
+	React.useEffect(() => {
+		onChangeRef.current = onChange;
+		initialContentRef.current = initialContent;
 	}, [onChange, initialContent]);
 
-	console.log("--editor", editor);
+	const editor = useEditor(
+		{
+			immediatelyRender: false,
+			shouldRerenderOnTransaction: false,
+			enableInputRules: true,
+			enablePasteRules: true,
+			enableCoreExtensions: true,
+			content: initialContent,
+			onUpdate: ({ editor, transaction }) => {
+				console.log("🔄 Editor onUpdate triggered");
+				console.log("Has onChange callback:", !!onChangeRef.current);
+				console.log("Transaction meta preventUpdate:", transaction.getMeta('preventUpdate'));
+				console.log("Transaction origin:", transaction.getMeta('origin'));
+				
+				// Call onChange for all user changes, not just non-collaborative ones
+				if (onChangeRef.current) {
+					const content = editor.getJSON();
+					console.log("📝 Calling onChange with content:", content);
+					onChangeRef.current(content);
+				} else {
+					console.log("❌ No onChange callback provided");
+				}
+			},
+			onCreate: ({ editor }) => {
+				console.log("🎉 Editor onCreate called");
+				console.log("🎉 Initial content ref:", initialContentRef.current);
+				console.log("🎉 onChange ref:", !!onChangeRef.current);
+				
+				// Always set initial content if provided, regardless of onChange
+				if (initialContentRef.current) {
+					console.log("🎉 Setting initial content:", initialContentRef.current);
+					setTimeout(() => {
+						const currentContent = editor.getJSON();
+						console.log("🎉 Current editor content:", currentContent);
+						console.log("🎉 Expected initial content:", initialContentRef.current);
+						
+						if (JSON.stringify(currentContent) !== JSON.stringify(initialContentRef.current)) {
+							console.log("🎉 Content differs, setting new content");
+							editor.commands.setContent(initialContentRef.current, false, { preventUpdate: true });
+						} else {
+							console.log("🎉 Content matches, no need to set");
+						}
+					}, 100);
+				} else {
+					console.log("🎉 No initial content provided");
+				}
+			},
+			editorProps: {
+				attributes: {
+					class: "notion-like-editor",
+				},
+				handleKeyDown: (view, event) => {
+					// Allow default behavior for all keys to ensure proper functionality
+					return false;
+				},
+			},
+			extensions: [
+				StarterKit.configure({
+					// Enable undo/redo when not using collaboration
+					// When using collaboration, undo/redo should be disabled to avoid conflicts
+					...(provider ? { history: false } : {}),
+					horizontalRule: false,
+					dropcursor: {
+						width: 2,
+					},
+					// Ensure all essential extensions are enabled
+					paragraph: {},
+					heading: {},
+					bulletList: {},
+					orderedList: {},
+					listItem: {},
+					blockquote: {},
+					codeBlock: {},
+					bold: {},
+					italic: {},
+					strike: {},
+					code: {},
+					// Essential extensions use default config (just enabled)
+				}),
+				HorizontalRule,
+				TextAlign.configure({ types: ["heading", "paragraph"] }),
+				...(provider
+					? [
+							Collaboration.configure({ document: ydoc }),
+							CollaborationCaret.configure({
+								provider,
+								user: {
+									id: user.id,
+									name: user.name,
+									color: user.color,
+								},
+							}),
+						]
+					: []),
+				Placeholder.configure({
+					placeholder,
+					emptyNodeClass: "is-empty with-slash",
+				}),
+				// Mention,
+				Emoji.configure({
+					emojis: gitHubEmojis.filter(
+						(emoji) => !emoji.name.includes("regional"),
+					),
+					forceFallbackImages: true,
+				}),
+				Mathematics,
+				Superscript,
+				Subscript,
+				Color,
+				TextStyle,
+				TaskList,
+				TaskItem.configure({ nested: true }),
+				Highlight.configure({ multicolor: true }),
+				Selection.configure({
+					// Ensure the selection extension can handle node selection properly
+					createSelectionBetween: () => null,
+					disableClick: false,
+				}),
+				Image,
+				ImageUploadNode.configure({
+					accept: "image/*",
+					maxSize: MAX_FILE_SIZE,
+					limit: 3,
+					upload: handleImageUpload,
+					onError: (error) => console.error("Upload failed:", error),
+					onSuccess: (url) =>
+						console.log("Upload successful, URL:", url),
+				}),
+				UniqueID.configure({
+					types: [
+						"paragraph",
+						"bulletList",
+						"orderedList",
+						"taskList",
+						"heading",
+						"blockquote",
+						"codeBlock",
+					],
+					filterTransaction: (transaction) =>
+						!isChangeOrigin(transaction),
+				}),
+				Typography,
+				UiState,
+				// Only include AI extension if we have a token
+				...(aiToken
+					? [
+							Ai.configure({
+								appId: TIPTAP_AI_APP_ID,
+								token: aiToken,
+								autocompletion: false,
+								showDecorations: true,
+								hideDecorationsOnStreamEnd: false,
+								onLoading: (context) => {
+									context.editor.commands.aiGenerationSetIsLoading(
+										true,
+									);
+									context.editor.commands.aiGenerationHasMessage(
+										false,
+									);
+								},
+								onChunk: (context) => {
+									context.editor.commands.aiGenerationSetIsLoading(
+										true,
+									);
+									context.editor.commands.aiGenerationHasMessage(
+										true,
+									);
+								},
+								onSuccess: (context) => {
+									const hasMessage = !!context.response;
+									context.editor.commands.aiGenerationSetIsLoading(
+										false,
+									);
+									context.editor.commands.aiGenerationHasMessage(
+										hasMessage,
+									);
+								},
+							}),
+						]
+					: []),
+			],
+		},
+		[], // Empty dependency array to prevent unnecessary recreations
+	);
+
 	if (!editor) {
 		return <LoadingSpinner />;
 	}
@@ -347,12 +399,17 @@ export function NotionEditor({
 	onChange,
 	initialContent,
 }: NotionEditorProps) {
+	console.log("🔧 NotionEditor rendered with:");
+	console.log("  - room:", room);
+	console.log("  - onChange:", !!onChange);
+	console.log("  - initialContent:", initialContent);
+	
 	return (
 		<UserProvider>
 			<AppProvider>
 				<CollabProvider room={room}>
 					<AiProvider>
-						<NotionEditorContent 
+						<NotionEditorContent
 							placeholder={placeholder}
 							onChange={onChange}
 							initialContent={initialContent}
@@ -367,17 +424,20 @@ export function NotionEditor({
 /**
  * Internal component that handles the editor loading state
  */
-export function NotionEditorContent({ 
-	placeholder, 
-	onChange, 
-	initialContent 
-}: { 
+export function NotionEditorContent({
+	placeholder,
+	onChange,
+	initialContent,
+}: {
 	placeholder?: string;
 	onChange?: (content: any) => void;
 	initialContent?: any;
 }) {
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
+
+	console.log("🔧 NotionEditorContent rendered with onChange:", !!onChange);
+	console.log("🔧 NotionEditorContent initialContent:", initialContent);
 
 	// Since collaboration is disabled, only wait for AI token (if needed)
 	// If AI token is null, we'll just disable AI features but still show editor

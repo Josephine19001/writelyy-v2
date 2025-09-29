@@ -1,15 +1,27 @@
 import { createPurchasesHelper } from "@repo/payments/lib/helper";
-import { orpc } from "@shared/lib/orpc-query-utils";
+import { orpcClient } from "@shared/lib/orpc-client";
 import { useQuery } from "@tanstack/react-query";
 
 export const usePurchases = (workspaceId?: string) => {
-	const { data } = useQuery(
-		orpc.payments.listPurchases.queryOptions({
-			input: {
+	const { data } = useQuery({
+		queryKey: ['payments', 'listPurchases', workspaceId],
+		queryFn: async () => {
+			return await orpcClient.payments.listPurchases({
 				workspaceId,
-			},
-		}),
-	);
+			});
+		},
+		// Disable retries for unauthorized errors
+		retry: (failureCount, error: any) => {
+			if (error?.message === "Unauthorized") {
+				return false;
+			}
+			return failureCount < 3;
+		},
+		// Don't throw on error, just return empty data
+		throwOnError: false,
+		// Only run if we have a workspaceId or it's undefined (for user purchases)
+		enabled: workspaceId !== null,
+	});
 
 	const purchases = data?.purchases ?? [];
 

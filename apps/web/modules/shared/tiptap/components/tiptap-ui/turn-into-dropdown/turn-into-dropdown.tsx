@@ -179,6 +179,8 @@ export const TurnIntoDropdown = React.forwardRef<
 		},
 		ref,
 	) => {
+		const triggerRef = React.useRef<HTMLDivElement>(null);
+		const contentRef = React.useRef<HTMLDivElement>(null);
 		const { editor } = useTiptapEditor(providedEditor);
 		const {
 			isVisible,
@@ -195,43 +197,73 @@ export const TurnIntoDropdown = React.forwardRef<
 			onOpenChange,
 		});
 
+		// Simple outside click detection
+		React.useEffect(() => {
+			if (!isOpen) return;
+
+			const handleClickOutside = (event: MouseEvent) => {
+				const target = event.target as Node;
+				
+				// Check if click is outside trigger
+				const clickedOutsideTrigger = triggerRef.current && !triggerRef.current.contains(target);
+				
+				// Check if click is outside content (if content exists, otherwise assume outside)
+				const clickedOutsideContent = !contentRef.current || !contentRef.current.contains(target);
+				
+				if (clickedOutsideTrigger && clickedOutsideContent) {
+					handleOpenChange(false);
+				}
+			};
+
+			// Add event listener to document
+			document.addEventListener('mousedown', handleClickOutside, true);
+			
+			return () => {
+				document.removeEventListener('mousedown', handleClickOutside, true);
+			};
+		}, [isOpen, handleOpenChange]);
+
 		if (!isVisible) {
 			return null;
 		}
 
 		return (
-			<DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						type="button"
-						data-style="ghost"
-						disabled={!canToggle}
-						data-disabled={!canToggle}
-						role="button"
-						tabIndex={-1}
-						aria-label={label}
-						tooltip="Turn into"
-						{...buttonProps}
-						ref={ref}
-					>
-						{children ?? (
-							<>
-								<span className="tiptap-button-text">
-									{activeBlockType?.label || "Text"}
-								</span>
-								<Icon className="tiptap-button-dropdown-small" />
-							</>
-						)}
-					</Button>
-				</DropdownMenuTrigger>
+			<div ref={triggerRef}>
+				<DropdownMenu open={isOpen} onOpenChange={handleOpenChange} modal={false}>
+					<DropdownMenuTrigger asChild>
+						<Button
+							type="button"
+							data-style="ghost"
+							disabled={!canToggle}
+							data-disabled={!canToggle}
+							role="button"
+							tabIndex={-1}
+							aria-label={label}
+							tooltip="Turn into"
+							{...buttonProps}
+							ref={ref}
+						>
+							{children ?? (
+								<>
+									<span className="tiptap-button-text">
+										{activeBlockType?.label || "Text"}
+									</span>
+									<Icon className="tiptap-button-dropdown-small" />
+								</>
+							)}
+						</Button>
+					</DropdownMenuTrigger>
 
-				<DropdownMenuContent align="start">
-					<TurnIntoDropdownContent
-						blockTypes={blockTypes}
-						useCardLayout={useCardLayout}
-					/>
-				</DropdownMenuContent>
-			</DropdownMenu>
+					<DropdownMenuContent align="start">
+						<div ref={contentRef}>
+							<TurnIntoDropdownContent
+								blockTypes={blockTypes}
+								useCardLayout={useCardLayout}
+							/>
+						</div>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
 		);
 	},
 );

@@ -18,9 +18,11 @@
   justify-content: space-between;
   min-height: 3.5rem;
   padding: 0.75rem;
-  z-index: 50;
+  z-index: 1000;
   background-color: var(--tt-notion-like-editor-header-bg);
   border-bottom: 1px solid var(--tt-notion-like-editor-header-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   flex-wrap: nowrap;
   gap: 1rem;
 
@@ -176,5 +178,25 @@
   [class*="dropdown"][class*="menu"] {
     display: flex !important;
     flex-direction: column !important;
+    
+    // Reset button group orientation inside dropdowns to vertical
+    .tiptap-button-group {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      width: 100% !important;
+      gap: 0 !important;
+      
+      &[data-orientation="vertical"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+      }
+      
+      > * {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: flex-start !important;
+      }
+    }
   }
 }

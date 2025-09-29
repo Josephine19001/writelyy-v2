@@ -1,7 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+// Use @use must come first before any other rules
+@use "@shared/tiptap/styles/_variables.scss";
 
-// Import the variables to ensure all CSS variables are available
-@import "@shared/tiptap/styles/_variables.scss";
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 body {
   --tt-toolbar-height: 44px;
@@ -66,25 +66,52 @@ body,
   }
 }
 
+.notion-like-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .notion-like-editor-content {
   max-width: 768px;
   width: 100%;
   margin: 0 auto;
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
   flex: 1;
   padding: 3rem 3rem 30vh;
+  min-height: 0;
+  overflow-y: visible;
+  overflow-x: hidden;
 }
 
 @media screen and (max-width: 480px) {
   .notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
     padding: 1.5rem 1.5rem 30vh;
   }
+}
+
+// Ensure content doesn't interfere with sticky header
+.notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+  // Prevent content from going behind the header
+  scroll-margin-top: 4rem;
+  
+  // Ensure content is scrollable but doesn't break layout
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  
+  // Prevent horizontal overflow
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 // Enhanced paragraph selection styles

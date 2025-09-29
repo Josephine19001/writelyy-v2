@@ -1,0 +1,221 @@
+.tab-bar {
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e7ff;
+  padding: 0;
+  min-height: 40px;
+  max-height: 40px;
+  overflow: hidden;
+  user-select: none;
+
+  &-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0;
+    
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+    
+    &::-webkit-scrollbar {
+      display: none; /* Safari and Chrome */
+    }
+  }
+}
+
+.tab-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-width: 120px;
+  max-width: 200px;
+  background: white;
+  border: 1px solid #e0e7ff;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  margin-right: -1px; /* Overlap borders */
+  
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    z-index: 1;
+    
+    .tab-close {
+      opacity: 1;
+    }
+  }
+  
+  &.active {
+    background: white;
+    border-color: #3b82f6;
+    border-bottom: 1px solid white;
+    z-index: 2;
+    margin-bottom: -1px;
+    
+    .tab-close {
+      opacity: 1;
+    }
+  }
+
+  .tab-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .tab-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  .tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    color: #6b7280;
+    opacity: 0;
+    transition: all 0.15s ease;
+    border-radius: 3px;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: #ef4444;
+      color: white;
+      opacity: 1 !important;
+    }
+    
+    &:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+      opacity: 1;
+    }
+  }
+}
+
+/* Compact tab bar for smaller screens */
+.compact-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e7ff;
+  min-height: 40px;
+
+  .tab-selector {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+    color: #374151;
+    
+    &:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 1px;
+      border-color: #3b82f6;
+    }
+  }
+
+  .tab-count {
+    font-size: 12px;
+    color: #6b7280;
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .tab-bar {
+    background: #1f2937;
+    border-bottom-color: #374151;
+  }
+
+  .tab-bar-item {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+    
+    &:hover {
+      background: #4b5563;
+      border-color: #6b7280;
+    }
+    
+    &.active {
+      background: #1f2937;
+      border-color: #3b82f6;
+      border-bottom-color: #1f2937;
+    }
+
+    .tab-title {
+      color: #f9fafb;
+    }
+
+    .tab-close {
+      color: #9ca3af;
+      
+      &:hover {
+        background: #ef4444;
+        color: white;
+      }
+    }
+  }
+
+  .compact-tab-bar {
+    background: #1f2937;
+    border-bottom-color: #374151;
+
+    .tab-selector {
+      background: #374151;
+      border-color: #4b5563;
+      color: #f9fafb;
+    }
+
+    .tab-count {
+      background: #4b5563;
+      color: #d1d5db;
+    }
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .tab-bar {
+    display: none; /* Hide full tab bar on mobile */
+  }
+
+  .compact-tab-bar {
+    display: flex; /* Show compact version on mobile */
+  }
+}
+
+@media (min-width: 769px) {
+  .compact-tab-bar {
+    display: none; /* Hide compact version on desktop */
+  }
+}

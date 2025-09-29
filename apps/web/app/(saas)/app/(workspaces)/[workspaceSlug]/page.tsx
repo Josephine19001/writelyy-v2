@@ -1,5 +1,6 @@
 import { getActiveWorkspace } from "@saas/auth/lib/server";
 import { WorkspaceEditor } from "@saas/shared/components/WorkspaceEditor";
+import { WorkspaceCacheProvider } from "@saas/shared/components/providers/WorkspaceCacheProvider";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({
@@ -29,6 +30,10 @@ export default async function WorkspacePage({
 		return notFound();
 	}
 
-	// Return the workspace editor that can interact with the sidebar
-	return <WorkspaceEditor />;
+	// Return the workspace editor wrapped with necessary providers
+	return (
+		<WorkspaceCacheProvider>
+			<WorkspaceEditor />
+		</WorkspaceCacheProvider>
+	);
 }

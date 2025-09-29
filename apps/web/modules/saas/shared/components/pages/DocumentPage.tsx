@@ -9,13 +9,16 @@ import {
 	useDocumentRouter,
 } from "../../hooks/use-document-router";
 import { useOptimizedDocumentMutations } from "../../hooks/use-optimized-mutations";
+import { useDocumentTabTitle } from "../../hooks/use-tab-manager";
 import {
 	CompactDocumentBreadcrumbs,
 	DocumentBreadcrumbs,
 } from "../navigation/DocumentBreadcrumbs";
+import { TabBar, CompactTabBar } from "../navigation/TabBar";
 import { useWorkspaceCacheContext } from "../providers/WorkspaceCacheProvider";
 import { NotionEditor } from "../tiptap-templates/notion-like/notion-like-editor";
 import { CachedWorkspaceDocumentTree } from "../workspace/CachedWorkspaceDocumentTree";
+import "./DocumentPage.scss";
 
 interface DocumentPageProps {
 	showSidebar?: boolean;
@@ -56,17 +59,27 @@ export function DocumentPage({
 	// Use cached document or fetched document
 	const document = currentDocument || fullDocument;
 
+	// Update tab title when document loads
+	useDocumentTabTitle(currentDocumentId, document);
+
 	const [isSaving, setIsSaving] = useState(false);
 	const [lastSaved, setLastSaved] = useState<Date | null>(null);
+	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+	const [localContent, setLocalContent] = useState<any>(null);
 
 	// Save function
 	const saveDocument = React.useCallback(
 		async (content: any) => {
-			if (!document) return;
+			if (!document) {
+				return;
+			}
 
 			try {
 				console.log("=== Starting document save ===");
 				console.log("Document ID:", document.id);
+				console.log("Content type:", typeof content);
+				console.log("Content value:", content);
+				console.log("Content stringified:", JSON.stringify(content));
 				setIsSaving(true);
 
 				// Save to server
@@ -77,6 +90,12 @@ export function DocumentPage({
 
 				console.log("Document saved successfully");
 				setLastSaved(new Date());
+				setHasUnsavedChanges(false);
+				
+				// Clear localStorage draft after successful save
+				const localKey = `doc-draft-${document.id}`;
+				localStorage.removeItem(localKey);
+				setLocalContent(null);
 			} catch (error) {
 				console.error("Failed to save document:", error);
 			} finally {
@@ -86,42 +105,169 @@ export function DocumentPage({
 		[document, updateDocument],
 	);
 
-	// Debounced save function
+	// Debounced save function (shorter delay like Notion - 500ms)
 	const debouncedSave = React.useMemo(
-		() => debounce(saveDocument, 1000),
+		() => debounce(saveDocument, 500),
 		[saveDocument],
 	);
 
-	// Auto-save document changes with debouncing
-	const handleDocumentChange = React.useCallback(
-		(content: any) => {
-			if (!document) return;
-			
-			console.log("=== Document change detected ===");
-			console.log("Document ID:", document.id);
-			console.log("Content:", content);
+	// Create a stable reference to the current document and functions
+	const documentRef = React.useRef(document);
+	const updateDocumentCacheRef = React.useRef(updateDocumentCache);
+	const debouncedSaveRef = React.useRef(debouncedSave);
 
-			// Optimistic update immediately
-			const updatedDoc = {
-				...document,
-				content,
-				updatedAt: new Date().toISOString(),
-			};
-			updateDocumentCache(updatedDoc);
-
-			// Debounced save to server
-			console.log("Calling debounced save...");
-			debouncedSave(content);
-		},
-		[document, updateDocumentCache, debouncedSave],
-	);
-
-	// Cleanup debounced function on unmount
+	// Update refs when values change
 	React.useEffect(() => {
-		return () => {
-			debouncedSave.cancel();
+		documentRef.current = document;
+		updateDocumentCacheRef.current = updateDocumentCache;
+		debouncedSaveRef.current = debouncedSave;
+	}, [document, updateDocumentCache, debouncedSave]);
+
+	// Auto-save document changes with debouncing (stable callback)
+	const handleDocumentChange = React.useCallback((content: any) => {
+		const currentDocument = documentRef.current;
+		if (!currentDocument) {
+			return;
+		}
+		
+		console.log("=== Document change detected ===");
+		console.log("Document ID:", currentDocument.id);
+		console.log("Content being saved:", content);
+
+		// Immediately save to localStorage (like Google Docs)
+		const localKey = `doc-draft-${currentDocument.id}`;
+		const draft = {
+			content,
+			timestamp: new Date().toISOString(),
+			documentId: currentDocument.id,
+			title: currentDocument.title || 'Untitled'
 		};
-	}, [debouncedSave]);
+		
+		try {
+			const draftString = JSON.stringify(draft);
+			localStorage.setItem(localKey, draftString);
+			console.log("✅ Successfully saved to localStorage:", localKey, {
+				size: draftString.length,
+				timestamp: draft.timestamp
+			});
+			setLocalContent(content);
+			
+			// Also save a backup with timestamp
+			const backupKey = `doc-backup-${currentDocument.id}-${Date.now()}`;
+			localStorage.setItem(backupKey, draftString);
+			
+			// Clean old backups (keep only last 5)
+			const allKeys = Object.keys(localStorage);
+			const backupKeys = allKeys
+				.filter(key => key.startsWith(`doc-backup-${currentDocument.id}-`))
+				.sort()
+				.reverse();
+			
+			if (backupKeys.length > 5) {
+				const keysToRemove = backupKeys.slice(5);
+				for (const key of keysToRemove) {
+					localStorage.removeItem(key);
+					console.log("🧹 Cleaned old backup:", key);
+				}
+			}
+		} catch (error) {
+			console.error("❌ Failed to save to localStorage:", error);
+			// Try to free up space and retry
+			try {
+				const allKeys = Object.keys(localStorage);
+				const backupKeys = allKeys.filter(key => key.startsWith('doc-backup-'));
+				for (const key of backupKeys) {
+					localStorage.removeItem(key);
+				}
+				localStorage.setItem(localKey, JSON.stringify(draft));
+				console.log("✅ Saved to localStorage after cleanup");
+			} catch (retryError) {
+				console.error("❌ Failed to save even after cleanup:", retryError);
+			}
+		}
+
+		// Mark as having unsaved changes IMMEDIATELY
+		setHasUnsavedChanges(true);
+
+		// Optimistic update cache immediately
+		const updatedDoc = {
+			...currentDocument,
+			content,
+			updatedAt: new Date().toISOString(),
+		};
+		updateDocumentCacheRef.current(updatedDoc);
+
+		// Debounced save to server (this can be slow)
+		console.log("Calling debounced save...");
+		debouncedSaveRef.current(content);
+	}, []); // Empty dependency array makes this callback stable
+
+	// Save before page unload and cleanup
+	React.useEffect(() => {
+		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+			console.log("🚨 beforeunload triggered - forcing save");
+			// Force save any pending changes before leaving
+			debouncedSave.flush();
+			// If there are unsaved changes, show confirmation
+			if (hasUnsavedChanges) {
+				e.preventDefault();
+				e.returnValue = '';
+			}
+		};
+
+		const handleVisibilityChange = () => {
+			console.log("👁️ visibilitychange triggered:", document.visibilityState);
+			if (document.visibilityState === 'hidden') {
+				console.log("🔄 Tab hidden - forcing save");
+				// Force save when tab becomes hidden
+				debouncedSave.flush();
+			}
+		};
+
+		const handlePageHide = () => {
+			console.log("🚪 pagehide triggered - forcing save");
+			debouncedSave.flush();
+		};
+
+		const handleFocus = () => {
+			console.log("🎯 window focus triggered");
+		};
+
+		const handleBlur = () => {
+			console.log("😶‍🌫️ window blur triggered - forcing save");
+			debouncedSave.flush();
+		};
+
+		// Add event listeners for various scenarios where we should save
+		window.addEventListener('beforeunload', handleBeforeUnload);
+		window.addEventListener('pagehide', handlePageHide);
+		window.addEventListener('focus', handleFocus);
+		window.addEventListener('blur', handleBlur);
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+
+		return () => {
+			// Force flush any pending saves before cleanup
+			console.log("🧹 Component cleanup - forcing save");
+			debouncedSave.flush();
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+			window.removeEventListener('pagehide', handlePageHide);
+			window.removeEventListener('focus', handleFocus);
+			window.removeEventListener('blur', handleBlur);
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
+	}, [debouncedSave, hasUnsavedChanges]);
+
+	// Periodic auto-save as a fallback (every 5 seconds if there are unsaved changes)
+	React.useEffect(() => {
+		const interval = setInterval(() => {
+			if (hasUnsavedChanges && !isSaving) {
+				console.log("⏰ Periodic auto-save triggered");
+				debouncedSave.flush();
+			}
+		}, 5000); // 5 seconds (more frequent)
+
+		return () => clearInterval(interval);
+	}, [hasUnsavedChanges, isSaving, debouncedSave]);
 
 	// Share document functionality
 	const handleShare = React.useCallback(() => {
@@ -132,6 +278,73 @@ export function DocumentPage({
 			console.log("Document URL copied to clipboard");
 		}
 	}, [getShareableUrl]);
+
+	// Update browser tab title to show unsaved changes
+	React.useEffect(() => {
+		const baseTitle = document?.title || 'Document';
+		const newTitle = hasUnsavedChanges ? `● ${baseTitle}` : baseTitle;
+		
+		// Update the HTML document title
+		if (typeof window !== 'undefined') {
+			window.document.title = newTitle;
+		}
+	}, [hasUnsavedChanges, document?.title]);
+
+	// Initialize lastSaved when document loads and restore from localStorage if needed
+	React.useEffect(() => {
+		if (document?.id) {
+			console.log("🔄 Document changed, resetting state for:", document.id);
+			
+			// CRITICAL: Reset local content state when switching documents
+			setLocalContent(null);
+			setHasUnsavedChanges(false);
+			
+			// Check for locally stored content for this specific document
+			const localKey = `doc-draft-${document.id}`;
+			const storedDraft = localStorage.getItem(localKey);
+			
+			console.log("🔍 Checking for local draft:", localKey);
+			
+			if (storedDraft) {
+				try {
+					const parsedDraft = JSON.parse(storedDraft);
+					const draftTime = new Date(parsedDraft.timestamp);
+					const serverTime = new Date(document.updatedAt || 0);
+					
+					console.log("📋 Found local draft:", {
+						draftTime: draftTime.toISOString(),
+						serverTime: serverTime.toISOString(),
+						isNewer: draftTime > serverTime
+					});
+					
+					// Verify the draft is actually for this document
+					if (parsedDraft.documentId === document.id && draftTime > serverTime) {
+						setHasUnsavedChanges(true);
+						setLocalContent(parsedDraft.content);
+						console.log('✅ Found newer local draft, restoring content');
+					} else {
+						console.log('🆕 Server version is newer or wrong document, ignoring local draft');
+						localStorage.removeItem(localKey);
+						setLocalContent(null);
+						setHasUnsavedChanges(false);
+					}
+				} catch (error) {
+					console.warn('❌ Failed to parse local draft:', error);
+					localStorage.removeItem(localKey);
+					setLocalContent(null);
+					setHasUnsavedChanges(false);
+				}
+			} else {
+				console.log('📄 No local draft found');
+				setLocalContent(null);
+				setHasUnsavedChanges(false);
+			}
+			
+			if (document.updatedAt) {
+				setLastSaved(new Date(document.updatedAt));
+			}
+		}
+	}, [document?.id, document?.updatedAt]);
 
 	// Redirect to workspace if no document selected
 	useEffect(() => {
@@ -178,6 +391,10 @@ export function DocumentPage({
 
 	return (
 		<div className={`document-page ${className}`}>
+			{/* Tab Bar */}
+			<TabBar />
+			<CompactTabBar />
+
 			{showBreadcrumbs && (
 				<div className="document-breadcrumbs-container">
 					{compactBreadcrumbs ? (
@@ -206,14 +423,20 @@ export function DocumentPage({
 						<div className="document-title-section">
 							<h1 className="document-title">{document.title}</h1>
 							<div className="document-meta">
-								{lastSaved && (
-									<span className="last-saved">
-										Saved {lastSaved.toLocaleTimeString()}
-									</span>
-								)}
 								{isSaving && (
 									<span className="saving-indicator">
+										<span className="saving-spinner" />
 										Saving...
+									</span>
+								)}
+								{!isSaving && hasUnsavedChanges && (
+									<span className="unsaved-indicator">
+										● Unsaved changes
+									</span>
+								)}
+								{!isSaving && !hasUnsavedChanges && lastSaved && (
+									<span className="last-saved">
+										✓ Saved {lastSaved.toLocaleTimeString()}
 									</span>
 								)}
 							</div>
@@ -235,235 +458,46 @@ export function DocumentPage({
 						<NotionEditor
 							room={document.id}
 							placeholder="Start writing..."
-							initialContent={document.content}
+							initialContent={(() => {
+								const content = localContent || document.content;
+								console.log("🔧 Initial content type:", typeof content);
+								console.log("🔧 Initial content value:", content);
+								
+								// If content is a string, try to parse it as JSON
+								if (typeof content === 'string') {
+									try {
+										const parsed = JSON.parse(content);
+										console.log("✅ Parsed string content:", parsed);
+										return parsed;
+									} catch (error) {
+										console.log("❌ Failed to parse content as JSON, treating as HTML:", error);
+										// If parsing fails, it might be plain HTML, wrap it in a basic doc structure
+										return {
+											type: 'doc',
+											content: [
+												{
+													type: 'paragraph',
+													content: [
+														{
+															type: 'text',
+															text: content
+														}
+													]
+												}
+											]
+										};
+									}
+								}
+								
+								// If it's already an object, return as-is
+								console.log("✅ Content is already an object");
+								return content;
+							})()}
 							onChange={handleDocumentChange}
 						/>
 					</div>
 				</div>
 			</div>
-
-			<style jsx>{`
-        .document-page {
-          height: 100vh;
-          display: flex;
-          flex-direction: column;
-          background: var(--bg-primary, #ffffff);
-        }
-
-        .document-breadcrumbs-container {
-          flex-shrink: 0;
-          border-bottom: 1px solid var(--border-color, #e1e5e9);
-        }
-
-        .document-content {
-          flex: 1;
-          display: flex;
-          min-height: 0;
-        }
-
-        .document-sidebar {
-          width: 280px;
-          border-right: 1px solid var(--border-color, #e1e5e9);
-          background: var(--bg-secondary, #f8f9fa);
-          display: flex;
-          flex-direction: column;
-        }
-
-        .sidebar-header {
-          padding: 16px;
-          border-bottom: 1px solid var(--border-color, #e1e5e9);
-        }
-
-        .sidebar-header h3 {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 600;
-          color: var(--text-primary, #212529);
-        }
-
-        .document-tree {
-          flex: 1;
-          overflow-y: auto;
-        }
-
-        .document-main {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .document-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 24px;
-          border-bottom: 1px solid var(--border-color, #e1e5e9);
-          background: var(--bg-primary, #ffffff);
-        }
-
-        .document-title-section {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .document-title {
-          margin: 0 0 4px 0;
-          font-size: 24px;
-          font-weight: 600;
-          color: var(--text-primary, #212529);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .document-meta {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          font-size: 14px;
-          color: var(--text-secondary, #6c757d);
-        }
-
-        .saving-indicator {
-          color: var(--color-warning, #f57c00);
-          font-weight: 500;
-        }
-
-        .last-saved {
-          color: var(--color-success, #28a745);
-        }
-
-        .document-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .share-button {
-          padding: 8px 16px;
-          border: 1px solid var(--border-color, #e1e5e9);
-          background: var(--bg-primary, #ffffff);
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          color: var(--text-secondary, #6c757d);
-          transition: all 0.15s ease;
-        }
-
-        .share-button:hover {
-          background: var(--bg-hover, #f8f9fa);
-          border-color: var(--border-hover, #adb5bd);
-        }
-
-        .document-editor {
-          flex: 1;
-          overflow: hidden;
-        }
-
-        .document-page-empty,
-        .document-page-loading,
-        .document-page-error {
-          height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-        }
-
-        .empty-state,
-        .loading-content,
-        .error-content {
-          max-width: 400px;
-          padding: 32px;
-        }
-
-        .empty-state h2,
-        .error-content h2 {
-          margin: 0 0 16px 0;
-          font-size: 24px;
-          color: var(--text-primary, #212529);
-        }
-
-        .empty-state p,
-        .loading-content p,
-        .error-content p {
-          margin: 0 0 24px 0;
-          color: var(--text-secondary, #6c757d);
-        }
-
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid var(--border-color, #e1e5e9);
-          border-top: 3px solid var(--color-primary, #007bff);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .error-content button {
-          padding: 12px 24px;
-          background: var(--color-primary, #007bff);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 16px;
-        }
-
-        .error-content button:hover {
-          background: var(--color-primary-dark, #0056b3);
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-          .document-sidebar {
-            width: 240px;
-          }
-
-          .document-header {
-            padding: 12px 16px;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-          }
-
-          .document-title {
-            font-size: 20px;
-          }
-
-          .document-actions {
-            align-self: flex-end;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .document-content {
-            flex-direction: column;
-          }
-
-          .document-sidebar {
-            width: 100%;
-            height: 200px;
-            border-right: none;
-            border-bottom: 1px solid var(--border-color, #e1e5e9);
-          }
-
-          .document-header {
-            padding: 12px;
-          }
-
-          .document-title {
-            font-size: 18px;
-          }
-        }
-      `}</style>
 		</div>
 	);
 }
