@@ -3,6 +3,7 @@
 import { MultiTabEditor } from "@saas/shared/components/editor/MultiTabEditor";
 import { useState, useCallback, useEffect } from "react";
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { type EditorTab, type SourceTab, type DocumentTab } from "@saas/shared/components/editor/types";
 import { useEditorContext } from "./NewAppWrapper";
 import { useDocumentRouter } from "../hooks/use-document-router";
@@ -121,7 +122,7 @@ export function WorkspaceEditor() {
 		const tab = tabs.find(t => t.id === tabId);
 		
 		// Use flushSync to force immediate state update without batching
-		React.flushSync(() => {
+		flushSync(() => {
 			setActiveTabId(tabId);
 		});
 		
@@ -165,7 +166,7 @@ export function WorkspaceEditor() {
 		}
 		
 		// Update state synchronously
-		React.flushSync(() => {
+		flushSync(() => {
 			setTabs(newTabs);
 			setActiveTabId(newActiveTabId);
 		});

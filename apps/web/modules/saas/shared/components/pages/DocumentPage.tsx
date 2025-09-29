@@ -14,7 +14,7 @@ import {
 	CompactDocumentBreadcrumbs,
 	DocumentBreadcrumbs,
 } from "../navigation/DocumentBreadcrumbs";
-import { TabBar, CompactTabBar } from "../navigation/TabBar";
+import { CompactTabBar, TabBar } from "../navigation/TabBar";
 import { useWorkspaceCacheContext } from "../providers/WorkspaceCacheProvider";
 import { NotionEditor } from "../tiptap-templates/notion-like/notion-like-editor";
 import { CachedWorkspaceDocumentTree } from "../workspace/CachedWorkspaceDocumentTree";
@@ -91,7 +91,7 @@ export function DocumentPage({
 				console.log("Document saved successfully");
 				setLastSaved(new Date());
 				setHasUnsavedChanges(false);
-				
+
 				// Clear localStorage draft after successful save
 				const localKey = `doc-draft-${document.id}`;
 				localStorage.removeItem(localKey);
@@ -129,7 +129,7 @@ export function DocumentPage({
 		if (!currentDocument) {
 			return;
 		}
-		
+
 		console.log("=== Document change detected ===");
 		console.log("Document ID:", currentDocument.id);
 		console.log("Content being saved:", content);
@@ -140,29 +140,31 @@ export function DocumentPage({
 			content,
 			timestamp: new Date().toISOString(),
 			documentId: currentDocument.id,
-			title: currentDocument.title || 'Untitled'
+			title: currentDocument.title || "Untitled",
 		};
-		
+
 		try {
 			const draftString = JSON.stringify(draft);
 			localStorage.setItem(localKey, draftString);
 			console.log("✅ Successfully saved to localStorage:", localKey, {
 				size: draftString.length,
-				timestamp: draft.timestamp
+				timestamp: draft.timestamp,
 			});
 			setLocalContent(content);
-			
+
 			// Also save a backup with timestamp
 			const backupKey = `doc-backup-${currentDocument.id}-${Date.now()}`;
 			localStorage.setItem(backupKey, draftString);
-			
+
 			// Clean old backups (keep only last 5)
 			const allKeys = Object.keys(localStorage);
 			const backupKeys = allKeys
-				.filter(key => key.startsWith(`doc-backup-${currentDocument.id}-`))
+				.filter((key) =>
+					key.startsWith(`doc-backup-${currentDocument.id}-`),
+				)
 				.sort()
 				.reverse();
-			
+
 			if (backupKeys.length > 5) {
 				const keysToRemove = backupKeys.slice(5);
 				for (const key of keysToRemove) {
@@ -175,14 +177,19 @@ export function DocumentPage({
 			// Try to free up space and retry
 			try {
 				const allKeys = Object.keys(localStorage);
-				const backupKeys = allKeys.filter(key => key.startsWith('doc-backup-'));
+				const backupKeys = allKeys.filter((key) =>
+					key.startsWith("doc-backup-"),
+				);
 				for (const key of backupKeys) {
 					localStorage.removeItem(key);
 				}
 				localStorage.setItem(localKey, JSON.stringify(draft));
 				console.log("✅ Saved to localStorage after cleanup");
 			} catch (retryError) {
-				console.error("❌ Failed to save even after cleanup:", retryError);
+				console.error(
+					"❌ Failed to save even after cleanup:",
+					retryError,
+				);
 			}
 		}
 
@@ -211,13 +218,17 @@ export function DocumentPage({
 			// If there are unsaved changes, show confirmation
 			if (hasUnsavedChanges) {
 				e.preventDefault();
-				e.returnValue = '';
+				e.returnValue = "";
 			}
 		};
 
 		const handleVisibilityChange = () => {
-			console.log("👁️ visibilitychange triggered:", document.visibilityState);
-			if (document.visibilityState === 'hidden') {
+			if (typeof window === "undefined" || !window.document) return;
+			console.log(
+				"👁️ visibilitychange triggered:",
+				window.document.visibilityState,
+			);
+			if (window.document.visibilityState === "hidden") {
 				console.log("🔄 Tab hidden - forcing save");
 				// Force save when tab becomes hidden
 				debouncedSave.flush();
@@ -239,21 +250,37 @@ export function DocumentPage({
 		};
 
 		// Add event listeners for various scenarios where we should save
-		window.addEventListener('beforeunload', handleBeforeUnload);
-		window.addEventListener('pagehide', handlePageHide);
-		window.addEventListener('focus', handleFocus);
-		window.addEventListener('blur', handleBlur);
-		document.addEventListener('visibilitychange', handleVisibilityChange);
+		if (typeof window !== "undefined") {
+			window.addEventListener("beforeunload", handleBeforeUnload);
+			window.addEventListener("pagehide", handlePageHide);
+			window.addEventListener("focus", handleFocus);
+			window.addEventListener("blur", handleBlur);
+			
+			if (window.document) {
+				window.document.addEventListener(
+					"visibilitychange",
+					handleVisibilityChange,
+				);
+			}
+		}
 
 		return () => {
 			// Force flush any pending saves before cleanup
 			console.log("🧹 Component cleanup - forcing save");
 			debouncedSave.flush();
-			window.removeEventListener('beforeunload', handleBeforeUnload);
-			window.removeEventListener('pagehide', handlePageHide);
-			window.removeEventListener('focus', handleFocus);
-			window.removeEventListener('blur', handleBlur);
-			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			if (typeof window !== "undefined") {
+				window.removeEventListener("beforeunload", handleBeforeUnload);
+				window.removeEventListener("pagehide", handlePageHide);
+				window.removeEventListener("focus", handleFocus);
+				window.removeEventListener("blur", handleBlur);
+				
+				if (window.document) {
+					window.document.removeEventListener(
+						"visibilitychange",
+						handleVisibilityChange,
+					);
+				}
+			}
 		};
 	}, [debouncedSave, hasUnsavedChanges]);
 
@@ -281,11 +308,11 @@ export function DocumentPage({
 
 	// Update browser tab title to show unsaved changes
 	React.useEffect(() => {
-		const baseTitle = document?.title || 'Document';
+		const baseTitle = document?.title || "Document";
 		const newTitle = hasUnsavedChanges ? `● ${baseTitle}` : baseTitle;
-		
+
 		// Update the HTML document title
-		if (typeof window !== 'undefined') {
+		if (typeof window !== "undefined") {
 			window.document.title = newTitle;
 		}
 	}, [hasUnsavedChanges, document?.title]);
@@ -293,53 +320,63 @@ export function DocumentPage({
 	// Initialize lastSaved when document loads and restore from localStorage if needed
 	React.useEffect(() => {
 		if (document?.id) {
-			console.log("🔄 Document changed, resetting state for:", document.id);
-			
+			console.log(
+				"🔄 Document changed, resetting state for:",
+				document.id,
+			);
+
 			// CRITICAL: Reset local content state when switching documents
 			setLocalContent(null);
 			setHasUnsavedChanges(false);
-			
+
 			// Check for locally stored content for this specific document
 			const localKey = `doc-draft-${document.id}`;
 			const storedDraft = localStorage.getItem(localKey);
-			
+
 			console.log("🔍 Checking for local draft:", localKey);
-			
+
 			if (storedDraft) {
 				try {
 					const parsedDraft = JSON.parse(storedDraft);
 					const draftTime = new Date(parsedDraft.timestamp);
 					const serverTime = new Date(document.updatedAt || 0);
-					
+
 					console.log("📋 Found local draft:", {
 						draftTime: draftTime.toISOString(),
 						serverTime: serverTime.toISOString(),
-						isNewer: draftTime > serverTime
+						isNewer: draftTime > serverTime,
 					});
-					
+
 					// Verify the draft is actually for this document
-					if (parsedDraft.documentId === document.id && draftTime > serverTime) {
+					if (
+						parsedDraft.documentId === document.id &&
+						draftTime > serverTime
+					) {
 						setHasUnsavedChanges(true);
 						setLocalContent(parsedDraft.content);
-						console.log('✅ Found newer local draft, restoring content');
+						console.log(
+							"✅ Found newer local draft, restoring content",
+						);
 					} else {
-						console.log('🆕 Server version is newer or wrong document, ignoring local draft');
+						console.log(
+							"🆕 Server version is newer or wrong document, ignoring local draft",
+						);
 						localStorage.removeItem(localKey);
 						setLocalContent(null);
 						setHasUnsavedChanges(false);
 					}
 				} catch (error) {
-					console.warn('❌ Failed to parse local draft:', error);
+					console.warn("❌ Failed to parse local draft:", error);
 					localStorage.removeItem(localKey);
 					setLocalContent(null);
 					setHasUnsavedChanges(false);
 				}
 			} else {
-				console.log('📄 No local draft found');
+				console.log("📄 No local draft found");
 				setLocalContent(null);
 				setHasUnsavedChanges(false);
 			}
-			
+
 			if (document.updatedAt) {
 				setLastSaved(new Date(document.updatedAt));
 			}
@@ -434,11 +471,14 @@ export function DocumentPage({
 										● Unsaved changes
 									</span>
 								)}
-								{!isSaving && !hasUnsavedChanges && lastSaved && (
-									<span className="last-saved">
-										✓ Saved {lastSaved.toLocaleTimeString()}
-									</span>
-								)}
+								{!isSaving &&
+									!hasUnsavedChanges &&
+									lastSaved && (
+										<span className="last-saved">
+											✓ Saved{" "}
+											{lastSaved.toLocaleTimeString()}
+										</span>
+									)}
 							</div>
 						</div>
 
@@ -459,36 +499,49 @@ export function DocumentPage({
 							room={document.id}
 							placeholder="Start writing..."
 							initialContent={(() => {
-								const content = localContent || document.content;
-								console.log("🔧 Initial content type:", typeof content);
-								console.log("🔧 Initial content value:", content);
-								
+								const content =
+									localContent || document.content;
+								console.log(
+									"🔧 Initial content type:",
+									typeof content,
+								);
+								console.log(
+									"🔧 Initial content value:",
+									content,
+								);
+
 								// If content is a string, try to parse it as JSON
-								if (typeof content === 'string') {
+								if (typeof content === "string") {
 									try {
 										const parsed = JSON.parse(content);
-										console.log("✅ Parsed string content:", parsed);
+										console.log(
+											"✅ Parsed string content:",
+											parsed,
+										);
 										return parsed;
 									} catch (error) {
-										console.log("❌ Failed to parse content as JSON, treating as HTML:", error);
+										console.log(
+											"❌ Failed to parse content as JSON, treating as HTML:",
+											error,
+										);
 										// If parsing fails, it might be plain HTML, wrap it in a basic doc structure
 										return {
-											type: 'doc',
+											type: "doc",
 											content: [
 												{
-													type: 'paragraph',
+													type: "paragraph",
 													content: [
 														{
-															type: 'text',
-															text: content
-														}
-													]
-												}
-											]
+															type: "text",
+															text: content,
+														},
+													],
+												},
+											],
 										};
 									}
 								}
-								
+
 								// If it's already an object, return as-is
 								console.log("✅ Content is already an object");
 								return content;
