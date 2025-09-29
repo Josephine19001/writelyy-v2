@@ -99,17 +99,50 @@ export const updateDocument = protectedProcedure
 		// Calculate word count if content provided
 		let wordCount = currentDocument.wordCount;
 		let extractedText = currentDocument.extractedText;
+		let processedContent = content;
 		
 		if (content) {
-			extractedText = typeof content === 'object' ? JSON.stringify(content) : content;
-			wordCount = (extractedText || '').split(/\s+/).filter(word => word.length > 0).length;
+			// Handle both old double-encoded strings and new objects
+			if (typeof content === 'string') {
+				try {
+					// Try to parse if it's a JSON string
+					processedContent = JSON.parse(content);
+					
+					// Check if it's still a string (double-encoded)
+					if (typeof processedContent === 'string') {
+						processedContent = JSON.parse(processedContent);
+					}
+				} catch (error) {
+					// If parsing fails, treat as plain text
+					console.warn('Content parsing failed, treating as plain text:', error);
+					processedContent = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: content }] }] };
+				}
+			}
+			
+			// Extract text for search/AI - traverse Tiptap JSON structure
+			const extractTextFromTiptap = (node: any): string => {
+				if (!node) return '';
+				
+				if (node.type === 'text') {
+					return node.text || '';
+				}
+				
+				if (node.content && Array.isArray(node.content)) {
+					return node.content.map(extractTextFromTiptap).join(' ');
+				}
+				
+				return '';
+			};
+			
+			extractedText = extractTextFromTiptap(processedContent);
+			wordCount = extractedText.split(/\s+/).filter(word => word.length > 0).length;
 		}
 
 		const document = await db.document.update({
 			where: { id },
 			data: {
 				...(title && { title, slug }),
-				...(content && { content, extractedText, wordCount }),
+				...(content && { content: processedContent, extractedText, wordCount }),
 				...(description !== undefined && { description }),
 				...(tags && { tags }),
 				...(folderId !== undefined && { folderId }),
