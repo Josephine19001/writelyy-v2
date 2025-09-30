@@ -5,10 +5,39 @@ import React, {
 	useContext,
 	useState,
 	useCallback,
+	useEffect,
 } from "react";
 import type { EditorTab, DocumentTab } from "../editor/types";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { useTabManager } from "../../hooks/use-tab-manager";
+
+// localStorage helpers
+const getStorageKey = (workspaceId: string) => `writely-tabs-${workspaceId}`;
+
+const loadTabsFromStorage = (workspaceId: string): { tabs: EditorTab[]; activeTabId?: string } => {
+	try {
+		const stored = localStorage.getItem(getStorageKey(workspaceId));
+		if (stored) {
+			const parsed = JSON.parse(stored);
+			return { tabs: parsed.tabs || [], activeTabId: parsed.activeTabId };
+		}
+	} catch (error) {
+		console.warn("Failed to load tabs from localStorage:", error);
+	}
+	return { tabs: [], activeTabId: undefined };
+};
+
+const saveTabsToStorage = (workspaceId: string, tabs: EditorTab[], activeTabId?: string) => {
+	try {
+		localStorage.setItem(getStorageKey(workspaceId), JSON.stringify({
+			tabs,
+			activeTabId,
+			timestamp: Date.now()
+		}));
+	} catch (error) {
+		console.warn("Failed to save tabs to localStorage:", error);
+	}
+};
 
 interface TabContextType {
 	// Tab management
@@ -46,13 +75,26 @@ export function TabProvider({ children }: TabProviderProps) {
 	const [tabs, setTabs] = useState<EditorTab[]>([]);
 	const [activeTabId, setActiveTabId] = useState<string>();
 
-	// Debug tabs changes
-	React.useEffect(() => {
-		console.log(
-			"🔍 TABS STATE CHANGED:",
-			tabs.map((t) => ({ id: t.id, title: t.title })),
-		);
-	}, [tabs]);
+	// Load tabs from localStorage when workspace changes
+	useEffect(() => {
+		if (activeWorkspace?.id) {
+			const { tabs: storedTabs, activeTabId: storedActiveTabId } = loadTabsFromStorage(activeWorkspace.id);
+			setTabs(storedTabs);
+			setActiveTabId(storedActiveTabId);
+		} else {
+			// Clear tabs when no workspace is selected
+			setTabs([]);
+			setActiveTabId(undefined);
+		}
+	}, [activeWorkspace?.id]);
+
+	// Save tabs to localStorage whenever tabs or activeTabId changes
+	useEffect(() => {
+		if (activeWorkspace?.id) {
+			saveTabsToStorage(activeWorkspace.id, tabs, activeTabId);
+		}
+	}, [activeWorkspace?.id, tabs, activeTabId]);
+
 
 	// Get active tab
 	const activeTab = tabs.find((tab) => tab.id === activeTabId);
@@ -66,12 +108,6 @@ export function TabProvider({ children }: TabProviderProps) {
 	// Add or switch to tab - SIMPLIFIED
 	const addOrSwitchToTab = useCallback(
 		(newTab: EditorTab) => {
-			console.log(
-				"🔍 TAB PROVIDER: addOrSwitchToTab called with:",
-				newTab.id,
-				newTab.title,
-			);
-
 			// Check if tab already exists
 			const existingTab = tabs.find((tab) => {
 				if (newTab.type === "document" && tab.type === "document") {
@@ -83,16 +119,8 @@ export function TabProvider({ children }: TabProviderProps) {
 			});
 
 			if (existingTab) {
-				console.log(
-					"🔍 TAB PROVIDER: Found existing tab, setting active:",
-					existingTab.id,
-				);
 				setActiveTabId(existingTab.id);
 			} else {
-				console.log(
-					"🔍 TAB PROVIDER: Adding new tab and setting active:",
-					newTab.id,
-				);
 				setTabs((currentTabs) => [...currentTabs, newTab]);
 				setActiveTabId(newTab.id);
 			}
@@ -115,16 +143,12 @@ export function TabProvider({ children }: TabProviderProps) {
 	// Select tab
 	const selectTab = useCallback(
 		(tabId: string) => {
-			console.log("🔍 TAB PROVIDER: Manual tab selection:", tabId);
-
 			const tab = tabs.find((t) => t.id === tabId);
 			if (!tab) {
 				return;
 			}
 
-			console.log("🔍 TAB PROVIDER: Setting active tab manually:", tabId);
 			setActiveTabId(tabId);
-
 			// No URL updates - tabs are pure UI state like VS Code
 		},
 		[tabs],

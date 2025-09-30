@@ -11,10 +11,12 @@ import {
 } from "@ui/components/tooltip";
 import { FileText, FolderPlus, Search } from "lucide-react";
 import { useEditorContext } from "../NewAppWrapper";
+import { useSearch } from "../search/SearchProvider";
 
 export function TopIconBar() {
 	const { activeWorkspace } = useActiveWorkspace();
 	const { onInlineCreate, selectedFolderId } = useEditorContext();
+	const { openSearch } = useSearch();
 
 	return (
 		<div className="flex items-center justify-between px-3 py-1 border-b bg-background">
@@ -26,12 +28,12 @@ export function TopIconBar() {
 								variant="ghost"
 								size="xs"
 								icon={<Search />}
-								onClick={() => {}}
+								onClick={openSearch}
 								className="py-0"
 							/>
 						</TooltipTrigger>
 						<TooltipContent>
-							<p>Search workspace</p>
+							<p>Search workspace (⌘K)</p>
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
