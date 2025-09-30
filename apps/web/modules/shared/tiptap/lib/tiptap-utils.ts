@@ -149,6 +149,39 @@ export function isValidPosition(pos: number | null | undefined): pos is number {
 }
 
 /**
+ * Safely validates a position within document bounds
+ * @param editor The Tiptap editor instance
+ * @param position The position to validate
+ * @returns true if position is valid and within bounds
+ */
+export function isPositionWithinBounds(editor: Editor, position: number): boolean {
+  if (!editor || !editor.state?.doc) return false
+  if (!isValidPosition(position)) return false
+  
+  const docSize = editor.state.doc.content.size
+  return position >= 0 && position <= docSize
+}
+
+/**
+ * Safely gets a node at position with bounds checking
+ * @param editor The Tiptap editor instance
+ * @param position The position to check
+ * @returns The node at position or null if invalid
+ */
+export function safeNodeAt(editor: Editor, position: number) {
+  if (!isPositionWithinBounds(editor, position)) {
+    return null
+  }
+  
+  try {
+    return editor.state.doc.nodeAt(position)
+  } catch (error) {
+    console.warn(`Failed to get node at position ${position}:`, error)
+    return null
+  }
+}
+
+/**
  * Checks if one or more extensions are registered in the Tiptap editor.
  * @param editor - The Tiptap editor instance
  * @param extensionNames - A single extension name or an array of names to check

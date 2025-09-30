@@ -13,7 +13,7 @@ import {
 	Folder,
 	FolderPlus,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useEditorContext } from "../NewAppWrapper";
 import { useTabContext } from "../providers/TabProvider";
 import { CreateItemDialog } from "./dialogs/CreateItemDialog";
@@ -63,18 +63,33 @@ export function WorkspaceDocumentTree({
 			enabled: !!activeWorkspace?.id,
 		});
 
-	// Organize documents by folder
-	const allDocuments = documentsData?.documents || [];
+	// Memoize documents list to prevent re-renders when only content changes
+	const allDocuments = React.useMemo(() => {
+		if (!documentsData?.documents) return [];
+		
+		// Only include fields that affect the tree structure/display
+		// This prevents re-renders when document content changes
+		return documentsData.documents.map((doc: any) => ({
+			id: doc.id,
+			title: doc.title,
+			folderId: doc.folderId,
+			createdAt: doc.createdAt,
+			updatedAt: doc.updatedAt,
+			// Exclude content to prevent re-renders on content changes
+		}));
+	}, [documentsData?.documents]);
 
-	const documentsByFolder = allDocuments.reduce(
-		(acc: Record<string, any[]>, doc: any) => {
-			const folderId = doc.folderId || "root";
-			if (!acc[folderId]) acc[folderId] = [];
-			acc[folderId].push(doc);
-			return acc;
-		},
-		{},
-	);
+	const documentsByFolder = React.useMemo(() => {
+		return allDocuments.reduce(
+			(acc: Record<string, any[]>, doc: any) => {
+				const folderId = doc.folderId || "root";
+				if (!acc[folderId]) acc[folderId] = [];
+				acc[folderId].push(doc);
+				return acc;
+			},
+			{},
+		);
+	}, [allDocuments]);
 
 	const rootDocuments = documentsByFolder["root"] || [];
 

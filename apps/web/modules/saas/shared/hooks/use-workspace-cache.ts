@@ -72,25 +72,40 @@ export function useWorkspaceCache(organizationId: string | null) {
   }, [prefetchDocument]);
 
   // Update cache when data changes
-  const updateDocumentCache = useCallback((document: any) => {
+  const updateDocumentCache = useCallback((document: any, options?: { updateListCache?: boolean, isTemporary?: boolean }) => {
+    // Always update the individual document cache
     queryClient.setQueryData(["document", document.id], document);
     
-    // Update the documents list cache
-    queryClient.setQueryData(
-      documentsQueryKey(organizationId!),
-      (oldData: any) => {
-        if (!oldData) return oldData;
-        
-        const updatedDocuments = oldData.documents.map((doc: any) =>
-          doc.id === document.id ? document : doc
-        );
-        
-        return {
-          ...oldData,
-          documents: updatedDocuments,
-        };
-      }
-    );
+    // Determine if we should update the list cache
+    const shouldUpdateListCache = options?.updateListCache !== false;
+    
+    if (shouldUpdateListCache) {
+      queryClient.setQueryData(
+        documentsQueryKey(organizationId!),
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          
+          const updatedDocuments = oldData.documents.map((doc: any) => {
+            if (doc.id === document.id) {
+              // Update the document metadata in the list
+              return {
+                ...doc,
+                title: document.title,
+                updatedAt: document.updatedAt,
+                folderId: document.folderId,
+                // Don't include content in the list cache to keep it lightweight
+              };
+            }
+            return doc;
+          });
+          
+          return {
+            ...oldData,
+            documents: updatedDocuments,
+          };
+        }
+      );
+    }
   }, [organizationId, queryClient]);
 
   const updateFolderCache = useCallback((folder: any) => {

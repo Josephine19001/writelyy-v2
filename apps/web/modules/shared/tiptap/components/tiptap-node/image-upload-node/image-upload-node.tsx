@@ -9,6 +9,8 @@ import "@shared/tiptap/components/tiptap-node/image-upload-node/image-upload-nod
 import {
 	focusNextNode,
 	isValidPosition,
+	isPositionWithinBounds,
+	safeNodeAt,
 } from "@shared/tiptap/lib/tiptap-utils";
 
 export interface FileItem {
@@ -459,33 +461,87 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 		const urls = await uploadFiles(files);
 
 		if (urls.length > 0) {
+			// Create image nodes first
+			const imageNodes = urls.map((url, index) => {
+				const filename =
+					files[index]?.name.replace(/\.[^/.]+$/, "") ||
+					"unknown";
+				return {
+					type: extension.options.type,
+					attrs: {
+						...extension.options,
+						src: url,
+						alt: filename,
+						title: filename,
+					},
+				};
+			});
+
+			// Try to get position, but handle invalid positions gracefully
 			const pos = props.getPos();
+			let insertionSuccess = false;
 
-			if (isValidPosition(pos)) {
-				const imageNodes = urls.map((url, index) => {
-					const filename =
-						files[index]?.name.replace(/\.[^/.]+$/, "") ||
-						"unknown";
-					const imageNode = {
-						type: extension.options.type,
-						attrs: {
-							...extension.options,
-							src: url,
-							alt: filename,
-							title: filename,
-						},
-					};
-					return imageNode;
-				});
+			// Strategy 1: Try to replace the upload node if position is valid
+			if (isValidPosition(pos) && isPositionWithinBounds(props.editor, pos)) {
+				try {
+					// Validate that the position actually contains our upload node
+					const nodeAtPos = safeNodeAt(props.editor, pos);
+					if (nodeAtPos && nodeAtPos.type.name === 'imageUpload') {
+						props.editor
+							.chain()
+							.focus()
+							.deleteRange({ from: pos, to: pos + props.node.nodeSize })
+							.insertContentAt(pos, imageNodes)
+							.run();
+						insertionSuccess = true;
+					}
+				} catch (error) {
+					console.warn('Failed to replace upload node at position:', pos, error);
+				}
+			}
 
-				props.editor
-					.chain()
-					.focus()
-					.deleteRange({ from: pos, to: pos + props.node.nodeSize })
-					.insertContentAt(pos, imageNodes)
-					.run();
+			// Strategy 2: If replacement failed, insert at current selection
+			if (!insertionSuccess) {
+				try {
+					// Delete the upload node using the editor's delete command
+					props.deleteNode();
+					
+					// Insert images at current selection
+					props.editor
+						.chain()
+						.focus()
+						.insertContent(imageNodes)
+						.run();
+					insertionSuccess = true;
+				} catch (error) {
+					console.warn('Failed to insert at current selection:', error);
+				}
+			}
 
-				focusNextNode(props.editor);
+			// Strategy 3: Last resort - insert at end of document
+			if (!insertionSuccess) {
+				try {
+					const { state } = props.editor;
+					const endPos = state.doc.content.size;
+					
+					props.editor
+						.chain()
+						.focus()
+						.insertContentAt(endPos, imageNodes)
+						.run();
+					insertionSuccess = true;
+				} catch (error) {
+					console.error('All image insertion strategies failed:', error);
+					extension.options.onError?.(new Error('Failed to insert image into document'));
+					return;
+				}
+			}
+
+			// Focus after the inserted images if successful
+			if (insertionSuccess) {
+				setTimeout(() => {
+					focusNextNode(props.editor);
+				}, 0);
 			}
 		}
 	};

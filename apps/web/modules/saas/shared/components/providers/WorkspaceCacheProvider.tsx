@@ -25,7 +25,7 @@ type WorkspaceCacheContextValue = {
 
 	// Cache management
 	invalidateWorkspaceCache: () => void;
-	updateDocumentCache: (document: any) => void;
+	updateDocumentCache: (document: any, options?: { updateListCache?: boolean }) => void;
 	updateFolderCache: (folder: any) => void;
 	prefetchDocument: (documentId: string) => Promise<void>;
 	trackDocumentAccess: (documentId: string) => void;

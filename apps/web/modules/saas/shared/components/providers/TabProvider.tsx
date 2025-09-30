@@ -49,6 +49,7 @@ interface TabContextType {
 	addOrSwitchToTab: (tab: EditorTab) => void;
 	selectTab: (tabId: string) => void;
 	closeTab: (tabId: string) => void;
+	updateTabDocument: (documentId: string, updatedDocument: any) => void;
 
 	// Active content
 	activeDocumentId?: string;
@@ -177,6 +178,34 @@ export function TabProvider({ children }: TabProviderProps) {
 		[tabs, activeTabId],
 	);
 
+	// Update tab document content when cache changes
+	const updateTabDocument = useCallback(
+		(documentId: string, updatedDocument: any) => {
+			setTabs((currentTabs) =>
+				currentTabs.map((tab) => {
+					if (tab.type === "document") {
+						const documentTab = tab.content as DocumentTab;
+						if (documentTab.documentId === documentId) {
+							return {
+								...tab,
+								title: updatedDocument.title,
+								content: {
+									...documentTab,
+									document: {
+										...documentTab.document,
+										...updatedDocument,
+									},
+								},
+							};
+						}
+					}
+					return tab;
+				})
+			);
+		},
+		[]
+	);
+
 	// Simplified: URL and tabs are independent
 	// URL just shows current document for sharing/bookmarking
 	// Tabs are pure UI state like VS Code
@@ -190,6 +219,7 @@ export function TabProvider({ children }: TabProviderProps) {
 		addOrSwitchToTab,
 		selectTab,
 		closeTab,
+		updateTabDocument,
 		activeDocumentId,
 	};
 

@@ -120,8 +120,8 @@ export function useOptimizedDocumentMutations(organizationId: string) {
       folderId?: string | null;
       createVersion?: boolean;
     }) => {
-      const { document } = await orpcClient.documents.update(data);
-      return document;
+      const result = await orpcClient.documents.update(data);
+      return result.document;
     },
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: documentQueryKey(variables.id) });
@@ -136,6 +136,8 @@ export function useOptimizedDocumentMutations(organizationId: string) {
       return { previousDocument, previousDocuments };
     },
     onError: (err, variables, context) => {
+      console.error("Document update failed:", err);
+      
       // Revert optimistic updates
       if (context?.previousDocument) {
         queryClient.setQueryData(documentQueryKey(variables.id), context.previousDocument);

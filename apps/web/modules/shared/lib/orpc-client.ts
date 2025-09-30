@@ -1,4 +1,4 @@
-import { createORPCClient, onError } from "@orpc/client";
+import { createORPCClient, onError, onSuccess } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ApiRouterClient } from "@repo/api/orpc/router";
 import { getBaseUrl } from "@repo/utils";
@@ -15,6 +15,17 @@ const link = new RPCLink({
 	},
 	interceptors: [
 		onError((error, context) => {
+			// Add debug logging for document-related calls
+			if (context?.path?.includes("documents")) {
+				console.error("🔴 ORPC DOCUMENT ERROR:", {
+					path: context.path,
+					error: error,
+					message: error instanceof Error ? error.message : "Unknown error",
+					code: (error as any)?.code,
+					status: (error as any)?.status,
+				});
+			}
+
 			// Skip abort errors (user cancelled requests)
 			if (error instanceof Error && error.name === "AbortError") {
 				return;
