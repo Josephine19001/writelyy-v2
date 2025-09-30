@@ -1,9 +1,11 @@
 "use client";
 
-import { ThreePanelLayout } from "@saas/shared/components/ThreePanelLayout";
 import { LeftSidebar } from "@saas/shared/components/LeftSidebar";
 import { RightAIPanel } from "@saas/shared/components/RightAIPanel";
+import { FloatingAIButton } from "@saas/shared/components/FloatingAIButton";
+import { TabProvider } from "@saas/shared/components/providers/TabProvider";
 import { useState, useEffect, type PropsWithChildren, createContext, useContext } from "react";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { WorkspaceWelcome } from "./WorkspaceWelcome";
 import { SearchProvider, useSearch } from "./search/SearchProvider";
@@ -35,7 +37,7 @@ export const useEditorContext = () => {
 
 function AppContent({ children }: PropsWithChildren) {
 	const { activeWorkspace } = useActiveWorkspace();
-	const [isAIPanelOpen, setIsAIPanelOpen] = useState(true);
+	const [isAIOpen, setIsAIOpen] = useState(false);
 	const [documentSelectHandler, setDocumentSelectHandler] = useState<((document: any) => void) | null>(null);
 	const [sourceSelectHandler, setSourceSelectHandler] = useState<((sourceId: string) => void) | null>(null);
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -58,15 +60,6 @@ function AppContent({ children }: PropsWithChildren) {
 		document.addEventListener('keydown', handleKeyDown);
 		return () => document.removeEventListener('keydown', handleKeyDown);
 	}, [openSearch]);
-
-	// Collapse AI panel when no workspace is selected
-	useEffect(() => {
-		if (!activeWorkspace) {
-			setIsAIPanelOpen(false);
-		} else {
-			setIsAIPanelOpen(true);
-		}
-	}, [activeWorkspace]);
 
 	const editorContextValue: EditorContextType = {
 		onDocumentSelect: documentSelectHandler || undefined,
@@ -92,15 +85,53 @@ function AppContent({ children }: PropsWithChildren) {
 	return (
 		<EditorContext.Provider value={editorContextValue}>
 			<div className="h-screen bg-background">
-				<ThreePanelLayout
-					leftPanel={enhancedLeftSidebar}
-					rightPanel={<RightAIPanel />}
-					onAIToggle={setIsAIPanelOpen}
-					initialRightPanelCollapsed={true}
-					initialLeftPanelCollapsed={!activeWorkspace}
-				>
-					{!activeWorkspace ? <WorkspaceWelcome /> : children}
-				</ThreePanelLayout>
+				<PanelGroup direction="horizontal" id="main-layout">
+					{/* Left Panel - File Explorer */}
+					<Panel defaultSize={20} minSize={12} maxSize={35} className="min-w-[240px]" id="left-panel">
+						<div className="h-full bg-background border-r">
+							{enhancedLeftSidebar}
+						</div>
+					</Panel>
+
+					{/* Resize Handle */}
+					<PanelResizeHandle className="w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40" id="left-resize-handle" />
+
+					{/* Main Content Area */}
+					<Panel defaultSize={isAIOpen ? 55 : 80} minSize={30} id="main-panel">
+						<div className="h-full bg-card">
+							{!activeWorkspace ? <WorkspaceWelcome /> : children}
+						</div>
+					</Panel>
+
+					{/* Right AI Panel - Conditionally rendered */}
+					{isAIOpen && (
+						<>
+							{/* Resize Handle */}
+							<PanelResizeHandle className="w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40" id="right-resize-handle" />
+							
+							<Panel defaultSize={25} minSize={15} maxSize={40} className="min-w-[280px]" id="right-panel">
+								<div className="h-full bg-background border-l relative">
+									<RightAIPanel />
+									{/* Close button overlay */}
+									<button
+										onClick={() => setIsAIOpen(false)}
+										className="absolute top-4 right-4 p-1 rounded-md hover:bg-muted transition-colors z-10"
+									>
+										<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</div>
+							</Panel>
+						</>
+					)}
+				</PanelGroup>
+
+				{/* Floating AI Button - only show when panel is closed */}
+				<FloatingAIButton 
+					onClick={() => setIsAIOpen(true)}
+					isAIOpen={isAIOpen}
+				/>
 
 				{/* Search Modal */}
 				<SearchModal
@@ -117,7 +148,9 @@ function AppContent({ children }: PropsWithChildren) {
 export function NewAppWrapper({ children }: PropsWithChildren) {
 	return (
 		<SearchProvider>
-			<AppContent>{children}</AppContent>
+			<TabProvider>
+				<AppContent>{children}</AppContent>
+			</TabProvider>
 		</SearchProvider>
 	);
 }

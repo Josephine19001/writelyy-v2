@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useEditorContext } from "../NewAppWrapper";
+import { useTabContext } from "../providers/TabProvider";
 import { CreateItemDialog } from "./dialogs/CreateItemDialog";
 import { FolderDocuments } from "./items/FolderDocuments";
 import { InlineCreateItem } from "./items/InlineCreateItem";
@@ -34,6 +35,7 @@ export function WorkspaceDocumentTree({
 	const { activeWorkspace } = useActiveWorkspace();
 	const { setSelectedFolderId, registerInlineCreateHandler } =
 		useEditorContext();
+	const { tabs } = useTabContext();
 	const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
 		new Set(),
 	);
@@ -75,6 +77,68 @@ export function WorkspaceDocumentTree({
 	);
 
 	const rootDocuments = documentsByFolder["root"] || [];
+
+	// Helper function to get all ancestor folder IDs for a given folder
+	const getFolderAncestors = (folderId: string, folders: any[]): string[] => {
+		const ancestors: string[] = [];
+		
+		const findParent = (targetId: string, folderList: any[]): any => {
+			for (const folder of folderList) {
+				if (folder.id === targetId) {
+					return folder;
+				}
+				if (folder.subFolders) {
+					const found = findParent(targetId, folder.subFolders);
+					if (found) return found;
+				}
+			}
+			return null;
+		};
+
+		const addAncestors = (currentFolderId: string) => {
+			const folder = findParent(currentFolderId, folderTree || []);
+			if (folder?.parentId) {
+				ancestors.push(folder.parentId);
+				addAncestors(folder.parentId);
+			}
+		};
+
+		addAncestors(folderId);
+		return ancestors;
+	};
+
+	// Auto-expand folders that contain open tabs
+	useEffect(() => {
+		if (!tabs || tabs.length === 0 || !folderTree || !allDocuments.length) return;
+
+		const openDocumentIds = tabs
+			.filter(tab => tab.type === 'document')
+			.map(tab => (tab.content as any).documentId);
+
+		if (openDocumentIds.length === 0) return;
+
+		const foldersToExpand = new Set<string>();
+
+		// Find which folders contain open documents
+		openDocumentIds.forEach(docId => {
+			const document = allDocuments.find(doc => doc.id === docId);
+			if (document?.folderId) {
+				// Add the direct folder
+				foldersToExpand.add(document.folderId);
+				// Add all ancestor folders
+				const ancestors = getFolderAncestors(document.folderId, folderTree);
+				ancestors.forEach(ancestorId => foldersToExpand.add(ancestorId));
+			}
+		});
+
+		// Update expanded folders if there are new folders to expand
+		if (foldersToExpand.size > 0) {
+			setExpandedFolders(prev => {
+				const newExpanded = new Set([...prev, ...foldersToExpand]);
+				return newExpanded;
+			});
+		}
+	}, [tabs, folderTree, allDocuments]);
 
 	const toggleFolder = (folderId: string) => {
 		const newExpanded = new Set(expandedFolders);

@@ -176,10 +176,10 @@ export function ThreePanelLayout({
 				) : (
 					<>
 						<Panel
-							defaultSize={16}
-							minSize={12}
-							maxSize={25}
-							className="min-w-[200px] relative overflow-visible"
+							defaultSize={22}
+							minSize={18}
+							maxSize={35}
+							className="min-w-[280px] relative overflow-visible"
 						>
 							<div className="relative h-full overflow-visible">
 								<LeftPanel>{leftPanel}</LeftPanel>
