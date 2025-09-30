@@ -59,22 +59,24 @@ body,
 
 // Important so the this does not override the editor behaviour
 @media screen and (max-width: 480px) {
-  .notion-like-editor-wrapper {
+  .editor-wrapper {
     width: 100vw;
     height: 100vh;
     overflow: auto;
   }
 }
 
+.editor-wrapper,
 .notion-like-editor-wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  background-color: hsl(var(--background));
 }
 
-.notion-like-editor-content {
+.editor-content {
   max-width: 768px;
   width: 100%;
   margin: 0 auto;
@@ -84,24 +86,35 @@ body,
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  background-color: hsl(var(--background));
 }
 
-.notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+.editor-content .tiptap.ProseMirror.editor {
   flex: 1;
-  padding: 3rem 3rem 30vh;
+  padding: 0 3rem 30vh;
+  margin: 0;
   min-height: 0;
   overflow-y: visible;
   overflow-x: hidden;
+  background-color: hsl(var(--background));
+  border: none;
+  outline: none;
+  
+  // Remove default ProseMirror spacing
+  > *:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
 }
 
 @media screen and (max-width: 480px) {
-  .notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+  .editor-content .tiptap.ProseMirror.editor {
     padding: 1.5rem 1.5rem 30vh;
   }
 }
 
 // Ensure content doesn't interfere with sticky header
-.notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+.editor-content .tiptap.ProseMirror.editor {
   // Prevent content from going behind the header
   scroll-margin-top: 4rem;
   
@@ -115,7 +128,7 @@ body,
 }
 
 // Enhanced paragraph selection styles
-.notion-like-editor-content .tiptap.ProseMirror.notion-like-editor {
+.editor-content .tiptap.ProseMirror.editor {
   // Ensure paragraph nodes are selectable
   p {
     cursor: text;
@@ -223,61 +236,30 @@ body,
 }
 
 .tk-page-break {
-  background-color: var(--tt-border-color);
-  height: 2px;
+  height: 1px;
   margin: 1rem 0;
-  border: 1px dashed var(--tt-gray-light-300);
-  position: relative;
+  border-top: 1px solid var(--tt-gray-light-300);
+  background: none;
   
   .dark & {
     border-color: var(--tt-gray-dark-300);
   }
-  
-  &::before {
-    content: "Page Break";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-color: var(--tt-card-bg-color);
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    color: var(--tt-gray-light-500);
-    border-radius: var(--tt-radius-xxs);
-    
-    .dark & {
-      color: var(--tt-gray-dark-500);
-    }
-  }
 }
 
-// Enhanced page break hover and selection states
+// Simple page break hover and selection states
 .tk-page-break:hover {
   border-color: var(--tt-gray-light-400);
   
   .dark & {
     border-color: var(--tt-gray-dark-400);
   }
-  
-  &::before {
-    color: var(--tt-theme-text);
-  }
 }
 
 .tk-page-break.ProseMirror-selectednode {
   border-color: var(--tt-brand-color-500);
-  background-color: var(--tt-selection-color);
   
   .dark & {
     border-color: var(--tt-brand-color-400);
-  }
-  
-  &::before {
-    color: var(--tt-brand-color-500);
-    
-    .dark & {
-      color: var(--tt-brand-color-400);
-    }
   }
 }
 

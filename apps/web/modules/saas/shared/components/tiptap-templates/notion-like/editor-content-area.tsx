@@ -2,7 +2,10 @@
 
 import { useScrollToHash } from "@shared/tiptap/components/tiptap-ui/copy-anchor-link-button/use-scroll-to-hash";
 import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
-import { EditorContent as TiptapEditorContent, EditorContext } from "@tiptap/react";
+import {
+	EditorContent as TiptapEditorContent,
+	EditorContext,
+} from "@tiptap/react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -55,7 +58,7 @@ export function EditorContentArea() {
 		<TiptapEditorContent
 			editor={editor}
 			role="presentation"
-			className="notion-like-editor-content"
+			className="editor-content"
 			style={{
 				cursor: isDragging ? "grabbing" : "auto",
 			}}

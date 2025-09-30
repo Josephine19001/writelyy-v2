@@ -1,6 +1,6 @@
 "use client";
 
-// import { ThemeToggle } from "@analyticsui/components/tiptap-templates/notion-like/notion-like-editor-theme-toggle";
+// import { ThemeToggle } from "@analyticsui/components/tiptap-templates/notion-like/editor-theme-toggle";
 import { BlockquoteButton } from "@shared/tiptap/components/tiptap-ui/blockquote-button";
 import { CodeBlockButton } from "@shared/tiptap/components/tiptap-ui/code-block-button";
 import { ColorTextPopover } from "@shared/tiptap/components/tiptap-ui/color-text-popover";
@@ -17,48 +17,23 @@ import { Separator } from "@shared/tiptap/components/tiptap-ui-primitive/separat
 // --- UI Primitives ---
 
 // --- Styles ---
-import "@analyticsui/components/tiptap-templates/notion-like/notion-like-editor-header.scss";
+import "./editor-header.scss";
 
 import { ExportButton } from "@shared/tiptap/components/tiptap-ui/export-button";
 import { EditorContext } from "@tiptap/react";
 import * as React from "react";
 
-// Word count hook
-function useWordCount(editor: any) {
-	const [wordCount, setWordCount] = React.useState(0);
-
-	React.useEffect(() => {
-		if (!editor) return;
-
-		const updateWordCount = () => {
-			const text = editor.getText();
-			const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-			setWordCount(words);
-		};
-
-		// Update word count on content change
-		editor.on('update', updateWordCount);
-		updateWordCount(); // Initial count
-
-		return () => {
-			editor.off('update', updateWordCount);
-		};
-	}, [editor]);
-
-	return wordCount;
-}
 
 // Export functionality is now handled internally by ExportButton
 
-// import { CollaborationUsers } from "@analyticsui/components/tiptap-templates/notion-like/notion-like-editor-collaboration-users";
+// import { CollaborationUsers } from "@analyticsui/components/tiptap-templates/notion-like/editor-collaboration-users";
 
 export function NotionEditorHeader() {
 	const { editor } = React.useContext(EditorContext)!;
-	const wordCount = useWordCount(editor);
 	return (
-		<header className="notion-like-editor-header">
+		<header className="editor-header">
 			{/* Left side: Main toolbar with formatting options */}
-			<div className="notion-like-editor-toolbar">
+			<div className="editor-toolbar">
 				{/* Undo/Redo */}
 				<ButtonGroup orientation="horizontal">
 					<UndoRedoButton action="undo" />
@@ -118,16 +93,8 @@ export function NotionEditorHeader() {
 				</ButtonGroup>
 			</div>
 
-			{/* Right side: Word count and export */}
-			<div className="notion-like-editor-header-actions">
-				<div className="word-count" style={{ 
-					fontSize: '14px', 
-					color: '#64748b',
-					marginRight: '12px'
-				}}>
-					{wordCount} words
-				</div>
-				<Separator orientation="vertical" />
+			{/* Right side: Export */}
+			<div className="editor-header-actions">
 				<ExportButton editor={editor} />
 			</div>
 		</header>

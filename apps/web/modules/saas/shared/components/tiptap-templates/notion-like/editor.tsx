@@ -8,6 +8,7 @@ import * as React from "react";
 
 // --- Styles ---
 import "./editor.scss";
+import "./editor-footer.scss";
 
 // --- Components ---
 import { EditorContent } from "./editor-content";
@@ -18,6 +19,7 @@ export function Editor({
 	placeholder = "Start writing...",
 	onChange,
 	initialContent,
+	savingState,
 }: NotionEditorProps) {
 	return (
 		<UserProvider>
@@ -28,6 +30,7 @@ export function Editor({
 							placeholder={placeholder}
 							onChange={onChange}
 							initialContent={initialContent}
+							savingState={savingState}
 						/>
 					</AiProvider>
 				</CollabProvider>

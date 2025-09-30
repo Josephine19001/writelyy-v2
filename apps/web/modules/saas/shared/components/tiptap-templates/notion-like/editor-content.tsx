@@ -11,6 +11,11 @@ interface EditorContentProps {
 	placeholder?: string;
 	onChange?: (content: any) => void;
 	initialContent?: any;
+	savingState?: {
+		isSaving: boolean;
+		lastSaved: Date | null;
+		hasUnsavedChanges: boolean;
+	};
 }
 
 /**
@@ -20,6 +25,7 @@ export function EditorContent({
 	placeholder,
 	onChange,
 	initialContent,
+	savingState,
 }: EditorContentProps) {
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
@@ -40,6 +46,7 @@ export function EditorContent({
 			aiToken={aiToken}
 			onChange={onChange}
 			initialContent={initialContent}
+			savingState={savingState}
 		/>
 	);
 }

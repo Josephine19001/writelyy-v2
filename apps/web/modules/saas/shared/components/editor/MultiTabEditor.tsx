@@ -1,11 +1,12 @@
 "use client";
-
+import React from "react";
 import { EditorPlaceholder } from "../EditorPlaceholder";
+import { Editor } from "../tiptap-templates/notion-like/editor";
 import { DocumentPreview } from "./previews/DocumentPreview";
 import { ImagePreview } from "./previews/ImagePreview";
 import { PDFPreview } from "./previews/PDFPreview";
 import { URLPreview } from "./previews/URLPreview";
-import { TiptapDocumentEditor } from "./TiptapDocumentEditor";
+
 import { EditorTabs } from "./tabs/EditorTabs";
 import type { DocumentTab, EditorTab, SourceTab } from "./types";
 
@@ -16,16 +17,47 @@ interface MultiTabEditorProps {
 	onTabClose: (tabId: string) => void;
 	onToggleAI?: () => void;
 	isAIPanelOpen?: boolean;
+	onDocumentChange?: (documentId: string, content: any) => void;
+	savingState?: {
+		isSaving: boolean;
+		lastSaved: Date | null;
+		hasUnsavedChanges: boolean;
+	};
 }
 
-function renderTabContent(tab: EditorTab) {
+function renderTabContent(
+	tab: EditorTab,
+	onDocumentChange?: (documentId: string, content: any) => void,
+	savingState?: MultiTabEditorProps["savingState"],
+) {
+
 	if (tab.type === "document") {
 		const documentTab = tab.content as DocumentTab;
+
 		return (
-			<TiptapDocumentEditor
-				documentId={documentTab.documentId}
-				initialContent={documentTab.document?.content || ""}
-			/>
+			<div
+				key={`editor-container-${documentTab.documentId}`}
+				className="h-full"
+			>
+				<div className="h-full">
+					<Editor
+						key={`editor-instance-${documentTab.documentId}-${tab.id}`}
+						room={`doc-${documentTab.documentId}`}
+						placeholder="Start writing..."
+						initialContent={documentTab.document.content}
+						onChange={
+							onDocumentChange
+								? (content) =>
+										onDocumentChange(
+											documentTab.documentId,
+											content,
+										)
+								: undefined
+						}
+						savingState={savingState}
+					/>
+				</div>
+			</div>
 		);
 	}
 
@@ -66,8 +98,24 @@ export function MultiTabEditor({
 	onTabClose,
 	onToggleAI,
 	isAIPanelOpen,
+	onDocumentChange,
+	savingState,
 }: MultiTabEditorProps) {
 	const activeTab = tabs.find((tab) => tab.id === activeTabId);
+
+
+	// Force re-render when activeTabId changes by not memoizing
+	const tabContent = (() => {
+		if (!activeTab) {
+			return (
+				<div className="flex items-center justify-center h-full text-muted-foreground">
+					<div className="text-sm">No tab selected</div>
+				</div>
+			);
+		}
+		
+		return renderTabContent(activeTab, onDocumentChange, savingState);
+	})();
 
 	// Show placeholder when no tabs are open
 	if (tabs.length === 0 || !activeTab) {
@@ -81,6 +129,7 @@ export function MultiTabEditor({
 
 	return (
 		<div className="flex flex-col h-full">
+			
 			{/* Tab Bar */}
 			<EditorTabs
 				tabs={tabs}
@@ -90,9 +139,7 @@ export function MultiTabEditor({
 			/>
 
 			{/* Tab Content */}
-			<div className="flex-1 overflow-hidden">
-				{renderTabContent(activeTab)}
-			</div>
+			<div key={activeTabId} className="flex-1 overflow-hidden">{tabContent}</div>
 		</div>
 	);
 }

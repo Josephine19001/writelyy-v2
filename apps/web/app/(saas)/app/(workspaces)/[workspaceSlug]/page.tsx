@@ -1,5 +1,5 @@
 import { getActiveWorkspace } from "@saas/auth/lib/server";
-import { WorkspaceEditor } from "@saas/shared/components/WorkspaceEditor";
+import { WorkspaceEditorWithTabs } from "@saas/shared/components/WorkspaceEditorWithTabs";
 import { WorkspaceCacheProvider } from "@saas/shared/components/providers/WorkspaceCacheProvider";
 import { notFound } from "next/navigation";
 
@@ -33,7 +33,7 @@ export default async function WorkspacePage({
 	// Return the workspace editor wrapped with necessary providers
 	return (
 		<WorkspaceCacheProvider>
-			<WorkspaceEditor />
+			<WorkspaceEditorWithTabs />
 		</WorkspaceCacheProvider>
 	);
 }

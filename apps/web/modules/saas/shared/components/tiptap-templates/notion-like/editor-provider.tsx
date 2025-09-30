@@ -32,7 +32,8 @@ import * as React from "react";
 import type { Doc as YDoc } from "yjs";
 
 import { EditorContentArea } from "./editor-content-area";
-import { NotionEditorHeader } from "./header";
+import { NotionEditorHeader } from "./editor-header";
+import { EditorFooter } from "./editor-footer";
 import { LoadingSpinner } from "./loading-spinner";
 
 export interface EditorProviderProps {
@@ -55,6 +56,7 @@ export function EditorProvider(props: EditorProviderProps) {
 		aiToken,
 		onChange,
 		initialContent,
+		savingState,
 	} = props;
 
 	const { user } = useUser();
@@ -88,23 +90,32 @@ export function EditorProvider(props: EditorProviderProps) {
 				// Always set initial content if provided, regardless of onChange
 				if (initialContentRef.current) {
 					setTimeout(() => {
+						// Check if editor is still mounted and view is available
+						if (editor.isDestroyed || !editor.view?.dom) {
+							return;
+						}
+
 						const currentContent = editor.getJSON();
 
 						if (
 							JSON.stringify(currentContent) !==
 							JSON.stringify(initialContentRef.current)
 						) {
-							editor.commands.setContent(
-								initialContentRef.current,
-								{ emitUpdate: false },
-							);
+							try {
+								editor.commands.setContent(
+									initialContentRef.current,
+									{ emitUpdate: false },
+								);
+							} catch (error) {
+								console.warn("Failed to set initial content:", error);
+							}
 						}
 					}, 100);
 				}
 			},
 			editorProps: {
 				attributes: {
-					class: "notion-like-editor",
+					class: "editor",
 				},
 				handleKeyDown: (view, event) => {
 					// Allow default behavior for all keys to ensure proper functionality
@@ -257,6 +268,11 @@ export function EditorProvider(props: EditorProviderProps) {
 			<EditorContext.Provider value={{ editor }}>
 				<NotionEditorHeader />
 				<EditorContentArea />
+				<EditorFooter 
+					isSaving={savingState?.isSaving}
+					lastSaved={savingState?.lastSaved}
+					hasUnsavedChanges={savingState?.hasUnsavedChanges}
+				/>
 			</EditorContext.Provider>
 		</div>
 	);

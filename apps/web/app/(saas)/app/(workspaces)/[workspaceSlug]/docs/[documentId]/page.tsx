@@ -1,6 +1,6 @@
 import { getActiveWorkspace } from "@saas/auth/lib/server";
-import { DocumentPage } from "@saas/shared/components/pages/DocumentPage";
 import { WorkspaceCacheProvider } from "@saas/shared/components/providers/WorkspaceCacheProvider";
+import { WorkspaceEditorWithTabs } from "@saas/shared/components/WorkspaceEditorWithTabs";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata({
@@ -46,11 +46,7 @@ export default async function DocumentPageRoute({
 	// Note: documentId is accessed via useDocumentRouter hook inside DocumentPage
 	return (
 		<WorkspaceCacheProvider>
-			<DocumentPage 
-				showSidebar={true} 
-				showBreadcrumbs={true} 
-				compactBreadcrumbs={false}
-			/>
+			<WorkspaceEditorWithTabs />
 		</WorkspaceCacheProvider>
 	);
 }

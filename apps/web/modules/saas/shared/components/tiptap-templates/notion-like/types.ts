@@ -6,6 +6,11 @@ export interface NotionEditorProps {
 	placeholder?: string;
 	onChange?: (content: any) => void;
 	initialContent?: any;
+	savingState?: {
+		isSaving: boolean;
+		lastSaved: Date | null;
+		hasUnsavedChanges: boolean;
+	};
 }
 
 export interface EditorProviderProps {
@@ -15,4 +20,9 @@ export interface EditorProviderProps {
 	aiToken: string | null;
 	onChange?: (content: any) => void;
 	initialContent?: any;
+	savingState?: {
+		isSaving: boolean;
+		lastSaved: Date | null;
+		hasUnsavedChanges: boolean;
+	};
 }
