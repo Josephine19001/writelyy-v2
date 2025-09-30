@@ -69,6 +69,9 @@
     --tt-toolbar-padding: 0.125rem;
     --tt-toolbar-border-width: 1px;
 
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     padding: 0.188rem;
     border-radius: calc(
       var(--tt-toolbar-padding) + var(--tt-radius-lg) +
@@ -79,6 +82,26 @@
     box-shadow: var(--tt-shadow-elevated-md);
     outline: none;
     overflow: hidden;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+
+    .tiptap-toolbar-group {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+      flex-wrap: nowrap !important;
+      
+      > * {
+        display: inline-flex !important;
+        flex-shrink: 0 !important;
+      }
+    }
+
+    .tiptap-separator {
+      display: inline-block !important;
+      flex-shrink: 0 !important;
+    }
 
     &[data-plain="true"] {
       padding: 0;

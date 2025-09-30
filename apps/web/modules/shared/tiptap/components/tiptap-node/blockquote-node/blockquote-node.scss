@@ -11,27 +11,35 @@
      ===================== */
 .tiptap.ProseMirror {
   blockquote {
-    position: relative;
-    padding-left: 1em;
-    padding-top: 0.375em;
-    padding-bottom: 0.375em;
-    margin: 1.5rem 0;
+    position: relative !important;
+    padding-left: 1em !important;
+    padding-top: 0.375em !important;
+    padding-bottom: 0.375em !important;
+    margin: 1.5rem 0 !important;
+    display: block !important;
+    font-style: italic !important;
+    color: var(--tt-gray-light-600) !important;
+
+    .dark & {
+      color: var(--tt-gray-dark-600) !important;
+    }
 
     p {
-      margin-top: 0;
+      margin-top: 0 !important;
+      display: block !important;
     }
 
     &::before,
     &.is-empty::before {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 0.25em;
-      background-color: var(--blockquote-bg-color);
-      content: "";
-      border-radius: 0;
+      position: absolute !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      top: 0 !important;
+      height: 100% !important;
+      width: 0.25em !important;
+      background-color: var(--blockquote-bg-color) !important;
+      content: "" !important;
+      border-radius: 0 !important;
     }
   }
 }

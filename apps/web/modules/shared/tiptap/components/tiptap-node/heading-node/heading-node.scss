@@ -2,37 +2,54 @@
   h1,
   h2,
   h3,
-  h4 {
-    position: relative;
-    color: inherit;
-    font-style: inherit;
+  h4,
+  h5,
+  h6 {
+    position: relative !important;
+    color: inherit !important;
+    font-style: inherit !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5em !important;
+    display: block !important;
 
     &:first-child {
-      margin-top: 0;
+      margin-top: 0 !important;
     }
   }
 
   h1 {
-    font-size: 1.5em;
-    font-weight: 700;
-    margin-top: 3em;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    margin-top: 2rem !important;
   }
 
   h2 {
-    font-size: 1.25em;
-    font-weight: 700;
-    margin-top: 2.5em;
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    margin-top: 1.5rem !important;
   }
 
   h3 {
-    font-size: 1.125em;
-    font-weight: 600;
-    margin-top: 2em;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    margin-top: 1.25rem !important;
   }
 
   h4 {
-    font-size: 1em;
-    font-weight: 600;
-    margin-top: 2em;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    margin-top: 1rem !important;
+  }
+
+  h5 {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    margin-top: 1rem !important;
+  }
+
+  h6 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-top: 1rem !important;
   }
 }

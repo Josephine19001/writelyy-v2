@@ -9,6 +9,19 @@ import * as React from "react";
 // --- Styles ---
 import "./editor.scss";
 import "./editor-footer.scss";
+import "./editor-content-overrides.scss";
+
+// --- Toolbar Styles ---
+import "@shared/tiptap/components/tiptap-ui-primitive/toolbar/toolbar.scss";
+
+// --- Node Styles ---
+import "@shared/tiptap/components/tiptap-node/heading-node/heading-node.scss";
+import "@shared/tiptap/components/tiptap-node/list-node/list-node.scss";
+import "@shared/tiptap/components/tiptap-node/blockquote-node/blockquote-node.scss";
+import "@shared/tiptap/components/tiptap-node/code-block-node/code-block-node.scss";
+import "@shared/tiptap/components/tiptap-node/paragraph-node/paragraph-node.scss";
+import "@shared/tiptap/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
+import "@shared/tiptap/components/tiptap-node/image-node/image-node.scss";
 
 // --- Components ---
 import { EditorContent } from "./editor-content";
