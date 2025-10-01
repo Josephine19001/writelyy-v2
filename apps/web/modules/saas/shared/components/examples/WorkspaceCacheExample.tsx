@@ -29,7 +29,6 @@ function WorkspaceCacheExampleInner() {
   const handleDocumentSelect = React.useCallback((documentId: string) => {
     setSelectedDocumentId(documentId);
     trackDocumentAccess(documentId);
-    console.log("Document selected:", documentId);
   }, [trackDocumentAccess]);
 
   const handleDocumentUpdate = React.useCallback(async (documentId: string, updates: any) => {
@@ -38,7 +37,6 @@ function WorkspaceCacheExampleInner() {
         id: documentId,
         ...updates,
       });
-      console.log("Document updated successfully");
     } catch (error) {
       console.error("Failed to update document:", error);
     }
@@ -46,7 +44,6 @@ function WorkspaceCacheExampleInner() {
 
   const handleManualCacheWarm = React.useCallback(() => {
     warmCache();
-    console.log("Manual cache warming triggered");
   }, [warmCache]);
 
   if (isLoading) {

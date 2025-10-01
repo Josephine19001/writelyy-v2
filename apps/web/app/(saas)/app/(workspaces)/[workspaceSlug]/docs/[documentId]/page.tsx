@@ -8,7 +8,7 @@ export async function generateMetadata({
 }: {
 	params: Promise<{ workspaceSlug: string; documentId: string }>;
 }) {
-	const { workspaceSlug, documentId } = await params;
+	const { workspaceSlug } = await params;
 
 	const activeWorkspace = await getActiveWorkspace(workspaceSlug as string);
 
@@ -31,7 +31,7 @@ export default async function DocumentPageRoute({
 }: {
 	params: Promise<{ workspaceSlug: string; documentId: string }>;
 }) {
-	const { workspaceSlug, documentId } = await params;
+	const { workspaceSlug } = await params;
 
 	const activeWorkspace = await getActiveWorkspace(workspaceSlug as string);
 

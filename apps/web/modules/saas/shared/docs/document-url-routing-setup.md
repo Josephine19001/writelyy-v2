@@ -106,7 +106,6 @@ function DocumentComponent({ documentId }: { documentId: string }) {
 
   const handleShare = () => {
     navigator.clipboard.writeText(shareableUrl!);
-    console.log('Document URL copied!');
   };
 
   const handleOpen = () => {

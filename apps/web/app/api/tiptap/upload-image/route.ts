@@ -15,12 +15,6 @@ const s3Client = new S3Client({
 });
 
 export async function POST(request: NextRequest) {
-	console.log("=== Image Upload API Called ===");
-	console.log("Environment variables:", {
-		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-		S3_ENDPOINT: process.env.S3_ENDPOINT,
-		NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME: process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME
-	});
 	try {
 		// Get the authenticated user
 		const session = await auth.api.getSession({
@@ -77,7 +71,8 @@ export async function POST(request: NextRequest) {
 		const buffer = Buffer.from(bytes);
 
 		// Upload to documents bucket
-		const bucketName = process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME || "document-images";
+		const bucketName =
+			process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME || "document-images";
 		const uploadCommand = new PutObjectCommand({
 			Bucket: bucketName,
 			Key: fileName,
@@ -86,17 +81,16 @@ export async function POST(request: NextRequest) {
 			// Note: ACL is not supported in Supabase S3
 		});
 
-		console.log("Uploading to bucket:", bucketName, "with key:", fileName);
 		await s3Client.send(uploadCommand);
-		console.log("Upload successful");
 
 		// Return the correct Supabase Storage public URL
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 		if (!supabaseUrl) {
-			throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is not set");
+			throw new Error(
+				"NEXT_PUBLIC_SUPABASE_URL environment variable is not set",
+			);
 		}
 		const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${fileName}`;
-		console.log("Generated public URL:", publicUrl);
 
 		const response = {
 			success: true,
@@ -105,7 +99,6 @@ export async function POST(request: NextRequest) {
 			size: file.size,
 			type: file.type,
 		};
-		console.log("API response:", response);
 
 		return NextResponse.json(response);
 	} catch (error) {
@@ -116,7 +109,11 @@ export async function POST(request: NextRequest) {
 			bucket: process.env.NEXT_PUBLIC_DOCUMENTS_BUCKET_NAME,
 		});
 		return NextResponse.json(
-			{ error: "Failed to upload image", details: error instanceof Error ? error.message : "Unknown error" },
+			{
+				error: "Failed to upload image",
+				details:
+					error instanceof Error ? error.message : "Unknown error",
+			},
 			{ status: 500 },
 		);
 	}

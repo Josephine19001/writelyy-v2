@@ -6,6 +6,7 @@ import { ChevronDownIcon } from "@shared/tiptap/components/tiptap-icons/chevron-
 import type { Level } from "@shared/tiptap/components/tiptap-ui/heading-button";
 // --- Hooks ---
 import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
+import { useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
 import * as React from "react";
@@ -222,7 +223,7 @@ export function useTurnIntoDropdown(config?: UseTurnIntoDropdownConfig) {
 	} = config || {};
 
 	const { editor } = useTiptapEditor(providedEditor);
-	const [isOpen, setIsOpen] = React.useState(false);
+	const { isOpen, setIsOpen } = useDropdownCoordination("turn-into-dropdown");
 	const [isVisible, setIsVisible] = React.useState(true);
 
 	const canToggle = canTurnInto(editor, blockTypes);
@@ -234,7 +235,7 @@ export function useTurnIntoDropdown(config?: UseTurnIntoDropdownConfig) {
 			setIsOpen(open);
 			onOpenChange?.(open);
 		},
-		[canToggle, editor, onOpenChange],
+		[canToggle, editor, onOpenChange, setIsOpen],
 	);
 
 	React.useEffect(() => {

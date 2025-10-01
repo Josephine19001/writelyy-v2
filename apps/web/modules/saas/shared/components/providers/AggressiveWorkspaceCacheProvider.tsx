@@ -5,107 +5,108 @@ import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace"
 import { useAggressiveWorkspaceCache } from "../../hooks/use-aggressive-workspace-cache";
 
 type AggressiveWorkspaceCacheContextValue = {
-  // Loading states - should only be true on initial load
-  isInitializing: boolean;
-  isReady: boolean;
-  hasError: boolean;
-  error: Error | null;
-  
-  // Data - available instantly after initial load
-  documents: any[];
-  folders: any[];
-  sources: any[];
-  
-  // Stats
-  totalDocuments: number;
-  totalSources: number;
-  lastUpdated: Date | null;
-  
-  // Document operations (no loading states)
-  getDocument: (documentId: string) => any;
-  accessDocument: (documentId: string) => Promise<any>;
-  updateDocument: (documentId: string, updates: any) => void;
-  
-  // Cache management
-  refreshWorkspace: () => Promise<void>;
-  getSnapshot: () => { documents: any[]; folders: any[]; sources: any[]; isCached: boolean };
-  
-  // Performance
-  cacheStats: {
-    documentsCount: number;
-    foldersCount: number;
-    sourcesCount: number;
-    isReady: boolean;
-    lastUpdated: Date | null;
-  };
+	// Loading states - should only be true on initial load
+	isInitializing: boolean;
+	isReady: boolean;
+	hasError: boolean;
+	error: Error | null;
+
+	// Data - available instantly after initial load
+	documents: any[];
+	folders: any[];
+	sources: any[];
+
+	// Stats
+	totalDocuments: number;
+	totalSources: number;
+	lastUpdated: Date | null;
+
+	// Document operations (no loading states)
+	getDocument: (documentId: string) => any;
+	accessDocument: (documentId: string) => Promise<any>;
+	updateDocument: (documentId: string, updates: any) => void;
+
+	// Cache management
+	refreshWorkspace: () => Promise<void>;
+	getSnapshot: () => {
+		documents: any[];
+		folders: any[];
+		sources: any[];
+		isCached: boolean;
+	};
+
+	// Performance
+	cacheStats: {
+		documentsCount: number;
+		foldersCount: number;
+		sourcesCount: number;
+		isReady: boolean;
+		lastUpdated: Date | null;
+	};
 };
 
-const AggressiveWorkspaceCacheContext = createContext<AggressiveWorkspaceCacheContextValue | null>(null);
+const AggressiveWorkspaceCacheContext =
+	createContext<AggressiveWorkspaceCacheContextValue | null>(null);
 
 export function useAggressiveWorkspaceCacheContext() {
-  const context = useContext(AggressiveWorkspaceCacheContext);
-  if (!context) {
-    throw new Error("useAggressiveWorkspaceCacheContext must be used within an AggressiveWorkspaceCacheProvider");
-  }
-  return context;
+	const context = useContext(AggressiveWorkspaceCacheContext);
+	if (!context) {
+		throw new Error(
+			"useAggressiveWorkspaceCacheContext must be used within an AggressiveWorkspaceCacheProvider",
+		);
+	}
+	return context;
 }
 
 interface AggressiveWorkspaceCacheProviderProps {
-  children: React.ReactNode;
-  showPerformanceStats?: boolean;
+	children: React.ReactNode;
+	showPerformanceStats?: boolean;
 }
 
-export function AggressiveWorkspaceCacheProvider({ 
-  children, 
-  showPerformanceStats = false 
+export function AggressiveWorkspaceCacheProvider({
+	children,
+	showPerformanceStats = false,
 }: AggressiveWorkspaceCacheProviderProps) {
-  const { activeWorkspace } = useActiveWorkspace();
-  
-  const cacheHook = useAggressiveWorkspaceCache(activeWorkspace?.id || null);
+	const { activeWorkspace } = useActiveWorkspace();
 
-  // Performance monitoring
-  useEffect(() => {
-    if (!showPerformanceStats || process.env.NODE_ENV !== "development") return;
+	const cacheHook = useAggressiveWorkspaceCache(activeWorkspace?.id || null);
 
-    const logStats = () => {
-      if (cacheHook.isReady) {
-        console.group("📊 Workspace Cache Performance");
-        console.log("Documents cached:", cacheHook.documents.length);
-        console.log("Folders cached:", cacheHook.folders.length);
-        console.log("Sources cached:", cacheHook.sources.length);
-        console.log("Last updated:", cacheHook.lastUpdated?.toLocaleTimeString());
-        console.log("Cache ready:", cacheHook.isReady);
-        console.groupEnd();
-      }
-    };
+	// Performance monitoring
+	useEffect(() => {
+		if (!showPerformanceStats || process.env.NODE_ENV !== "development")
+			return;
 
-    // Log initial stats
-    if (cacheHook.isReady) {
-      logStats();
-    }
+		// Set up periodic logging
+		const interval = setInterval(logStats, 30000); // Every 30 seconds
+		return () => clearInterval(interval);
+	}, [
+		cacheHook.isReady,
+		cacheHook.documents.length,
+		cacheHook.folders.length,
+		cacheHook.sources.length,
+		showPerformanceStats,
+	]);
 
-    // Set up periodic logging
-    const interval = setInterval(logStats, 30000); // Every 30 seconds
-    return () => clearInterval(interval);
-  }, [cacheHook.isReady, cacheHook.documents.length, cacheHook.folders.length, cacheHook.sources.length, showPerformanceStats]);
+	// Show loading screen only during initial cache load
+	if (activeWorkspace && cacheHook.isInitializing) {
+		return (
+			<div className="workspace-cache-initializing">
+				<div className="cache-loading-content">
+					<div className="cache-loading-spinner" />
+					<h2>Loading Workspace</h2>
+					<p>
+						Preparing {activeWorkspace.name} for lightning-fast
+						access...
+					</p>
+					<div className="cache-loading-details">
+						<div className="loading-step">📄 Loading documents</div>
+						<div className="loading-step">📁 Loading folders</div>
+						<div className="loading-step">🔗 Loading sources</div>
+						<div className="loading-step">🚀 Optimizing cache</div>
+					</div>
+				</div>
 
-  // Show loading screen only during initial cache load
-  if (activeWorkspace && cacheHook.isInitializing) {
-    return (
-      <div className="workspace-cache-initializing">
-        <div className="cache-loading-content">
-          <div className="cache-loading-spinner"></div>
-          <h2>Loading Workspace</h2>
-          <p>Preparing {activeWorkspace.name} for lightning-fast access...</p>
-          <div className="cache-loading-details">
-            <div className="loading-step">📄 Loading documents</div>
-            <div className="loading-step">📁 Loading folders</div>
-            <div className="loading-step">🔗 Loading sources</div>
-            <div className="loading-step">🚀 Optimizing cache</div>
-          </div>
-        </div>
-
-        <style jsx>{`
+				<style jsx>{`
           .workspace-cache-initializing {
             height: 100vh;
             display: flex;
@@ -174,41 +175,41 @@ export function AggressiveWorkspaceCacheProvider({
             50% { opacity: 1; }
           }
         `}</style>
-      </div>
-    );
-  }
+			</div>
+		);
+	}
 
-  // Show error state
-  if (cacheHook.hasError) {
-    return (
-      <div className="workspace-cache-error">
-        <div className="error-content">
-          <div className="error-icon">⚠️</div>
-          <h2>Failed to Load Workspace</h2>
-          <p>There was an error loading your workspace data.</p>
-          <div className="error-actions">
-            <button 
-              onClick={() => cacheHook.refreshWorkspace()}
-              className="retry-button"
-            >
-              Retry
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="reload-button"
-            >
-              Reload Page
-            </button>
-          </div>
-          {process.env.NODE_ENV === "development" && (
-            <details className="error-details">
-              <summary>Error Details</summary>
-              <pre>{cacheHook.error?.message}</pre>
-            </details>
-          )}
-        </div>
+	// Show error state
+	if (cacheHook.hasError) {
+		return (
+			<div className="workspace-cache-error">
+				<div className="error-content">
+					<div className="error-icon">⚠️</div>
+					<h2>Failed to Load Workspace</h2>
+					<p>There was an error loading your workspace data.</p>
+					<div className="error-actions">
+						<button
+							onClick={() => cacheHook.refreshWorkspace()}
+							className="retry-button"
+						>
+							Retry
+						</button>
+						<button
+							onClick={() => window.location.reload()}
+							className="reload-button"
+						>
+							Reload Page
+						</button>
+					</div>
+					{process.env.NODE_ENV === "development" && (
+						<details className="error-details">
+							<summary>Error Details</summary>
+							<pre>{cacheHook.error?.message}</pre>
+						</details>
+					)}
+				</div>
 
-        <style jsx>{`
+				<style jsx>{`
           .workspace-cache-error {
             height: 100vh;
             display: flex;
@@ -288,58 +289,74 @@ export function AggressiveWorkspaceCacheProvider({
             overflow-x: auto;
           }
         `}</style>
-      </div>
-    );
-  }
+			</div>
+		);
+	}
 
-  const contextValue: AggressiveWorkspaceCacheContextValue = cacheHook;
+	const contextValue: AggressiveWorkspaceCacheContextValue = cacheHook;
 
-  return (
-    <AggressiveWorkspaceCacheContext.Provider value={contextValue}>
-      {children}
-    </AggressiveWorkspaceCacheContext.Provider>
-  );
+	return (
+		<AggressiveWorkspaceCacheContext.Provider value={contextValue}>
+			{children}
+		</AggressiveWorkspaceCacheContext.Provider>
+	);
 }
 
 /**
  * Performance monitoring component for development
  */
 export function WorkspaceCacheDebugPanel() {
-  const { cacheStats, isReady, hasError, totalDocuments, totalSources } = useAggressiveWorkspaceCacheContext();
+	const { cacheStats, isReady, hasError, totalDocuments, totalSources } =
+		useAggressiveWorkspaceCacheContext();
 
-  if (process.env.NODE_ENV !== "development") {
-    return null;
-  }
+	if (process.env.NODE_ENV !== "development") {
+		return null;
+	}
 
-  return (
-    <div className="cache-debug-panel">
-      <h4>Cache Debug</h4>
-      <div className="debug-stats">
-        <div className="stat">
-          <label>Status:</label>
-          <span className={isReady ? "ready" : hasError ? "error" : "loading"}>
-            {isReady ? "✅ Ready" : hasError ? "❌ Error" : "⏳ Loading"}
-          </span>
-        </div>
-        <div className="stat">
-          <label>Documents:</label>
-          <span>{cacheStats.documentsCount} / {totalDocuments}</span>
-        </div>
-        <div className="stat">
-          <label>Folders:</label>
-          <span>{cacheStats.foldersCount}</span>
-        </div>
-        <div className="stat">
-          <label>Sources:</label>
-          <span>{cacheStats.sourcesCount} / {totalSources}</span>
-        </div>
-        <div className="stat">
-          <label>Updated:</label>
-          <span>{cacheStats.lastUpdated?.toLocaleTimeString() || "Never"}</span>
-        </div>
-      </div>
+	return (
+		<div className="cache-debug-panel">
+			<h4>Cache Debug</h4>
+			<div className="debug-stats">
+				<div className="stat">
+					<label>Status:</label>
+					<span
+						className={
+							isReady ? "ready" : hasError ? "error" : "loading"
+						}
+					>
+						{isReady
+							? "✅ Ready"
+							: hasError
+								? "❌ Error"
+								: "⏳ Loading"}
+					</span>
+				</div>
+				<div className="stat">
+					<label>Documents:</label>
+					<span>
+						{cacheStats.documentsCount} / {totalDocuments}
+					</span>
+				</div>
+				<div className="stat">
+					<label>Folders:</label>
+					<span>{cacheStats.foldersCount}</span>
+				</div>
+				<div className="stat">
+					<label>Sources:</label>
+					<span>
+						{cacheStats.sourcesCount} / {totalSources}
+					</span>
+				</div>
+				<div className="stat">
+					<label>Updated:</label>
+					<span>
+						{cacheStats.lastUpdated?.toLocaleTimeString() ||
+							"Never"}
+					</span>
+				</div>
+			</div>
 
-      <style jsx>{`
+			<style jsx>{`
         .cache-debug-panel {
           position: fixed;
           bottom: 16px;
@@ -386,6 +403,6 @@ export function WorkspaceCacheDebugPanel() {
           color: #ffc107;
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }

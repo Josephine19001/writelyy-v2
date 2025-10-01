@@ -1,9 +1,12 @@
 "use client";
 
 import { UiState } from "@shared/tiptap/components/tiptap-extension/ui-state-extension";
+import { ChartBlockNode } from "@shared/tiptap/components/tiptap-node/chart-block-node/chart-block-node-extension";
+import { DrawingBlockNode } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-extension";
 import { HorizontalRule } from "@shared/tiptap/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import { Image } from "@shared/tiptap/components/tiptap-node/image-node/image-node-extension";
 import { ImageUploadNode } from "@shared/tiptap/components/tiptap-node/image-upload-node/image-upload-node-extension";
+import { SnippetBlockNode } from "@shared/tiptap/components/tiptap-node/snippet-block-node/snippet-block-node-extension";
 import { useUser } from "@shared/tiptap/contexts/user-context";
 import { TIPTAP_AI_APP_ID } from "@shared/tiptap/lib/tiptap-collab-utils";
 import {
@@ -18,6 +21,7 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Mathematics } from "@tiptap/extension-mathematics";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
+import { TableKit, TableCell } from "@tiptap/extension-table";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
@@ -65,6 +69,29 @@ export function EditorProvider(props: EditorProviderProps) {
 	} = props;
 
 	const { user } = useUser();
+
+	// Custom table cell with backgroundColor support (exactly like the working example)
+	const CustomTableCell = React.useMemo(() => {
+		return TableCell.extend({
+			addAttributes() {
+				return {
+					// extend the existing attributes
+					...this.parent?.(),
+					// add backgroundColor attribute
+					backgroundColor: {
+						default: null,
+						parseHTML: element => element.getAttribute('data-background-color'),
+						renderHTML: attributes => {
+							return {
+								'data-background-color': attributes.backgroundColor,
+								style: `background-color: ${attributes.backgroundColor}`,
+							};
+						},
+					},
+				};
+			},
+		});
+	}, []);
 
 	// Use refs to store current values to avoid recreating editor
 	const onChangeRef = React.useRef(onChange);
@@ -198,6 +225,17 @@ export function EditorProvider(props: EditorProviderProps) {
 					onError: (error) => console.error("Upload failed:", error),
 					onSuccess: (url) => {},
 				}),
+				// Table extensions (exactly like the working example)
+				TableKit.configure({
+					table: { resizable: true },
+					tableCell: false, // Disable default TableCell to use our custom one
+				}),
+				// Custom TableCell with backgroundColor support
+				CustomTableCell,
+				// Custom block extensions
+				ChartBlockNode,
+				SnippetBlockNode,
+				DrawingBlockNode,
 				UniqueID.configure({
 					types: [
 						"paragraph",
@@ -207,6 +245,10 @@ export function EditorProvider(props: EditorProviderProps) {
 						"heading",
 						"blockquote",
 						"codeBlock",
+						"table",
+						"chartBlock",
+						"snippetBlock",
+						"drawingBlock",
 					],
 					filterTransaction: (transaction) =>
 						!isChangeOrigin(transaction),

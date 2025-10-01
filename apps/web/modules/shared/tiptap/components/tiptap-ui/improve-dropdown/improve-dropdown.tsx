@@ -41,6 +41,7 @@ import {
 import { Separator } from "@shared/tiptap/components/tiptap-ui-primitive/separator";
 // --- Hooks ---
 import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
+import { useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
 import type { Language, TextOptions, Tone } from "@tiptap-pro/extension-ai";
@@ -160,7 +161,7 @@ export function useImproveDropdownState(
 	editor: Editor | null,
 	hideWhenUnavailable = false,
 ) {
-	const [isOpen, setIsOpen] = React.useState(false);
+	const { isOpen, setIsOpen } = useDropdownCoordination("improve-dropdown");
 	const [show, setShow] = React.useState(false);
 	const isDisabled = !canUseAi(editor);
 
@@ -170,7 +171,7 @@ export function useImproveDropdownState(
 			setIsOpen(open);
 			callback?.(open);
 		},
-		[editor, isDisabled],
+		[editor, isDisabled, setIsOpen],
 	);
 
 	React.useEffect(() => {

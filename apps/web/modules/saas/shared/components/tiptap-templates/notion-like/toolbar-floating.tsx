@@ -9,6 +9,7 @@ import { useFloatingToolbarVisibility } from "@shared/tiptap/hooks/use-floating-
 
 // --- Node ---
 import { ImageNodeFloating } from "@shared/tiptap/components/tiptap-node/image-node/image-node-floating";
+import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-floating";
 
 // --- Icons ---
 import { MoreVerticalIcon } from "@shared/tiptap/components/tiptap-icons/more-vertical-icon";
@@ -28,6 +29,15 @@ import {
 	TextAlignButton,
 } from "@shared/tiptap/components/tiptap-ui/text-align-button";
 import { TurnIntoDropdown } from "@shared/tiptap/components/tiptap-ui/turn-into-dropdown";
+import {
+  TableCreationDropdown,
+  TableRowColumnDropdown,
+  TableStructureDropdown,
+  TableCellOperationsDropdown,
+  TableHeadersDropdown,
+  TableNavigationDropdown,
+} from "@shared/tiptap/components/tiptap-ui/table-dropdown-groups";
+import { DropdownProvider, useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 
 // --- Utils ---
 import { isSelectionValid } from "@shared/tiptap/lib/tiptap-collab-utils";
@@ -61,11 +71,22 @@ export function NotionToolbarFloating() {
 		extraHideWhen: Boolean(aiGenerationActive || commentInputVisible),
 	});
 
+	console.log("🔥 Floating Toolbar Debug:", {
+		shouldShow,
+		lockDragHandle,
+		isMobile,
+		aiGenerationActive,
+		commentInputVisible,
+		hasValidSelection: isSelectionValid(editor),
+		editorState: !!editor?.state,
+	});
+
 	if (lockDragHandle || isMobile) return null;
 
 	return (
 		<FloatingElement shouldShow={shouldShow}>
-			<Toolbar variant="floating">
+			<DropdownProvider>
+				<Toolbar variant="floating">
 				<ToolbarGroup>
 					<ImproveDropdown hideWhenUnavailable={true} />
 				</ToolbarGroup>
@@ -74,6 +95,36 @@ export function NotionToolbarFloating() {
 
 				<ToolbarGroup>
 					<TurnIntoDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Table Creation */}
+				<ToolbarGroup>
+					<TableCreationDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Row & Column Management */}
+				<ToolbarGroup>
+					<TableRowColumnDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Table Deletion / Structure */}
+				<ToolbarGroup>
+					<TableStructureDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Cell Operations */}
+				<ToolbarGroup>
+					<TableCellOperationsDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Headers */}
+				<ToolbarGroup>
+					<TableHeadersDropdown hideWhenUnavailable={true} />
+				</ToolbarGroup>
+
+				{/* 📌 Navigation */}
+				<ToolbarGroup>
+					<TableNavigationDropdown hideWhenUnavailable={true} />
 				</ToolbarGroup>
 
 				<ToolbarSeparator />
@@ -89,6 +140,7 @@ export function NotionToolbarFloating() {
 
 				<ToolbarGroup>
 					<ImageNodeFloating />
+					<DrawingBlockNodeFloating />
 				</ToolbarGroup>
 
 				<ToolbarGroup>
@@ -101,6 +153,7 @@ export function NotionToolbarFloating() {
 
 				<MoreOptions hideWhenUnavailable={true} />
 			</Toolbar>
+			</DropdownProvider>
 		</FloatingElement>
 	);
 }
@@ -157,6 +210,7 @@ export function MoreOptions({
 }: MoreOptionsProps) {
 	const { editor } = useTiptapEditor(providedEditor);
 	const [show, setShow] = React.useState(false);
+	const { isOpen, setIsOpen } = useDropdownCoordination("more-options");
 
 	React.useEffect(() => {
 		if (!editor) return;
@@ -187,7 +241,7 @@ export function MoreOptions({
 		<>
 			<ToolbarSeparator />
 			<ToolbarGroup>
-				<Popover>
+				<Popover open={isOpen} onOpenChange={setIsOpen}>
 					<PopoverTrigger asChild>
 						<Button
 							type="button"

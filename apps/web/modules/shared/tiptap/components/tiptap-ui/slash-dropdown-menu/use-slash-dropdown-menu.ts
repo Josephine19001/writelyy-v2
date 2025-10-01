@@ -3,8 +3,10 @@
 import { AiSparklesIcon } from "@shared/tiptap/components/tiptap-icons/ai-sparkles-icon";
 // import { AtSignIcon } from "@shared/tiptap/components/tiptap-icons/at-sign-icon";
 import { BlockquoteIcon } from "@shared/tiptap/components/tiptap-icons/blockquote-icon";
+import { ChartIcon } from "@shared/tiptap/components/tiptap-icons/chart-icon";
 // --- Icons ---
 import { CodeBlockIcon } from "@shared/tiptap/components/tiptap-icons/code-block-icon";
+import { DrawIcon } from "@shared/tiptap/components/tiptap-icons/draw-icon";
 import { HeadingOneIcon } from "@shared/tiptap/components/tiptap-icons/heading-one-icon";
 import { HeadingThreeIcon } from "@shared/tiptap/components/tiptap-icons/heading-three-icon";
 import { HeadingTwoIcon } from "@shared/tiptap/components/tiptap-icons/heading-two-icon";
@@ -14,6 +16,8 @@ import { ListOrderedIcon } from "@shared/tiptap/components/tiptap-icons/list-ord
 import { ListTodoIcon } from "@shared/tiptap/components/tiptap-icons/list-todo-icon";
 import { MinusIcon } from "@shared/tiptap/components/tiptap-icons/minus-icon";
 import { SmilePlusIcon } from "@shared/tiptap/components/tiptap-icons/smile-plus-icon";
+import { SnippetIcon } from "@shared/tiptap/components/tiptap-icons/snippet-icon";
+import { TableIcon } from "@shared/tiptap/components/tiptap-icons/table-icon";
 import { TypeIcon } from "@shared/tiptap/components/tiptap-icons/type-icon";
 import { addEmojiTrigger } from "@shared/tiptap/components/tiptap-ui/emoji-trigger-button";
 // import { addMentionTrigger } from "@shared/tiptap/components/tiptap-ui/mention-trigger-button";
@@ -160,6 +164,42 @@ const texts = {
 		],
 		badge: ImageIcon,
 		group: "Upload",
+	},
+	table: {
+		title: "Table",
+		subtext: "Insert a table with rows and columns",
+		keywords: ["table", "grid", "rows", "columns", "data"],
+		badge: TableIcon,
+		group: "Insert",
+	},
+	chart: {
+		title: "Chart",
+		subtext: "Insert a chart (bar, line, or pie)",
+		keywords: [
+			"chart",
+			"graph",
+			"bar",
+			"line",
+			"pie",
+			"data",
+			"visualization",
+		],
+		badge: ChartIcon,
+		group: "Insert",
+	},
+	snippet: {
+		title: "Snippet",
+		subtext: "Insert reusable text snippet",
+		keywords: ["snippet", "template", "reusable", "text", "content"],
+		badge: SnippetIcon,
+		group: "Insert",
+	},
+	drawing: {
+		title: "Drawing",
+		subtext: "Insert a drawing canvas",
+		keywords: ["drawing", "canvas", "sketch", "draw", "art"],
+		badge: DrawIcon,
+		group: "Insert",
 	},
 };
 
@@ -324,6 +364,99 @@ const getItemImplementations = () => {
 					.run();
 			},
 		},
+		table: {
+			check: (editor: Editor) => {
+				const hasTable = !!editor.schema.nodes.table;
+				return hasTable;
+			},
+			action: ({ editor }: { editor: Editor }) => {
+				editor
+					.chain()
+					.focus()
+					.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+					.run();
+			},
+		},
+		chart: {
+			check: (editor: Editor) => {
+				return editor.schema.nodes.chartBlock !== undefined;
+			},
+			action: ({ editor }: { editor: Editor }) => {
+				try {
+					editor
+						.chain()
+						.focus()
+						.insertContent({
+							type: "chartBlock",
+							attrs: {
+								chartType: "bar",
+								data: {
+									labels: ["Jan", "Feb", "Mar"],
+									datasets: [
+										{
+											label: "Sample Data",
+											data: [10, 20, 30],
+											backgroundColor: [
+												"#FF6384",
+												"#36A2EB",
+												"#FFCE56",
+											],
+										},
+									],
+								},
+							},
+						})
+						.run();
+				} catch (error) {
+					console.error("Chart insertion failed:", error);
+				}
+			},
+		},
+		snippet: {
+			check: (editor: Editor) => {
+				return editor.schema.nodes.snippetBlock !== undefined;
+			},
+			action: ({ editor }: { editor: Editor }) => {
+				try {
+					editor
+						.chain()
+						.focus()
+						.insertContent({
+							type: "snippetBlock",
+							attrs: {
+								snippetId: null,
+								placeholder: "Select a snippet...",
+							},
+						})
+						.run();
+				} catch (error) {
+					console.error("Snippet insertion failed:", error);
+				}
+			},
+		},
+		drawing: {
+			check: (editor: Editor) => {
+				return editor.schema.nodes.drawingBlock !== undefined;
+			},
+			action: ({ editor }: { editor: Editor }) => {
+				try {
+					editor
+						.chain()
+						.focus()
+						.insertContent({
+							type: "drawingBlock",
+							attrs: {
+								width: 600,
+								height: 400,
+								drawingData: null,
+							},
+						})
+						.run();
+				} catch (error) {
+					console.error("Drawing insertion failed:", error);
+				}
+			},
+		},
 	};
 };
 
@@ -374,19 +507,24 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
 				const itemImpl = itemImplementations[itemType];
 				const itemText = texts[itemType];
 
-				if (itemImpl && itemText && itemImpl.check(editor)) {
-					const item: SuggestionItem = {
-						onSelect: ({ editor }) => itemImpl.action({ editor }),
-						...itemText,
-					};
+				if (itemImpl && itemText) {
+					const checkResult = itemImpl.check(editor);
 
-					if (config?.itemGroups?.[itemType]) {
-						item.group = config.itemGroups[itemType];
-					} else if (!showGroups) {
-						item.group = "";
+					if (checkResult) {
+						const item: SuggestionItem = {
+							onSelect: ({ editor }) =>
+								itemImpl.action({ editor }),
+							...itemText,
+						};
+
+						if (config?.itemGroups?.[itemType]) {
+							item.group = config.itemGroups[itemType];
+						} else if (!showGroups) {
+							item.group = "";
+						}
+
+						items.push(item);
 					}
-
-					items.push(item);
 				}
 			});
 

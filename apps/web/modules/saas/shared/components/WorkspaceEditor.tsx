@@ -1,19 +1,19 @@
 "use client";
 
 import { MultiTabEditor } from "@saas/shared/components/editor/MultiTabEditor";
-import { useState, useCallback, useEffect } from "react";
-import * as React from "react";
 import type {
-	EditorTab,
 	DocumentTab,
+	EditorTab,
 } from "@saas/shared/components/editor/types";
-import { useEditorContext } from "./NewAppWrapper";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
-import { useOptimizedDocumentMutations } from "../hooks/use-optimized-mutations";
-import { useWorkspaceCacheContext } from "./providers/WorkspaceCacheProvider";
-import { useTabContext } from "./providers/TabProvider";
-import { debounce } from "lodash";
 import { useQueryClient } from "@tanstack/react-query";
+import { debounce } from "lodash";
+import * as React from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useOptimizedDocumentMutations } from "../hooks/use-optimized-mutations";
+import { useEditorContext } from "./NewAppWrapper";
+import { useTabContext } from "./providers/TabProvider";
+import { useWorkspaceCacheContext } from "./providers/WorkspaceCacheProvider";
 
 export function WorkspaceEditor() {
 	const {
@@ -73,10 +73,10 @@ export function WorkspaceEditor() {
 		async (documentId: string, content: any) => {
 			setSavingStates((prev) => ({
 				...prev,
-				[documentId]: { 
-					...prev[documentId], 
+				[documentId]: {
+					...prev[documentId],
 					isSaving: true,
-					hasUnsavedChanges: true 
+					hasUnsavedChanges: true,
 				},
 			}));
 
@@ -91,8 +91,12 @@ export function WorkspaceEditor() {
 				updateDocumentCache(savedDocument, { updateListCache: true });
 
 				// Force query invalidation to ensure all UI components refresh
-				queryClient.invalidateQueries({ queryKey: ["document", documentId] });
-				queryClient.invalidateQueries({ queryKey: ["documents", activeWorkspace?.id] });
+				queryClient.invalidateQueries({
+					queryKey: ["document", documentId],
+				});
+				queryClient.invalidateQueries({
+					queryKey: ["documents", activeWorkspace?.id],
+				});
 
 				setSavingStates((prev) => ({
 					...prev,
@@ -108,13 +112,13 @@ export function WorkspaceEditor() {
 				localStorage.removeItem(localKey);
 			} catch (error) {
 				console.error("Failed to save document:", documentId, error);
-				
+
 				setSavingStates((prev) => ({
 					...prev,
-					[documentId]: { 
-						...prev[documentId], 
+					[documentId]: {
+						...prev[documentId],
 						isSaving: false,
-						hasUnsavedChanges: true
+						hasUnsavedChanges: true,
 					},
 				}));
 			}
@@ -128,59 +132,68 @@ export function WorkspaceEditor() {
 		[saveDocument],
 	);
 
-
 	// Simple tab management functions - no side effects!
-	const createDocumentTab = useCallback((document: any): EditorTab => {
-		// First check React Query cache for the most recent version
-		const cachedDocument = queryClient.getQueryData(["document", document.id]) as any;
-		let content = document.content || "";
-		let baseDocument = document;
+	const createDocumentTab = useCallback(
+		(document: any): EditorTab => {
+			// First check React Query cache for the most recent version
+			const cachedDocument = queryClient.getQueryData([
+				"document",
+				document.id,
+			]) as any;
+			let content = document.content || "";
+			let baseDocument = document;
 
-		// Use cached document if available (it's more recent than passed document)
-		if (cachedDocument) {
-			baseDocument = cachedDocument;
-			content = cachedDocument.content || "";
-		}
-		
-		// Then check for localStorage draft
-		const localKey = `doc-draft-${document.id}`;
-		try {
-			const storedDraft = localStorage.getItem(localKey);
-			if (storedDraft) {
-				const draft = JSON.parse(storedDraft);
-				// Use draft content if it exists and is newer than the base document
-				if (draft.content && draft.timestamp) {
-					const draftTime = new Date(draft.timestamp).getTime();
-					const docTime = new Date(baseDocument.updatedAt || baseDocument.createdAt).getTime();
-					
-					// Use draft if it's newer than the base document
-					if (draftTime > docTime) {
-						content = draft.content;
-						console.log("Restored content from localStorage draft for document:", document.id);
+			// Use cached document if available (it's more recent than passed document)
+			if (cachedDocument) {
+				baseDocument = cachedDocument;
+				content = cachedDocument.content || "";
+			}
+
+			// Then check for localStorage draft
+			const localKey = `doc-draft-${document.id}`;
+			try {
+				const storedDraft = localStorage.getItem(localKey);
+				if (storedDraft) {
+					const draft = JSON.parse(storedDraft);
+					// Use draft content if it exists and is newer than the base document
+					if (draft.content && draft.timestamp) {
+						const draftTime = new Date(draft.timestamp).getTime();
+						const docTime = new Date(
+							baseDocument.updatedAt || baseDocument.createdAt,
+						).getTime();
+
+						// Use draft if it's newer than the base document
+						if (draftTime > docTime) {
+							content = draft.content;
+						}
 					}
 				}
+			} catch (error) {
+				console.warn(
+					"Failed to restore draft from localStorage:",
+					error,
+				);
 			}
-		} catch (error) {
-			console.warn("Failed to restore draft from localStorage:", error);
-		}
 
-		return {
-			id: `doc-${document.id}`,
-			title: baseDocument.title,
-			type: "document",
-			content: {
+			return {
+				id: `doc-${document.id}`,
+				title: baseDocument.title,
 				type: "document",
-				documentId: document.id,
-				document: {
-					id: document.id,
-					title: baseDocument.title,
-					content: content,
-					updatedAt: baseDocument.updatedAt,
-					createdAt: baseDocument.createdAt,
+				content: {
+					type: "document",
+					documentId: document.id,
+					document: {
+						id: document.id,
+						title: baseDocument.title,
+						content: content,
+						updatedAt: baseDocument.updatedAt,
+						createdAt: baseDocument.createdAt,
+					},
 				},
-			},
-		};
-	}, [queryClient]);
+			};
+		},
+		[queryClient],
+	);
 
 	// Effect to handle localStorage draft restoration for active tab
 	React.useEffect(() => {
@@ -189,15 +202,18 @@ export function WorkspaceEditor() {
 			const documentTab = activeTab.content as DocumentTab;
 			const documentId = documentTab.documentId;
 			const localKey = `doc-draft-${documentId}`;
-			
+
 			try {
 				const storedDraft = localStorage.getItem(localKey);
 				if (storedDraft) {
 					const draft = JSON.parse(storedDraft);
 					if (draft.content && draft.timestamp) {
 						const draftTime = new Date(draft.timestamp).getTime();
-						const docTime = new Date(documentTab.document.updatedAt || documentTab.document.createdAt).getTime();
-						
+						const docTime = new Date(
+							documentTab.document.updatedAt ||
+								documentTab.document.createdAt,
+						).getTime();
+
 						if (draftTime > docTime) {
 							// Only mark as unsaved if we haven't already processed this draft
 							const currentState = savingStates[documentId];
@@ -209,7 +225,7 @@ export function WorkspaceEditor() {
 										hasUnsavedChanges: true,
 									},
 								}));
-								
+
 								// Trigger save after a delay
 								setTimeout(() => {
 									debouncedSave(documentId, draft.content);
@@ -279,13 +295,9 @@ export function WorkspaceEditor() {
 
 	const handleDocumentSelect = useCallback(
 		async (document: any) => {
-			console.log("🔍 WORKSPACE CLICK: Document selected:", document.id, document.title);
-
 			// Create tab and add/switch to it using the provider
 			const newTab = createDocumentTab(document);
-			console.log("🔍 WORKSPACE CLICK: Created tab:", newTab);
 			addOrSwitchToTabFromProvider(newTab);
-			console.log("🔍 WORKSPACE CLICK: Called addOrSwitchToTabFromProvider");
 		},
 		[createDocumentTab, addOrSwitchToTabFromProvider],
 	);
@@ -339,8 +351,6 @@ export function WorkspaceEditor() {
 		handleDocumentSelect,
 		handleSourceSelect,
 	]);
-
-
 
 	return (
 		<MultiTabEditor

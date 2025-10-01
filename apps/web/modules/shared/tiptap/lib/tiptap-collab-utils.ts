@@ -1,36 +1,36 @@
-import { NodeSelection, type Selection } from "@tiptap/pm/state"
-import type { JSONContent, Editor } from "@tiptap/react"
-import { isTextSelection, isNodeSelection, posToDOMRect } from "@tiptap/react"
+import { NodeSelection, type Selection } from "@tiptap/pm/state";
+import type { Editor, JSONContent } from "@tiptap/react";
+import { isNodeSelection, isTextSelection, posToDOMRect } from "@tiptap/react";
 
 // TipTap Collaboration
 export const TIPTAP_COLLAB_DOC_PREFIX =
-  process.env.NEXT_PUBLIC_TIPTAP_COLLAB_DOC_PREFIX || ""
+	process.env.NEXT_PUBLIC_TIPTAP_COLLAB_DOC_PREFIX || "";
 export const TIPTAP_COLLAB_APP_ID =
-  process.env.NEXT_PUBLIC_TIPTAP_COLLAB_APP_ID || ""
+	process.env.NEXT_PUBLIC_TIPTAP_COLLAB_APP_ID || "";
 export const TIPTAP_COLLAB_TOKEN =
-  process.env.NEXT_PUBLIC_TIPTAP_COLLAB_TOKEN || ""
+	process.env.NEXT_PUBLIC_TIPTAP_COLLAB_TOKEN || "";
 
 // TipTap AI
-export const TIPTAP_AI_APP_ID = process.env.NEXT_PUBLIC_TIPTAP_AI_APP_ID || ""
-export const TIPTAP_AI_TOKEN = process.env.NEXT_PUBLIC_TIPTAP_AI_TOKEN || ""
+export const TIPTAP_AI_APP_ID = process.env.NEXT_PUBLIC_TIPTAP_AI_APP_ID || "";
+export const TIPTAP_AI_TOKEN = process.env.NEXT_PUBLIC_TIPTAP_AI_TOKEN || "";
 
 export const USE_JWT_TOKEN_API_ENDPOINT =
-  process.env.NEXT_PUBLIC_USE_JWT_TOKEN_API_ENDPOINT || ""
+	process.env.NEXT_PUBLIC_USE_JWT_TOKEN_API_ENDPOINT || "";
 
 const NODE_TYPE_LABELS: Record<string, string> = {
-  paragraph: "text",
-  codeBlock: "Codeblock",
-}
-export type OverflowPosition = "none" | "top" | "bottom" | "both"
+	paragraph: "text",
+	codeBlock: "Codeblock",
+};
+export type OverflowPosition = "none" | "top" | "bottom" | "both";
 
 /**
  * Utility function to get URL parameters
  */
 export const getUrlParam = (param: string): string | null => {
-  if (typeof window === "undefined") return null
-  const params = new URLSearchParams(window.location.search)
-  return params.get(param)
-}
+	if (typeof window === "undefined") return null;
+	const params = new URLSearchParams(window.location.search);
+	return params.get(param);
+};
 
 /**
  * Returns a display name for the current node in the editor
@@ -38,77 +38,79 @@ export const getUrlParam = (param: string): string | null => {
  * @returns The display name of the current node
  */
 export const getNodeDisplayName = (editor: Editor | null): string => {
-  if (!editor) return "Node"
+	if (!editor) return "Node";
 
-  const { selection } = editor.state
+	const { selection } = editor.state;
 
-  if (selection instanceof NodeSelection) {
-    const nodeType = selection.node.type.name
-    return NODE_TYPE_LABELS[nodeType] || nodeType.toLowerCase()
-  }
+	if (selection instanceof NodeSelection) {
+		const nodeType = selection.node.type.name;
+		return NODE_TYPE_LABELS[nodeType] || nodeType.toLowerCase();
+	}
 
-  const { $anchor } = selection
-  const nodeType = $anchor.parent.type.name
-  return NODE_TYPE_LABELS[nodeType] || nodeType.toLowerCase()
-}
+	const { $anchor } = selection;
+	const nodeType = $anchor.parent.type.name;
+	return NODE_TYPE_LABELS[nodeType] || nodeType.toLowerCase();
+};
 
 /**
  * Removes empty paragraph nodes from content
  */
 export const removeEmptyParagraphs = (content: JSONContent) => ({
-  ...content,
-  content: content.content?.filter(
-    (node) =>
-      node.type !== "paragraph" ||
-      node.content?.some((child) => child.text?.trim() || child.type !== "text")
-  ),
-})
+	...content,
+	content: content.content?.filter(
+		(node) =>
+			node.type !== "paragraph" ||
+			node.content?.some(
+				(child) => child.text?.trim() || child.type !== "text",
+			),
+	),
+});
 
 /**
  * Determines how a target element overflows relative to a container element
  */
 export function getElementOverflowPosition(
-  targetElement: Element,
-  containerElement: HTMLElement
+	targetElement: Element,
+	containerElement: HTMLElement,
 ): OverflowPosition {
-  const targetBounds = targetElement.getBoundingClientRect()
-  const containerBounds = containerElement.getBoundingClientRect()
+	const targetBounds = targetElement.getBoundingClientRect();
+	const containerBounds = containerElement.getBoundingClientRect();
 
-  const isOverflowingTop = targetBounds.top < containerBounds.top
-  const isOverflowingBottom = targetBounds.bottom > containerBounds.bottom
+	const isOverflowingTop = targetBounds.top < containerBounds.top;
+	const isOverflowingBottom = targetBounds.bottom > containerBounds.bottom;
 
-  if (isOverflowingTop && isOverflowingBottom) return "both"
-  if (isOverflowingTop) return "top"
-  if (isOverflowingBottom) return "bottom"
-  return "none"
+	if (isOverflowingTop && isOverflowingBottom) return "both";
+	if (isOverflowingTop) return "top";
+	if (isOverflowingBottom) return "bottom";
+	return "none";
 }
 
 /**
  * Checks if the current selection is valid for a given editor
  */
 export const isSelectionValid = (
-  editor: Editor | null,
-  selection?: Selection,
-  excludedNodeTypes: string[] = ["imageUpload", "horizontalRule"]
+	editor: Editor | null,
+	selection?: Selection,
+	excludedNodeTypes: string[] = ["imageUpload", "horizontalRule"],
 ): boolean => {
-  if (!editor) return false
-  if (!selection) selection = editor.state.selection
+	if (!editor || !editor.state) return false;
+	if (!selection) selection = editor.state.selection;
 
-  const { state } = editor
-  const { doc } = state
-  const { empty, from, to } = selection
+	const { state } = editor;
+	const { doc } = state;
+	const { empty, from, to } = selection;
 
-  const isEmptyTextBlock =
-    !doc.textBetween(from, to).length && isTextSelection(selection)
-  const isCodeBlock =
-    selection.$from.parent.type.spec.code ||
-    (isNodeSelection(selection) && selection.node.type.spec.code)
-  const isExcludedNode =
-    isNodeSelection(selection) &&
-    excludedNodeTypes.includes(selection.node.type.name)
+	const isEmptyTextBlock =
+		!doc.textBetween(from, to).length && isTextSelection(selection);
+	const isCodeBlock =
+		selection.$from.parent.type.spec.code ||
+		(isNodeSelection(selection) && selection.node.type.spec.code);
+	const isExcludedNode =
+		isNodeSelection(selection) &&
+		excludedNodeTypes.includes(selection.node.type.name);
 
-  return !empty && !isEmptyTextBlock && !isCodeBlock && !isExcludedNode
-}
+	return !empty && !isEmptyTextBlock && !isCodeBlock && !isExcludedNode;
+};
 
 /**
  * Checks if the current text selection is valid for editing
@@ -117,65 +119,65 @@ export const isSelectionValid = (
  * - Not a node selection
  */
 export const isTextSelectionValid = (editor: Editor | null): boolean => {
-  if (!editor) return false
-  const { state } = editor
-  const { selection } = state
-  const isValid =
-    isTextSelection(selection) &&
-    !selection.empty &&
-    !selection.$from.parent.type.spec.code &&
-    !isNodeSelection(selection)
+	if (!editor) return false;
+	const { state } = editor;
+	const { selection } = state;
+	const isValid =
+		isTextSelection(selection) &&
+		!selection.empty &&
+		!selection.$from.parent.type.spec.code &&
+		!isNodeSelection(selection);
 
-  return isValid
-}
+	return isValid;
+};
 
 /**
  * Gets the bounding rect of the current selection in the editor.
  */
 export const getSelectionBoundingRect = (editor: Editor): DOMRect | null => {
-  const { state } = editor.view
-  const { selection } = state
-  const { ranges } = selection
+	const { state } = editor.view;
+	const { selection } = state;
+	const { ranges } = selection;
 
-  const from = Math.min(...ranges.map((range) => range.$from.pos))
-  const to = Math.max(...ranges.map((range) => range.$to.pos))
+	const from = Math.min(...ranges.map((range) => range.$from.pos));
+	const to = Math.max(...ranges.map((range) => range.$to.pos));
 
-  if (isNodeSelection(selection)) {
-    const node = editor.view.nodeDOM(from) as HTMLElement
-    if (node) {
-      return node.getBoundingClientRect()
-    }
-  }
+	if (isNodeSelection(selection)) {
+		const node = editor.view.nodeDOM(from) as HTMLElement;
+		if (node) {
+			return node.getBoundingClientRect();
+		}
+	}
 
-  return posToDOMRect(editor.view, from, to)
-}
+	return posToDOMRect(editor.view, from, to);
+};
 
 /**
  * Generates a deterministic avatar URL from a user name
  */
 export const getAvatar = (name: string) => {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-    hash = hash & hash
-  }
+	let hash = 0;
+	for (let i = 0; i < name.length; i++) {
+		hash = name.charCodeAt(i) + ((hash << 5) - hash);
+		hash = hash & hash;
+	}
 
-  const randomFraction = (Math.abs(hash) % 1000000) / 1000000
-  const id = 1 + Math.floor(randomFraction * 20)
-  const idString = id.toString().padStart(2, "0")
-  return `/avatars/memoji_${idString}.png`
-}
+	const randomFraction = (Math.abs(hash) % 1000000) / 1000000;
+	const id = 1 + Math.floor(randomFraction * 20);
+	const idString = id.toString().padStart(2, "0");
+	return `/avatars/memoji_${idString}.png`;
+};
 
 /**
  * Fetch collaboration JWT token from the API
  * DISABLED: Collaboration features are currently disabled
  */
 export const fetchCollabToken = async () => {
-  // Collaboration is disabled for now
-  console.log("Collaboration is disabled - returning null token");
-  return null;
+	// Collaboration is disabled for now
+	console.log("Collaboration is disabled - returning null token");
+	return null;
 
-  /* COMMENTED OUT - Collaboration functionality
+	/* COMMENTED OUT - Collaboration functionality
   if (USE_JWT_TOKEN_API_ENDPOINT) {
     try {
       // Example API endpoint that returns a JWT token.
@@ -222,24 +224,22 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
   // TODO: remove this in production and use the API endpoint instead
   return TIPTAP_COLLAB_TOKEN
   */
-}
+};
 
 /**
  * Fetch AI JWT token from the API
  * SIMPLIFIED: Returns hardcoded token for now, disable alerts
  */
 export const fetchAiToken = async () => {
-  // For development, just return the token if available without alerts
-  if (TIPTAP_AI_TOKEN) {
-    console.log("Using hardcoded AI token for development");
-    return TIPTAP_AI_TOKEN;
-  }
+	// For development, just return the token if available without alerts
+	if (TIPTAP_AI_TOKEN) {
+		return TIPTAP_AI_TOKEN;
+	}
 
-  // If no token, return null silently (AI features will be disabled)
-  console.log("No AI token available - AI features will be disabled");
-  return null;
+	// If no token, return null silently (AI features will be disabled)
+	return null;
 
-  /* COMMENTED OUT - Full token fetching with alerts
+	/* COMMENTED OUT - Full token fetching with alerts
   if (USE_JWT_TOKEN_API_ENDPOINT) {
     try {
       // Example API endpoint that returns a JWT token.
@@ -286,4 +286,4 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
   // TODO: remove this in production and use the API endpoint instead
   return TIPTAP_AI_TOKEN
   */
-}
+};
