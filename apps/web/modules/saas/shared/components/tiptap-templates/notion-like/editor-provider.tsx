@@ -128,8 +128,15 @@ export function EditorProvider(props: EditorProviderProps) {
 						}
 
 						const currentContent = editor.getJSON();
+						
+						// Only set content if initialContent is not empty and different from current
+						// This prevents overwriting user content with empty content
+						const hasInitialContent = initialContentRef.current && 
+							(initialContentRef.current.content?.length > 0 || 
+							 (typeof initialContentRef.current === 'object' && 
+							  Object.keys(initialContentRef.current).length > 0));
 
-						if (
+						if (hasInitialContent &&
 							JSON.stringify(currentContent) !==
 							JSON.stringify(initialContentRef.current)
 						) {

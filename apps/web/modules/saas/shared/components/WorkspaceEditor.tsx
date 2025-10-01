@@ -14,6 +14,7 @@ import { useOptimizedDocumentMutations } from "../hooks/use-optimized-mutations"
 import { useEditorContext } from "./NewAppWrapper";
 import { useTabContext } from "./providers/TabProvider";
 import { useWorkspaceCacheContext } from "./providers/WorkspaceCacheProvider";
+import { createDocumentBackup } from "../utils/document-backup";
 
 export function WorkspaceEditor() {
 	const {
@@ -107,9 +108,22 @@ export function WorkspaceEditor() {
 					},
 				}));
 
-				// Clear localStorage draft after successful save
+				// Only clear localStorage draft if content was actually saved and matches
 				const localKey = `doc-draft-${documentId}`;
-				localStorage.removeItem(localKey);
+				try {
+					const storedDraft = localStorage.getItem(localKey);
+					if (storedDraft) {
+						const draft = JSON.parse(storedDraft);
+						// Only remove if the saved content matches what we had in localStorage
+						// This prevents clearing drafts that might have newer changes
+						if (draft.content && JSON.stringify(draft.content) === JSON.stringify(content)) {
+							localStorage.removeItem(localKey);
+						}
+					}
+				} catch (error) {
+					console.warn("Failed to validate localStorage draft before clearing:", error);
+					// Don't clear localStorage if we can't validate it
+				}
 			} catch (error) {
 				console.error("Failed to save document:", documentId, error);
 
@@ -262,19 +276,36 @@ export function WorkspaceEditor() {
 				// Update tab content immediately for real-time editor updates
 				updateTabDocument(documentId, updatedDoc);
 
-				// Update local storage
+				// Update local storage with content validation
 				const localKey = `doc-draft-${documentId}`;
-				const draft = {
-					content,
-					timestamp: new Date().toISOString(),
-					documentId,
-					title: documentTab.document.title || "Untitled",
-				};
+				
+				// Only save to localStorage if content is not empty/null
+				const hasValidContent = content && 
+					(typeof content === 'string' ? content.trim().length > 0 : 
+					 typeof content === 'object' ? Object.keys(content).length > 0 : false);
 
-				try {
-					localStorage.setItem(localKey, JSON.stringify(draft));
-				} catch (error) {
-					console.error("Failed to save to localStorage:", error);
+				if (hasValidContent) {
+					const draft = {
+						content,
+						timestamp: new Date().toISOString(),
+						documentId,
+						title: documentTab.document.title || "Untitled",
+					};
+
+					try {
+						localStorage.setItem(localKey, JSON.stringify(draft));
+						
+						// Create backup every few changes (not on every keystroke)
+						const shouldBackup = Math.random() < 0.1; // 10% chance
+						if (shouldBackup) {
+							createDocumentBackup(documentId, content, documentTab.document.title);
+						}
+					} catch (error) {
+						console.error("Failed to save to localStorage:", error);
+					}
+				} else {
+					// Don't overwrite existing drafts with empty content
+					console.warn("Skipping localStorage save - empty content detected for document:", documentId);
 				}
 
 				// Mark as having unsaved changes

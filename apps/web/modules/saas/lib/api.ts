@@ -60,6 +60,10 @@ export {
   useCreateSourceMutation,
   useDeleteSourceMutation,
   useLinkSourceToDocumentMutation,
+  updateProcessingStatusMutationKey,
+  useUpdateProcessingStatusMutation,
+  fixPendingSourcesMutationKey,
+  useFixPendingSourcesMutation,
   
   // Queries
   useSourceQuery,

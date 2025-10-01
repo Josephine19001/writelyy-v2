@@ -24,7 +24,34 @@ export function getProcessingStatus(status: string) {
 			return "Processing...";
 		case "failed":
 			return "Failed";
+		case "completed":
+			return null; // Don't show status for completed sources
 		default:
 			return null;
 	}
+}
+
+export function getSourceTypeLabel(type: string) {
+	switch (type) {
+		case "image":
+			return "Image";
+		case "pdf":
+			return "PDF";
+		case "doc":
+			return "DOC";
+		case "docx":
+			return "DOCX";
+		case "url":
+			return "Link";
+		default:
+			return "File";
+	}
+}
+
+export function formatFileSize(bytes: number) {
+	if (bytes === 0) return "0 B";
+	const k = 1024;
+	const sizes = ["B", "KB", "MB", "GB"];
+	const i = Math.floor(Math.log(bytes) / Math.log(k));
+	return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
 }

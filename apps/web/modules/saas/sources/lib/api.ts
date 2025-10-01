@@ -39,6 +39,9 @@ export const useSourcesQuery = (
 			return { sources, total, hasMore };
 		},
 		enabled: options?.enabled !== false,
+		// Sources don't change often, so we can cache them for longer
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
 	});
 };
 
@@ -58,6 +61,9 @@ export const useSourceQuery = (
 			return source;
 		},
 		enabled: options?.enabled !== false && !!id,
+		// Individual sources change rarely
+		staleTime: 10 * 60 * 1000, // 10 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes
 	});
 };
 
@@ -83,6 +89,9 @@ export const useSourcesByTypeQuery = (
 			return sources;
 		},
 		enabled: options?.enabled !== false,
+		// Sources by type for categorized views - cache longer
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 15 * 60 * 1000, // 15 minutes
 	});
 };
 
@@ -199,6 +208,66 @@ export const useLinkSourceToDocumentMutation = () => {
 			// Invalidate document queries to refresh linked sources
 			queryClient.invalidateQueries({
 				queryKey: ["document", documentSource.documentId],
+			});
+		},
+	});
+};
+
+/*
+ * Update Processing Status
+ */
+export const updateProcessingStatusMutationKey = ["update-processing-status"] as const;
+export const useUpdateProcessingStatusMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationKey: updateProcessingStatusMutationKey,
+		mutationFn: async ({
+			id,
+			status,
+		}: {
+			id: string;
+			status: "pending" | "processing" | "completed" | "failed";
+		}) => {
+			const { source } = await orpcClient.sources.updateProcessingStatus({
+				id,
+				status,
+			});
+
+			return source;
+		},
+		onSuccess: (source) => {
+			// Update source cache
+			queryClient.setQueryData(sourceQueryKey(source.id), source);
+			
+			// Invalidate sources list
+			queryClient.invalidateQueries({
+				queryKey: sourcesQueryKey(source.organizationId),
+			});
+		},
+	});
+};
+
+/*
+ * Fix Pending Sources
+ */
+export const fixPendingSourcesMutationKey = ["fix-pending-sources"] as const;
+export const useFixPendingSourcesMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationKey: fixPendingSourcesMutationKey,
+		mutationFn: async ({ organizationId }: { organizationId: string }) => {
+			const { updatedCount } = await orpcClient.sources.fixPendingSources({
+				organizationId,
+			});
+
+			return { updatedCount };
+		},
+		onSuccess: (_, { organizationId }) => {
+			// Invalidate sources list to refresh
+			queryClient.invalidateQueries({
+				queryKey: sourcesQueryKey(organizationId),
 			});
 		},
 	});

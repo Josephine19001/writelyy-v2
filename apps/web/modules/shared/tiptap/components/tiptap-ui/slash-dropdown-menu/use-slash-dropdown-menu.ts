@@ -17,6 +17,7 @@ import { ListTodoIcon } from "@shared/tiptap/components/tiptap-icons/list-todo-i
 import { MinusIcon } from "@shared/tiptap/components/tiptap-icons/minus-icon";
 import { SmilePlusIcon } from "@shared/tiptap/components/tiptap-icons/smile-plus-icon";
 import { SnippetIcon } from "@shared/tiptap/components/tiptap-icons/snippet-icon";
+import { SourcesIcon } from "@shared/tiptap/components/tiptap-icons/sources-icon";
 import { TableIcon } from "@shared/tiptap/components/tiptap-icons/table-icon";
 import { TypeIcon } from "@shared/tiptap/components/tiptap-icons/type-icon";
 import { addEmojiTrigger } from "@shared/tiptap/components/tiptap-ui/emoji-trigger-button";
@@ -199,6 +200,13 @@ const texts = {
 		subtext: "Insert a drawing canvas",
 		keywords: ["drawing", "canvas", "sketch", "draw", "art"],
 		badge: DrawIcon,
+		group: "Insert",
+	},
+	sources: {
+		title: "Sources",
+		subtext: "Insert from workspace sources",
+		keywords: ["sources", "assets", "files", "media", "reference"],
+		badge: SourcesIcon,
 		group: "Insert",
 	},
 };
@@ -455,6 +463,20 @@ const getItemImplementations = () => {
 				} catch (error) {
 					console.error("Drawing insertion failed:", error);
 				}
+			},
+		},
+		sources: {
+			check: (_editor: Editor) => {
+				// Always available - sources can be inserted anywhere
+				return true;
+			},
+			action: ({ editor }: { editor: Editor }) => {
+				// Trigger sources modal
+				// This will be handled by the editor implementation
+				const event = new CustomEvent('tiptap-open-sources-modal', {
+					detail: { editor }
+				});
+				window.dispatchEvent(event);
 			},
 		},
 	};
