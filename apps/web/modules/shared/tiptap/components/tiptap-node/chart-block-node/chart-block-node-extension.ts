@@ -7,8 +7,8 @@ export interface ChartData {
 	datasets: Array<{
 		label: string;
 		data: number[];
-		backgroundColor?: string[];
-		borderColor?: string[];
+		backgroundColor?: string | string[];
+		borderColor?: string | string[];
 		borderWidth?: number;
 	}>;
 }
@@ -63,7 +63,7 @@ export const ChartBlockNode = Node.create<ChartBlockNodeOptions>({
 					labels: ["Sample 1", "Sample 2", "Sample 3"],
 					datasets: [
 						{
-							label: "Sample Data",
+							label: "Chart Data",
 							data: [10, 20, 30],
 							backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
 						},
@@ -95,6 +95,13 @@ export const ChartBlockNode = Node.create<ChartBlockNodeOptions>({
 					),
 				renderHTML: (attributes) => ({
 					"data-height": attributes.height.toString(),
+				}),
+			},
+			isEditing: {
+				default: false,
+				parseHTML: (element) => element.getAttribute("data-editing") === "true",
+				renderHTML: (attributes) => ({
+					"data-editing": attributes.isEditing ? "true" : "false",
 				}),
 			},
 		};
@@ -132,7 +139,7 @@ export const ChartBlockNode = Node.create<ChartBlockNodeOptions>({
 								labels: ["Sample 1", "Sample 2", "Sample 3"],
 								datasets: [
 									{
-										label: "Sample Data",
+										label: "Chart Data",
 										data: [10, 20, 30],
 										backgroundColor: [
 											"#FF6384",

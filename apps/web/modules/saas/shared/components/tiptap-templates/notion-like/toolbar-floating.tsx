@@ -1,21 +1,15 @@
-import * as React from "react";
-import type { Editor } from "@tiptap/react";
-
-// --- Hooks ---
-import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
-import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
-import { useIsMobile } from "@shared/tiptap/hooks/use-mobile";
-import { useFloatingToolbarVisibility } from "@shared/tiptap/hooks/use-floating-toolbar-visibility";
-
-// --- Node ---
-import { ImageNodeFloating } from "@shared/tiptap/components/tiptap-node/image-node/image-node-floating";
-import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-floating";
-
 // --- Icons ---
 import { MoreVerticalIcon } from "@shared/tiptap/components/tiptap-icons/more-vertical-icon";
-
+import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-floating";
+import { ChartBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/chart-block-node/chart-block-node-floating";
+// --- Node ---
+import { ImageNodeFloating } from "@shared/tiptap/components/tiptap-node/image-node/image-node-floating";
 // --- UI ---
 import { ColorTextPopover } from "@shared/tiptap/components/tiptap-ui/color-text-popover";
+import {
+	DropdownProvider,
+	useDropdownCoordination,
+} from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 import { ImproveDropdown } from "@shared/tiptap/components/tiptap-ui/improve-dropdown";
 import { LinkPopover } from "@shared/tiptap/components/tiptap-ui/link-popover";
 import type { Mark } from "@shared/tiptap/components/tiptap-ui/mark-button";
@@ -23,25 +17,20 @@ import {
 	canToggleMark,
 	MarkButton,
 } from "@shared/tiptap/components/tiptap-ui/mark-button";
+import {
+	TableCellOperationsDropdown,
+	TableCreationDropdown,
+	TableHeadersDropdown,
+	TableNavigationDropdown,
+	TableRowColumnDropdown,
+	TableStructureDropdown,
+} from "@shared/tiptap/components/tiptap-ui/table-dropdown-groups";
 import type { TextAlign } from "@shared/tiptap/components/tiptap-ui/text-align-button";
 import {
 	canSetTextAlign,
 	TextAlignButton,
 } from "@shared/tiptap/components/tiptap-ui/text-align-button";
 import { TurnIntoDropdown } from "@shared/tiptap/components/tiptap-ui/turn-into-dropdown";
-import {
-  TableCreationDropdown,
-  TableRowColumnDropdown,
-  TableStructureDropdown,
-  TableCellOperationsDropdown,
-  TableHeadersDropdown,
-  TableNavigationDropdown,
-} from "@shared/tiptap/components/tiptap-ui/table-dropdown-groups";
-import { DropdownProvider, useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
-
-// --- Utils ---
-import { isSelectionValid } from "@shared/tiptap/lib/tiptap-collab-utils";
-
 // --- Primitive UI Components ---
 import type { ButtonProps } from "@shared/tiptap/components/tiptap-ui-primitive/button";
 import { Button } from "@shared/tiptap/components/tiptap-ui-primitive/button";
@@ -55,9 +44,17 @@ import {
 	ToolbarGroup,
 	ToolbarSeparator,
 } from "@shared/tiptap/components/tiptap-ui-primitive/toolbar";
-
 // --- UI Utils ---
 import { FloatingElement } from "@shared/tiptap/components/tiptap-ui-utils/floating-element";
+import { useFloatingToolbarVisibility } from "@shared/tiptap/hooks/use-floating-toolbar-visibility";
+import { useIsMobile } from "@shared/tiptap/hooks/use-mobile";
+// --- Hooks ---
+import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
+import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
+// --- Utils ---
+import { isSelectionValid } from "@shared/tiptap/lib/tiptap-collab-utils";
+import type { Editor } from "@tiptap/react";
+import * as React from "react";
 
 export function NotionToolbarFloating() {
 	const { editor } = useTiptapEditor();
@@ -71,88 +68,81 @@ export function NotionToolbarFloating() {
 		extraHideWhen: Boolean(aiGenerationActive || commentInputVisible),
 	});
 
-	console.log("🔥 Floating Toolbar Debug:", {
-		shouldShow,
-		lockDragHandle,
-		isMobile,
-		aiGenerationActive,
-		commentInputVisible,
-		hasValidSelection: isSelectionValid(editor),
-		editorState: !!editor?.state,
-	});
-
 	if (lockDragHandle || isMobile) return null;
 
 	return (
 		<FloatingElement shouldShow={shouldShow}>
 			<DropdownProvider>
 				<Toolbar variant="floating">
-				<ToolbarGroup>
-					<ImproveDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					<ToolbarGroup>
+						<ImproveDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				<ToolbarSeparator />
+					<ToolbarSeparator />
 
-				<ToolbarGroup>
-					<TurnIntoDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					<ToolbarGroup>
+						<TurnIntoDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				{/* 📌 Table Creation */}
-				<ToolbarGroup>
-					<TableCreationDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Table Creation */}
+					<ToolbarGroup>
+						<TableCreationDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				{/* 📌 Row & Column Management */}
-				<ToolbarGroup>
-					<TableRowColumnDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Row & Column Management */}
+					<ToolbarGroup>
+						<TableRowColumnDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				{/* 📌 Table Deletion / Structure */}
-				<ToolbarGroup>
-					<TableStructureDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Table Deletion / Structure */}
+					<ToolbarGroup>
+						<TableStructureDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				{/* 📌 Cell Operations */}
-				<ToolbarGroup>
-					<TableCellOperationsDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Cell Operations */}
+					<ToolbarGroup>
+						<TableCellOperationsDropdown
+							hideWhenUnavailable={true}
+						/>
+					</ToolbarGroup>
 
-				{/* 📌 Headers */}
-				<ToolbarGroup>
-					<TableHeadersDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Headers */}
+					<ToolbarGroup>
+						<TableHeadersDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				{/* 📌 Navigation */}
-				<ToolbarGroup>
-					<TableNavigationDropdown hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					{/* 📌 Navigation */}
+					<ToolbarGroup>
+						<TableNavigationDropdown hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				<ToolbarSeparator />
+					<ToolbarSeparator />
 
-				<ToolbarGroup>
-					<MarkButton type="bold" hideWhenUnavailable={true} />
-					<MarkButton type="italic" hideWhenUnavailable={true} />
-					<MarkButton type="strike" hideWhenUnavailable={true} />
-					<MarkButton type="code" hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					<ToolbarGroup>
+						<MarkButton type="bold" hideWhenUnavailable={true} />
+						<MarkButton type="italic" hideWhenUnavailable={true} />
+						<MarkButton type="strike" hideWhenUnavailable={true} />
+						<MarkButton type="code" hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				<ToolbarSeparator />
+					<ToolbarSeparator />
 
-				<ToolbarGroup>
-					<ImageNodeFloating />
-					<DrawingBlockNodeFloating />
-				</ToolbarGroup>
+					<ToolbarGroup>
+						<ImageNodeFloating />
+						<DrawingBlockNodeFloating />
+						<ChartBlockNodeFloating />
+					</ToolbarGroup>
 
-				<ToolbarGroup>
-					<LinkPopover
-						autoOpenOnLinkActive={false}
-						hideWhenUnavailable={true}
-					/>
-					<ColorTextPopover hideWhenUnavailable={true} />
-				</ToolbarGroup>
+					<ToolbarGroup>
+						<LinkPopover
+							autoOpenOnLinkActive={false}
+							hideWhenUnavailable={true}
+						/>
+						<ColorTextPopover hideWhenUnavailable={true} />
+					</ToolbarGroup>
 
-				<MoreOptions hideWhenUnavailable={true} />
-			</Toolbar>
+					<MoreOptions hideWhenUnavailable={true} />
+				</Toolbar>
 			</DropdownProvider>
 		</FloatingElement>
 	);

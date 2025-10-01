@@ -394,7 +394,7 @@ const getItemImplementations = () => {
 									labels: ["Jan", "Feb", "Mar"],
 									datasets: [
 										{
-											label: "Sample Data",
+											label: "Chart Data",
 											data: [10, 20, 30],
 											backgroundColor: [
 												"#FF6384",
