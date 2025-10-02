@@ -50,6 +50,7 @@ interface TabContextType {
 	selectTab: (tabId: string) => void;
 	closeTab: (tabId: string) => void;
 	updateTabDocument: (documentId: string, updatedDocument: any) => void;
+	updateTabSource: (sourceId: string, updatedSource: any) => void;
 
 	// Active content
 	activeDocumentId?: string;
@@ -206,6 +207,34 @@ export function TabProvider({ children }: TabProviderProps) {
 		[]
 	);
 
+	// Update tab source content when source is renamed
+	const updateTabSource = useCallback(
+		(sourceId: string, updatedSource: any) => {
+			setTabs((currentTabs) =>
+				currentTabs.map((tab) => {
+					if (tab.type === "source") {
+						const sourceTab = tab.content as any;
+						if (sourceTab.sourceId === sourceId) {
+							return {
+								...tab,
+								title: updatedSource.name,
+								content: {
+									...sourceTab,
+									source: {
+										...sourceTab.source,
+										...updatedSource,
+									},
+								},
+							};
+						}
+					}
+					return tab;
+				})
+			);
+		},
+		[]
+	);
+
 	// Simplified: URL and tabs are independent
 	// URL just shows current document for sharing/bookmarking
 	// Tabs are pure UI state like VS Code
@@ -220,6 +249,7 @@ export function TabProvider({ children }: TabProviderProps) {
 		selectTab,
 		closeTab,
 		updateTabDocument,
+		updateTabSource,
 		activeDocumentId,
 	};
 

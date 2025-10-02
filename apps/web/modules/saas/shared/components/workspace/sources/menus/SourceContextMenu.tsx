@@ -22,6 +22,7 @@ import { useDeleteSourceMutation, useUpdateSourceMutation } from "@saas/lib/api"
 import { toast } from "sonner";
 import { useState } from "react";
 import type { Source } from "../types";
+import { useTabContext } from "../../../providers/TabProvider";
 
 interface SourceContextMenuProps {
 	sourceId: string;
@@ -33,6 +34,7 @@ interface SourceContextMenuProps {
 export function SourceContextMenu({ sourceId, source, onInsertSource, onUseAsAIContext }: SourceContextMenuProps) {
 	const deleteSourceMutation = useDeleteSourceMutation();
 	const updateSourceMutation = useUpdateSourceMutation();
+	const { updateTabSource } = useTabContext();
 	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 	const [newName, setNewName] = useState(source.name);
 
@@ -50,10 +52,14 @@ export function SourceContextMenu({ sourceId, source, onInsertSource, onUseAsAIC
 
 	const handleRename = async () => {
 		try {
-			await updateSourceMutation.mutateAsync({ 
+			const updatedSource = await updateSourceMutation.mutateAsync({ 
 				id: sourceId, 
 				name: newName.trim() 
 			});
+			
+			// Update any open tabs with the new source name
+			updateTabSource(sourceId, updatedSource);
+			
 			toast.success("Source renamed successfully");
 			setIsRenameDialogOpen(false);
 		} catch {
@@ -76,7 +82,7 @@ export function SourceContextMenu({ sourceId, source, onInsertSource, onUseAsAIC
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-6 w-6 p-0 bg-white/90 hover:bg-white shadow-sm"
+						className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
 					>
 						<MoreHorizontal className="h-3 w-3" />
 					</Button>

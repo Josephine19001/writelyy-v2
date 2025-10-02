@@ -337,22 +337,22 @@ export function WorkspaceEditor() {
 
 	const handleSourceSelect = useCallback(
 		async (source: any) => {
-			// For MVP: Handle different source types appropriately without tabs
-			if (source.type === 'url') {
-				// Open links in new tab
-				const url = source.url || source.metadata?.originalUrl;
-				if (url) {
-					window.open(url, '_blank', 'noopener,noreferrer');
-				}
-				return;
-			}
-			
-			// For other types (images, PDFs, docs), we could implement a simple modal preview
-			// or just show a toast for MVP
-			console.log('Source selected for preview:', source);
-			// TODO: For MVP, we might want to show a simple modal or skip preview entirely
+			// Create source preview tab
+			const newTab: EditorTab = {
+				id: `source-${source.id}`,
+				title: source.name,
+				type: "source",
+				content: {
+					type: "source",
+					sourceId: source.id,
+					source: source,
+					sourceType: source.type,
+				},
+			};
+
+			addOrSwitchToTabFromProvider(newTab);
 		},
-		[],
+		[addOrSwitchToTabFromProvider],
 	);
 
 	// Handle direct source insertion from sidebar

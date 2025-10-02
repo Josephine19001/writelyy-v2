@@ -339,14 +339,8 @@ model Source {
     filePath         String?
     originalFileName String?
     
-    // Extracted content for AI
-    /// [ExtractedContent] - Text extracted from files
-    extractedText    String?          @db.Text
     /// [SourceMetadata] - File size, dimensions, etc.
     metadata         Json             @default("{}")
-    
-    // Processing status
-    processingStatus String           @default("pending") // "pending" | "processing" | "completed" | "failed"
     
     // Relations
     documentSources  DocumentSource[]
@@ -358,7 +352,6 @@ model Source {
 
     @@index([organizationId])
     @@index([type])
-    @@index([processingStatus])
     @@map("source")
 }
 

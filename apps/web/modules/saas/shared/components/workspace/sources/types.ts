@@ -9,9 +9,7 @@ export interface Source {
 	url: string | null;
 	filePath: string | null;
 	originalFileName: string | null;
-	extractedText: string | null;
 	metadata: any;
-	processingStatus: string;
 	createdBy: string;
 	createdAt: Date;
 	updatedAt: Date;

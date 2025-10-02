@@ -58,10 +58,6 @@ export const createSource = protectedProcedure
 			});
 		}
 
-		// For uploaded files, mark as completed since no processing is needed yet
-		// For URLs, keep as pending for future text extraction
-		const processingStatus = type === "url" ? "pending" : "completed";
-
 		const source = await db.source.create({
 			data: {
 				name,
@@ -72,7 +68,6 @@ export const createSource = protectedProcedure
 				originalFileName,
 				metadata: (metadata || {}) as any,
 				createdBy: user.id,
-				processingStatus,
 			},
 			include: {
 				creator: {
@@ -85,13 +80,6 @@ export const createSource = protectedProcedure
 				},
 			},
 		});
-
-		// TODO: Trigger background processing for text extraction
-		// This would typically involve:
-		// - For PDFs: Extract text using pdf-parse or similar
-		// - For DOCs: Extract text using mammoth or similar
-		// - For images: Extract text using OCR (Tesseract)
-		// - For URLs: Scrape and extract content
 
 		return { source };
 	});

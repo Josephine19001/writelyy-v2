@@ -16,14 +16,13 @@ export const listSources = protectedProcedure
 		z.object({
 			organizationId: z.string(),
 			type: z.enum(["pdf", "doc", "docx", "image", "url"]).optional(),
-			processingStatus: z.enum(["pending", "processing", "completed", "failed"]).optional(),
 			search: z.string().optional(),
 			limit: z.number().min(1).max(100).default(50),
 			offset: z.number().min(0).default(0),
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { organizationId, type, processingStatus, search, limit, offset } = input;
+		const { organizationId, type, search, limit, offset } = input;
 		const user = context.user;
 
 		// Verify workspace membership
@@ -40,14 +39,9 @@ export const listSources = protectedProcedure
 			where.type = type;
 		}
 
-		if (processingStatus) {
-			where.processingStatus = processingStatus;
-		}
-
 		if (search) {
 			where.OR = [
 				{ name: { contains: search, mode: "insensitive" } },
-				{ extractedText: { contains: search, mode: "insensitive" } },
 				{ originalFileName: { contains: search, mode: "insensitive" } },
 			];
 		}

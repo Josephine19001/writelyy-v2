@@ -18,20 +18,6 @@ export function getSourceIcon(type: string, className?: string) {
 	}
 }
 
-export function getProcessingStatus(status: string) {
-	switch (status) {
-		case "pending":
-			return "Processing...";
-		case "processing":
-			return "Processing...";
-		case "failed":
-			return "Failed";
-		case "completed":
-			return null; // Don't show status for completed sources
-		default:
-			return null;
-	}
-}
 
 export function getSourceTypeLabel(type: string) {
 	switch (type) {
