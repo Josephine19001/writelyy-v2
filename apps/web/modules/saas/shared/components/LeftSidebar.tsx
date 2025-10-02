@@ -12,6 +12,8 @@ interface LeftSidebarProps {
 	onSourceSelect?: (sourceId: string) => void;
 	selectedDocumentId?: string;
 	selectedSourceId?: string;
+	onInsertSource?: (source: any) => void;
+	onUseAsAIContext?: (source: any) => void;
 }
 
 export function LeftSidebar({
@@ -19,6 +21,8 @@ export function LeftSidebar({
 	onSourceSelect,
 	selectedDocumentId,
 	selectedSourceId,
+	onInsertSource,
+	onUseAsAIContext,
 }: LeftSidebarProps) {
 	const { activeWorkspace } = useActiveWorkspace();
 
@@ -54,6 +58,8 @@ export function LeftSidebar({
 						<WorkspaceSourcesList
 							onSourceSelect={onSourceSelect}
 							selectedSourceId={selectedSourceId}
+							onInsertSource={onInsertSource}
+							onUseAsAIContext={onUseAsAIContext}
 						/>
 					) : (
 						<div className="text-center py-4">

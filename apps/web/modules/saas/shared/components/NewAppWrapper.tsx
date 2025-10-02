@@ -23,6 +23,11 @@ interface EditorContextType {
 	setSelectedDocumentId: (documentId: string | null) => void;
 	onInlineCreate?: (type: "folder" | "document", parentFolderId?: string) => void;
 	registerInlineCreateHandler: (handler: (type: "folder" | "document", parentFolderId?: string) => void) => void;
+	// New source insertion handlers
+	onInsertSource?: (source: any) => void;
+	onUseAsAIContext?: (source: any) => void;
+	registerInsertSourceHandler: (handler: (source: any) => void) => void;
+	registerAIContextHandler: (handler: (source: any) => void) => void;
 }
 
 const EditorContext = createContext<EditorContextType | null>(null);
@@ -43,6 +48,9 @@ function AppContent({ children }: PropsWithChildren) {
 	const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
 	const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 	const [inlineCreateHandler, setInlineCreateHandler] = useState<((type: "folder" | "document", parentFolderId?: string) => void) | null>(null);
+	// New source insertion handlers
+	const [insertSourceHandler, setInsertSourceHandler] = useState<((source: any) => void) | null>(null);
+	const [aiContextHandler, setAIContextHandler] = useState<((source: any) => void) | null>(null);
 
 	// Search modal integration
 	const { isSearchOpen, openSearch, closeSearch } = useSearch();
@@ -72,6 +80,11 @@ function AppContent({ children }: PropsWithChildren) {
 		setSelectedDocumentId,
 		onInlineCreate: inlineCreateHandler || undefined,
 		registerInlineCreateHandler: (handler) => setInlineCreateHandler(() => handler),
+		// New source insertion handlers
+		onInsertSource: insertSourceHandler || undefined,
+		onUseAsAIContext: aiContextHandler || undefined,
+		registerInsertSourceHandler: (handler) => setInsertSourceHandler(() => handler),
+		registerAIContextHandler: (handler) => setAIContextHandler(() => handler),
 	};
 
 	const enhancedLeftSidebar = (
@@ -79,6 +92,8 @@ function AppContent({ children }: PropsWithChildren) {
 			onDocumentSelect={documentSelectHandler || (() => {})}
 			onSourceSelect={sourceSelectHandler || (() => {})}
 			selectedDocumentId={selectedDocumentId || undefined}
+			onInsertSource={insertSourceHandler || undefined}
+			onUseAsAIContext={aiContextHandler || undefined}
 		/>
 	);
 

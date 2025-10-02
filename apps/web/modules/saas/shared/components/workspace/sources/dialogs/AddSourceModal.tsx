@@ -25,9 +25,8 @@ export function AddSourceModal() {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant="outline" size="sm" className="w-full">
-					<Plus className="h-4 w-4 mr-2" />
-					Add Source
+				<Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+					<Plus className="h-4 w-4" />
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px]">

@@ -71,9 +71,17 @@ export function EditorContentArea() {
 			setSourcesModalOpen(true);
 		};
 
+		const handleDirectSourceInsert = (event: any) => {
+			const { source } = event.detail;
+			handleSourceSelect(source);
+		};
+
 		window.addEventListener('tiptap-open-sources-modal', handleOpenSourcesModal);
+		window.addEventListener('tiptap-insert-source-direct', handleDirectSourceInsert);
+		
 		return () => {
 			window.removeEventListener('tiptap-open-sources-modal', handleOpenSourcesModal);
+			window.removeEventListener('tiptap-insert-source-direct', handleDirectSourceInsert);
 		};
 	}, []);
 

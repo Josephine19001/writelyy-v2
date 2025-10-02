@@ -2,6 +2,36 @@ import { orpcClient } from "@shared/lib/orpc-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /*
+ * Cache management helpers
+ */
+const cleanupOldSourcesCache = () => {
+	try {
+		const keys = Object.keys(localStorage);
+		const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+		const now = Date.now();
+		
+		keys.forEach(key => {
+			if (key.startsWith('sources-cache-')) {
+				try {
+					const cached = localStorage.getItem(key);
+					if (cached) {
+						const parsed = JSON.parse(cached);
+						if (now - parsed.timestamp > maxAge) {
+							localStorage.removeItem(key);
+						}
+					}
+				} catch (error) {
+					// Remove corrupted cache entries
+					localStorage.removeItem(key);
+				}
+			}
+		});
+	} catch (error) {
+		console.warn("Failed to cleanup old sources cache:", error);
+	}
+};
+
+/*
  * Query Keys
  */
 export const sourcesQueryKey = (organizationId: string) =>
@@ -36,12 +66,64 @@ export const useSourcesQuery = (
 				offset: options?.offset || 0,
 			});
 
+			// Cache sources to localStorage for better persistence across reloads
+			try {
+				const cacheKey = `sources-cache-${organizationId}`;
+				const cacheData = {
+					sources,
+					total,
+					hasMore,
+					timestamp: Date.now(),
+					organizationId
+				};
+				localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+			} catch (error) {
+				console.warn("Failed to cache sources to localStorage:", error);
+			}
+
 			return { sources, total, hasMore };
 		},
 		enabled: options?.enabled !== false,
 		// Sources don't change often, so we can cache them for longer
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes (increased for better persistence)
+		// Add initial data from localStorage if available
+		initialData: () => {
+			// Clean up old cache entries periodically
+			if (Math.random() < 0.1) { // 10% chance to run cleanup
+				cleanupOldSourcesCache();
+			}
+			
+			try {
+				const cacheKey = `sources-cache-${organizationId}`;
+				const cached = localStorage.getItem(cacheKey);
+				if (cached) {
+					const parsed = JSON.parse(cached);
+					// Use cached data if it's less than 10 minutes old
+					const maxAge = 10 * 60 * 1000; // 10 minutes
+					if (Date.now() - parsed.timestamp < maxAge && parsed.organizationId === organizationId) {
+						return { sources: parsed.sources, total: parsed.total, hasMore: parsed.hasMore };
+					}
+				}
+			} catch (error) {
+				console.warn("Failed to restore sources from localStorage:", error);
+			}
+			return undefined;
+		},
+		// Mark initial data as stale so it still refetches in background
+		initialDataUpdatedAt: () => {
+			try {
+				const cacheKey = `sources-cache-${organizationId}`;
+				const cached = localStorage.getItem(cacheKey);
+				if (cached) {
+					const parsed = JSON.parse(cached);
+					return parsed.timestamp;
+				}
+			} catch (error) {
+				console.warn("Failed to get cache timestamp:", error);
+			}
+			return 0;
+		},
 	});
 };
 
@@ -134,6 +216,13 @@ export const useCreateSourceMutation = () => {
 			return source;
 		},
 		onSuccess: (source) => {
+			// Invalidate localStorage cache
+			try {
+				localStorage.removeItem(`sources-cache-${source.organizationId}`);
+			} catch (error) {
+				console.warn("Failed to invalidate sources cache:", error);
+			}
+			
 			// Invalidate sources list
 			queryClient.invalidateQueries({
 				queryKey: sourcesQueryKey(source.organizationId),
@@ -141,6 +230,38 @@ export const useCreateSourceMutation = () => {
 			
 			// Set source cache
 			queryClient.setQueryData(sourceQueryKey(source.id), source);
+		},
+	});
+};
+
+/*
+ * Update Source
+ */
+export const updateSourceMutationKey = ["update-source"] as const;
+export const useUpdateSourceMutation = () => {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationKey: updateSourceMutationKey,
+		mutationFn: async ({ id, name, metadata }: { id: string; name?: string; metadata?: Record<string, any> }) => {
+			const { source } = await orpcClient.sources.update({ id, name, metadata });
+			return source;
+		},
+		onSuccess: (source) => {
+			// Invalidate localStorage cache
+			try {
+				localStorage.removeItem(`sources-cache-${source.organizationId}`);
+			} catch (error) {
+				console.warn("Failed to invalidate sources cache:", error);
+			}
+			
+			// Update source cache
+			queryClient.setQueryData(sourceQueryKey(source.id), source);
+			
+			// Invalidate sources list
+			queryClient.invalidateQueries({
+				queryKey: sourcesQueryKey(source.organizationId),
+			});
 		},
 	});
 };
@@ -159,6 +280,18 @@ export const useDeleteSourceMutation = () => {
 			return { id };
 		},
 		onSuccess: ({ id }) => {
+			// Invalidate localStorage cache for all organizations (since we don't have org ID)
+			try {
+				const keys = Object.keys(localStorage);
+				keys.forEach(key => {
+					if (key.startsWith('sources-cache-')) {
+						localStorage.removeItem(key);
+					}
+				});
+			} catch (error) {
+				console.warn("Failed to invalidate sources cache:", error);
+			}
+			
 			// Remove source from cache
 			queryClient.removeQueries({ queryKey: sourceQueryKey(id) });
 			

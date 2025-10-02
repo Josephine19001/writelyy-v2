@@ -4,12 +4,17 @@ import { useFixPendingSourcesMutation, useSourcesQuery } from "@saas/lib/api";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { Button } from "@ui/components/button";
 import { Input } from "@ui/components/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@ui/components/select";
 import { cn } from "@ui/lib";
-import { File, FileImage, Grid, Image, Link, List, Search } from "lucide-react";
+import { File, FileImage, Image, Link, Search, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ScrollableTabs } from "./components/ScrollableTabs";
-import { SourcePreview } from "./components/SourcePreview";
 import { AddSourceModal } from "./dialogs/AddSourceModal";
 import { SourceContextMenu } from "./menus/SourceContextMenu";
 import type { Source } from "./types";
@@ -29,13 +34,15 @@ interface SourcesBrowserProps {
 }
 
 const ALL_SOURCE_TYPES = [
+	{ key: "all", label: "All Files", icon: File },
 	{ key: "image", label: "Images", icon: Image },
 	{ key: "pdf", label: "PDFs", icon: FileImage },
-	{ key: "doc", label: "Docs", icon: File },
+	{ key: "doc", label: "Documents", icon: File },
 	{ key: "url", label: "Links", icon: Link },
 ];
 
 const INSERTION_SOURCE_TYPES = [
+	{ key: "all", label: "All Files", icon: File },
 	{ key: "image", label: "Images", icon: Image },
 	{ key: "url", label: "Links", icon: Link },
 ];
@@ -56,8 +63,7 @@ export function SourcesBrowser({
 
 	const sourceTypes =
 		mode === "insertion" ? INSERTION_SOURCE_TYPES : ALL_SOURCE_TYPES;
-	const [activeFilter, setActiveFilter] = useState(sourceTypes[0].key);
-	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [activeFilter, setActiveFilter] = useState("all");
 	const [searchQuery, setSearchQuery] = useState("");
 
 	const sources = sourcesData?.sources || [];
@@ -73,6 +79,7 @@ export function SourcesBrowser({
 		}
 
 		const matchesFilter =
+			activeFilter === "all" ||
 			source.type === activeFilter ||
 			(activeFilter === "doc" &&
 				["doc", "docx"].includes(source.type as string));
@@ -97,20 +104,15 @@ export function SourcesBrowser({
 
 	if (isLoading) {
 		return (
-			<div className="space-y-4">
+			<div className="space-y-3">
 				<div className="flex items-center justify-between">
-					<AddSourceModal />
-					<div className="flex items-center space-x-2">
-						<Button variant="ghost" size="sm">
-							<Grid className="h-4 w-4" />
-						</Button>
-						<Button variant="ghost" size="sm">
-							<List className="h-4 w-4" />
-						</Button>
-					</div>
+					<div className="h-6 w-24 bg-muted/50 rounded animate-pulse"></div>
+					<Button variant="ghost" size="sm" className="h-6 w-6 p-0" disabled>
+						<Plus className="h-4 w-4" />
+					</Button>
 				</div>
-				<div className="text-sm text-muted-foreground">
-					Loading sources...
+				<div className="text-xs text-muted-foreground">
+					Loading...
 				</div>
 			</div>
 		);
@@ -118,16 +120,19 @@ export function SourcesBrowser({
 
 	if (sources.length === 0) {
 		return (
-			<div className="space-y-4">
-				<AddSourceModal />
-				<div className="text-center py-8">
-					<FileImage className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-					<h3 className="text-sm font-medium text-gray-900 mb-1">
+			<div className="space-y-3">
+				<div className="flex items-center justify-between">
+					<Select value="all" disabled>
+						<SelectTrigger className="h-6 text-xs bg-transparent border-0 p-1 flex-1 max-w-32">
+							<SelectValue placeholder="All Files" />
+						</SelectTrigger>
+					</Select>
+					<AddSourceModal />
+				</div>
+				<div className="text-center py-6">
+					<FileImage className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+					<p className="text-xs text-muted-foreground">
 						No sources yet
-					</h3>
-					<p className="text-sm text-gray-500">
-						Add images, PDFs, documents, or links to reference in
-						your documents
 					</p>
 				</div>
 			</div>
@@ -135,90 +140,70 @@ export function SourcesBrowser({
 	}
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-3">
 			{/* Header */}
 			<div className="flex items-center justify-between">
+				<Select value={activeFilter} onValueChange={setActiveFilter}>
+					<SelectTrigger className="h-6 text-xs bg-transparent border-0 p-1 flex-1 max-w-32">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						{sourceTypes.map((type) => (
+							<SelectItem key={type.key} value={type.key} className="text-xs">
+								<div className="flex items-center gap-2">
+									<type.icon className="h-3 w-3" />
+									{type.label}
+								</div>
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 				<AddSourceModal />
-				<div className="flex items-center space-x-2">
-					{hasPendingSources && (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={handleFixPendingSources}
-							disabled={fixPendingSourcesMutation.isPending}
-						>
-							Fix Pending
-						</Button>
-					)}
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => setViewMode("grid")}
-						className={cn(viewMode === "grid" && "bg-gray-100")}
-					>
-						<Grid className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => setViewMode("list")}
-						className={cn(viewMode === "list" && "bg-gray-100")}
-					>
-						<List className="h-4 w-4" />
-					</Button>
-				</div>
 			</div>
 
 			{/* Search */}
-			<div className="relative">
-				<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-				<Input
-					placeholder="Search sources..."
-					className="text-sm pl-6 h-8"
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
-				/>
-			</div>
+			<div className="space-y-2">
+				<div className="relative">
+					<Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+					<Input
+						placeholder="Search..."
+						className="text-xs pl-6 h-7 bg-muted/50 border-0"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+					/>
+				</div>
 
-			{/* Filter Tabs */}
-			<ScrollableTabs
-				tabs={sourceTypes}
-				activeTab={activeFilter}
-				onTabChange={setActiveFilter}
-				maxVisibleTabs={3}
-			/>
-
-			{/* Content */}
-			<div className="mt-4">
-				{viewMode === "grid" ? (
-					<div className="grid grid-cols-2 gap-3">
-						{filteredSources.map((source: Source) => (
-							<SourceCard
-								key={source.id}
-								source={source}
-								selectedSourceId={selectedSourceId}
-								onSourceSelect={onSourceSelect}
-							/>
-						))}
-					</div>
-				) : (
-					<div className="space-y-2">
-						{filteredSources.map((source: Source) => (
-							<SourceListItem
-								key={source.id}
-								source={source}
-								selectedSourceId={selectedSourceId}
-								onSourceSelect={onSourceSelect}
-							/>
-						))}
-					</div>
+				{hasPendingSources && (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={handleFixPendingSources}
+						disabled={fixPendingSourcesMutation.isPending}
+						className="h-7 text-xs w-full"
+					>
+						Fix Pending Sources
+					</Button>
 				)}
 			</div>
 
+			{/* Sources List */}
+			<div className="space-y-1">
+				{filteredSources.map((source: Source) => (
+					<SourceListItem
+						key={source.id}
+						source={source}
+						selectedSourceId={selectedSourceId}
+						onSourceSelect={onSourceSelect}
+						onInsertSource={onInsertSource}
+						onUseAsAIContext={onUseAsAIContext}
+					/>
+				))}
+			</div>
+
 			{filteredSources.length === 0 && (
-				<div className="text-center py-8">
-					<div className="text-sm text-gray-500">
-						No sources found matching your criteria
+				<div className="text-center py-4">
+					<div className="text-xs text-muted-foreground">
+						No sources found
 					</div>
 				</div>
 			)}
@@ -241,6 +226,18 @@ const SourceCard = ({
 }) => {
 	const processingStatus = getProcessingStatus(source.processingStatus);
 	const isSelected = selectedSourceId === source.id;
+	
+	// Determine if source is insertable (images, links) or needs AI context (PDFs, docs)
+	const isInsertable = ['image', 'url'].includes(source.type);
+
+	const handleActionClick = (e: React.MouseEvent, action: 'insert' | 'ai') => {
+		e.stopPropagation(); // Prevent card selection
+		if (action === 'insert' && onInsertSource) {
+			onInsertSource(source);
+		} else if (action === 'ai' && onUseAsAIContext) {
+			onUseAsAIContext(source);
+		}
+	};
 
 	return (
 		<div
@@ -264,9 +261,14 @@ const SourceCard = ({
 					</div>
 				)}
 
-				{/* Context Menu */}
-				<div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-					<SourceContextMenu sourceId={source.id} />
+				{/* Action Buttons - Always visible for MVP */}
+				<div className="absolute top-2 right-2 flex gap-1">
+					<SourceContextMenu 
+						sourceId={source.id} 
+						source={source}
+						onInsertSource={onInsertSource}
+						onUseAsAIContext={onUseAsAIContext}
+					/>
 				</div>
 			</div>
 
@@ -287,10 +289,14 @@ const SourceListItem = ({
 	source,
 	selectedSourceId,
 	onSourceSelect,
+	onInsertSource,
+	onUseAsAIContext,
 }: {
 	source: Source;
 	selectedSourceId?: string;
 	onSourceSelect?: (sourceId: string) => void;
+	onInsertSource?: (source: Source) => void;
+	onUseAsAIContext?: (source: Source) => void;
 }) => {
 	const processingStatus = getProcessingStatus(source.processingStatus);
 	const isSelected = selectedSourceId === source.id;
@@ -298,18 +304,18 @@ const SourceListItem = ({
 	return (
 		<div
 			className={cn(
-				"group flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer",
-				isSelected && "bg-primary/5 border-primary",
+				"group flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors",
+				isSelected && "bg-accent",
 			)}
 			onClick={() => onSourceSelect?.(source.id)}
 		>
-			<div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-				{getSourceIcon(source.type)}
+			<div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+				{getSourceIcon(source.type, "h-4 w-4 text-muted-foreground")}
 			</div>
 
 			<div className="flex-1 min-w-0">
-				<div className="font-medium truncate">{source.name}</div>
-				<div className="text-sm text-gray-500 flex items-center space-x-2">
+				<div className="text-xs font-medium truncate">{source.name}</div>
+				<div className="text-xs text-muted-foreground flex items-center gap-1">
 					<span>{getSourceTypeLabel(source.type)}</span>
 					{source.metadata?.size && (
 						<>
@@ -317,16 +323,24 @@ const SourceListItem = ({
 							<span>{formatFileSize(source.metadata.size)}</span>
 						</>
 					)}
+					{processingStatus && (
+						<>
+							<span>•</span>
+							<span className="text-amber-600">{processingStatus}</span>
+						</>
+					)}
 				</div>
-				{processingStatus && (
-					<div className="text-xs text-amber-600 mt-1 flex items-center">
-						<div className="w-1 h-1 bg-amber-600 rounded-full mr-1 animate-pulse" />
-						{processingStatus}
-					</div>
-				)}
 			</div>
 
-			<SourceContextMenu sourceId={source.id} />
+			{/* Action Menu */}
+			<div className="flex-shrink-0">
+				<SourceContextMenu 
+					sourceId={source.id} 
+					source={source}
+					onInsertSource={onInsertSource}
+					onUseAsAIContext={onUseAsAIContext}
+				/>
+			</div>
 		</div>
 	);
 };

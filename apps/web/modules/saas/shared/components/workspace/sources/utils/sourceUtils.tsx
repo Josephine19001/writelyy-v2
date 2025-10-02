@@ -1,18 +1,20 @@
 import { File, FileImage, Image, Link } from "lucide-react";
 
-export function getSourceIcon(type: string) {
+export function getSourceIcon(type: string, className?: string) {
+	const iconClass = className || "h-4 w-4";
+	
 	switch (type) {
 		case "image":
-			return <Image className="h-4 w-4 text-green-600" />;
+			return <Image className={`${iconClass} text-green-600`} />;
 		case "pdf":
-			return <FileImage className="h-4 w-4 text-red-600" />;
+			return <FileImage className={`${iconClass} text-red-600`} />;
 		case "doc":
 		case "docx":
-			return <File className="h-4 w-4 text-blue-600" />;
+			return <File className={`${iconClass} text-blue-600`} />;
 		case "url":
-			return <Link className="h-4 w-4 text-purple-600" />;
+			return <Link className={`${iconClass} text-purple-600`} />;
 		default:
-			return <File className="h-4 w-4 text-gray-600" />;
+			return <File className={`${iconClass} text-gray-600`} />;
 	}
 }
 

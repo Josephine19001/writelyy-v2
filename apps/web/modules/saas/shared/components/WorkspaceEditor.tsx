@@ -21,6 +21,8 @@ export function WorkspaceEditor() {
 		registerDocumentHandler,
 		registerSourceHandler,
 		setSelectedDocumentId,
+		registerInsertSourceHandler,
+		registerAIContextHandler,
 	} = useEditorContext();
 	const { activeWorkspace } = useActiveWorkspace();
 	const { updateDocumentCache } = useWorkspaceCacheContext();
@@ -334,32 +336,42 @@ export function WorkspaceEditor() {
 	);
 
 	const handleSourceSelect = useCallback(
-		async (sourceId: string) => {
-			// Create source tab
-			const newTab: EditorTab = {
-				id: `source-${sourceId}`,
-				title: "Loading...",
-				type: "source",
-				content: {
-					type: "source",
-					sourceId,
-					source: {
-						id: sourceId,
-						name: "Loading...",
-						filePath: "",
-						type: "unknown",
-					},
-					sourceType: "image", // Default, will be updated when data loads
-				},
-			};
-
-			addOrSwitchToTabFromProvider(newTab);
-
-			// TODO: Fetch actual source data and update the tab
-			// This will be implemented when we have the actual source API
+		async (source: any) => {
+			// For MVP: Handle different source types appropriately without tabs
+			if (source.type === 'url') {
+				// Open links in new tab
+				const url = source.url || source.metadata?.originalUrl;
+				if (url) {
+					window.open(url, '_blank', 'noopener,noreferrer');
+				}
+				return;
+			}
+			
+			// For other types (images, PDFs, docs), we could implement a simple modal preview
+			// or just show a toast for MVP
+			console.log('Source selected for preview:', source);
+			// TODO: For MVP, we might want to show a simple modal or skip preview entirely
 		},
-		[addOrSwitchToTabFromProvider],
+		[],
 	);
+
+	// Handle direct source insertion from sidebar
+	const handleInsertSource = useCallback((source: any) => {
+		// Trigger the same custom event that the slash command uses
+		const event = new CustomEvent('tiptap-insert-source-direct', {
+			detail: { source }
+		});
+		window.dispatchEvent(event);
+	}, []);
+
+	// Handle AI context usage from sidebar  
+	const handleUseAsAIContext = useCallback((source: any) => {
+		// TODO: Implement AI context functionality
+		// This could open AI panel with source context or add source to AI conversation
+		console.log('🤖 Using source as AI context:', source);
+		// For now, we could trigger AI panel to open and pre-fill with source context
+		// This might involve adding source data to AI conversation context
+	}, []);
 
 	// Update selected document ID when active tab changes
 	useEffect(() => {
@@ -376,11 +388,17 @@ export function WorkspaceEditor() {
 	useEffect(() => {
 		registerDocumentHandler(handleDocumentSelect);
 		registerSourceHandler(handleSourceSelect);
+		registerInsertSourceHandler(handleInsertSource);
+		registerAIContextHandler(handleUseAsAIContext);
 	}, [
 		registerDocumentHandler,
 		registerSourceHandler,
+		registerInsertSourceHandler,
+		registerAIContextHandler,
 		handleDocumentSelect,
 		handleSourceSelect,
+		handleInsertSource,
+		handleUseAsAIContext,
 	]);
 
 	return (
