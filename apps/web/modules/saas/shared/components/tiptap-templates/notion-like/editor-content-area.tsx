@@ -23,7 +23,8 @@ import type { Source } from "../../workspace/sources/types";
 const getImageUrl = (source: Source) => {
 	if (source.type === "image" && source.filePath) {
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-		const bucketName = process.env.NEXT_PUBLIC_IMAGES_BUCKET_NAME || "image-sources";
+		const bucketName =
+			process.env.NEXT_PUBLIC_IMAGES_BUCKET_NAME || "image-sources";
 		return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${source.filePath}`;
 	}
 	return source.url || null;
@@ -76,12 +77,24 @@ export function EditorContentArea() {
 			handleSourceSelect(source);
 		};
 
-		window.addEventListener('tiptap-open-sources-modal', handleOpenSourcesModal);
-		window.addEventListener('tiptap-insert-source-direct', handleDirectSourceInsert);
-		
+		window.addEventListener(
+			"tiptap-open-sources-modal",
+			handleOpenSourcesModal,
+		);
+		window.addEventListener(
+			"tiptap-insert-source-direct",
+			handleDirectSourceInsert,
+		);
+
 		return () => {
-			window.removeEventListener('tiptap-open-sources-modal', handleOpenSourcesModal);
-			window.removeEventListener('tiptap-insert-source-direct', handleDirectSourceInsert);
+			window.removeEventListener(
+				"tiptap-open-sources-modal",
+				handleOpenSourcesModal,
+			);
+			window.removeEventListener(
+				"tiptap-insert-source-direct",
+				handleDirectSourceInsert,
+			);
 		};
 	}, []);
 
@@ -89,69 +102,80 @@ export function EditorContentArea() {
 	const handleSourceSelect = (source: Source) => {
 		if (!editor) return;
 
-		console.log('🖼️ Inserting source:', source);
-		console.log('🖼️ Source type:', source.type);
-		console.log('🖼️ Source URL:', source.url);
-		console.log('🖼️ Source filePath:', source.filePath);
-
 		// Insert based on source type
-		if (source.type === 'image') {
+		if (source.type === "image") {
 			// Get proper image URL using the helper function
 			const imageUrl = getImageUrl(source);
-			console.log('🖼️ Final image URL:', imageUrl);
-			
+
 			// For images, use the correct insertion method
 			if (!imageUrl) {
-				console.warn('🖼️ No valid image URL found');
+				console.warn("🖼️ No valid image URL found");
 				return;
 			}
-			
+
 			try {
 				// Method 1: Try using insertContent with image node (preferred)
-				const result = editor.chain().focus().insertContent({
-					type: 'image',
-					attrs: {
-						src: imageUrl,
-						alt: source.name,
-						title: source.name
-					}
-				}).run();
-				console.log('🖼️ insertContent image result:', result);
-				
+				const result = editor
+					.chain()
+					.focus()
+					.insertContent({
+						type: "image",
+						attrs: {
+							src: imageUrl,
+							alt: source.name,
+							title: source.name,
+						},
+					})
+					.run();
+
 				if (!result) {
 					// Method 2: Try setImage command as fallback
-					console.log('🖼️ Trying setImage method...');
-					const setImageResult = editor.chain().focus().setImage({ 
-						src: imageUrl, 
-						alt: source.name,
-						title: source.name 
-					}).run();
-					console.log('🖼️ setImage result:', setImageResult);
+					editor
+						.chain()
+						.focus()
+						.setImage({
+							src: imageUrl,
+							alt: source.name,
+							title: source.name,
+						})
+						.run();
 				}
 			} catch (error) {
-				console.error('🖼️ Failed to insert image:', error);
+				console.error("🖼️ Failed to insert image:", error);
 				// Fallback: Insert as text link
-				editor.chain().focus().insertContent({
-					type: 'text',
-					text: `[Image: ${source.name}]`,
-					marks: [{ type: 'link', attrs: { href: imageUrl } }]
-				}).run();
+				editor
+					.chain()
+					.focus()
+					.insertContent({
+						type: "text",
+						text: `[Image: ${source.name}]`,
+						marks: [{ type: "link", attrs: { href: imageUrl } }],
+					})
+					.run();
 			}
-		} else if (source.type === 'url') {
+		} else if (source.type === "url") {
 			// For URLs, insert a link
-			editor.chain().focus().insertContent({
-				type: 'text',
-				text: source.name,
-				marks: [{ type: 'link', attrs: { href: source.url } }]
-			}).run();
+			editor
+				.chain()
+				.focus()
+				.insertContent({
+					type: "text",
+					text: source.name,
+					marks: [{ type: "link", attrs: { href: source.url } }],
+				})
+				.run();
 		} else {
 			// For other types (PDFs, docs), insert as a link to the file
-			const fileUrl = source.url || source.filePath || '';
-			editor.chain().focus().insertContent({
-				type: 'text',
-				text: source.name,
-				marks: [{ type: 'link', attrs: { href: fileUrl } }]
-			}).run();
+			const fileUrl = source.url || source.filePath || "";
+			editor
+				.chain()
+				.focus()
+				.insertContent({
+					type: "text",
+					text: source.name,
+					marks: [{ type: "link", attrs: { href: fileUrl } }],
+				})
+				.run();
 		}
 	};
 
@@ -177,7 +201,7 @@ export function EditorContentArea() {
 			<NotionToolbarFloating />
 
 			{createPortal(<MobileToolbar />, document.body)}
-			
+
 			{/* Sources Insert Modal */}
 			<SourcesInsertModal
 				open={sourcesModalOpen}

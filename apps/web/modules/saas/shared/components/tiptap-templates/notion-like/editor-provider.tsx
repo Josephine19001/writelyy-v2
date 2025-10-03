@@ -21,7 +21,7 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Mathematics } from "@tiptap/extension-mathematics";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
-import { TableKit, TableCell } from "@tiptap/extension-table";
+import { TableCell, TableKit } from "@tiptap/extension-table";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
@@ -36,9 +36,10 @@ import * as React from "react";
 import type { Doc as YDoc } from "yjs";
 
 import { EditorContentArea } from "./editor-content-area";
-import { NotionEditorHeader } from "./editor-header";
 import { EditorFooter } from "./editor-footer";
+import { NotionEditorHeader } from "./editor-header";
 import { LoadingSpinner } from "./loading-spinner";
+import { EditorProvider as CustomEditorProvider } from "@shared/tiptap/contexts/editor-context";
 
 export interface EditorProviderProps {
 	provider: TiptapCollabProvider | null;
@@ -80,10 +81,12 @@ export function EditorProvider(props: EditorProviderProps) {
 					// add backgroundColor attribute
 					backgroundColor: {
 						default: null,
-						parseHTML: element => element.getAttribute('data-background-color'),
-						renderHTML: attributes => {
+						parseHTML: (element) =>
+							element.getAttribute("data-background-color"),
+						renderHTML: (attributes) => {
 							return {
-								'data-background-color': attributes.backgroundColor,
+								"data-background-color":
+									attributes.backgroundColor,
 								style: `background-color: ${attributes.backgroundColor}`,
 							};
 						},
@@ -119,14 +122,6 @@ export function EditorProvider(props: EditorProviderProps) {
 				}
 			},
 			onCreate: ({ editor }) => {
-				// Debug available commands
-				console.log('🤖 Editor created, available AI commands:', {
-					aiExtend: typeof editor.commands.aiExtend,
-					aiShorten: typeof editor.commands.aiShorten,
-					aiFixSpellingAndGrammar: typeof editor.commands.aiFixSpellingAndGrammar,
-					allCommands: Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai'))
-				});
-
 				// Always set initial content if provided, regardless of onChange
 				if (initialContentRef.current) {
 					setTimeout(() => {
@@ -136,74 +131,106 @@ export function EditorProvider(props: EditorProviderProps) {
 						}
 
 						const currentContent = editor.getJSON();
-						
+
 						// Only set content if initialContent is not empty and different from current
 						// This prevents overwriting user content with empty content
-						const hasInitialContent = initialContentRef.current && (
+						const hasInitialContent =
+							initialContentRef.current &&
 							// Check for valid Tiptap JSON structure
-							(typeof initialContentRef.current === 'object' && 
-							 initialContentRef.current.type === 'doc' &&
-							 Array.isArray(initialContentRef.current.content) &&
-							 initialContentRef.current.content.length > 0) ||
-							// Fallback for string content
-							(typeof initialContentRef.current === 'string' && 
-							 initialContentRef.current.trim().length > 0) ||
-							// Fallback for any other valid object with content
-							(typeof initialContentRef.current === 'object' && 
-							 Object.keys(initialContentRef.current).length > 0 &&
-							 initialContentRef.current.type)
-						);
+							((typeof initialContentRef.current === "object" &&
+								initialContentRef.current.type === "doc" &&
+								Array.isArray(
+									initialContentRef.current.content,
+								) &&
+								initialContentRef.current.content.length > 0) ||
+								// Fallback for string content
+								(typeof initialContentRef.current ===
+									"string" &&
+									initialContentRef.current.trim().length >
+										0) ||
+								// Fallback for any other valid object with content
+								(typeof initialContentRef.current ===
+									"object" &&
+									Object.keys(initialContentRef.current)
+										.length > 0 &&
+									initialContentRef.current.type));
 
-						if (hasInitialContent &&
+						if (
+							hasInitialContent &&
 							JSON.stringify(currentContent) !==
-							JSON.stringify(initialContentRef.current)
+								JSON.stringify(initialContentRef.current)
 						) {
 							try {
 								// CRITICAL SAFETY CHECK: Never overwrite content with empty/invalid content
-								const currentHasContent = currentContent && 
-									currentContent.type === 'doc' && 
-									Array.isArray(currentContent.content) && 
+								const currentHasContent =
+									currentContent &&
+									currentContent.type === "doc" &&
+									Array.isArray(currentContent.content) &&
 									currentContent.content.length > 0;
-								
-								const initialIsEmpty = !initialContentRef.current ||
+
+								const initialIsEmpty =
+									!initialContentRef.current ||
 									!initialContentRef.current.content ||
-									(Array.isArray(initialContentRef.current.content) && 
-									 initialContentRef.current.content.length === 0);
-								
+									(Array.isArray(
+										initialContentRef.current.content,
+									) &&
+										initialContentRef.current.content
+											.length === 0);
+
 								if (currentHasContent && initialIsEmpty) {
-									console.error("CRITICAL: Prevented clearing valid document content!", {
-										currentContent: JSON.stringify(currentContent, null, 2),
-										initialContent: JSON.stringify(initialContentRef.current, null, 2)
-									});
-									
+									console.error(
+										"CRITICAL: Prevented clearing valid document content!",
+										{
+											currentContent: JSON.stringify(
+												currentContent,
+												null,
+												2,
+											),
+											initialContent: JSON.stringify(
+												initialContentRef.current,
+												null,
+												2,
+											),
+										},
+									);
+
 									// EMERGENCY BACKUP: Save current content before any potential data loss
 									const emergencyKey = `emergency-backup-${Date.now()}`;
 									try {
-										localStorage.setItem(emergencyKey, JSON.stringify({
-											content: currentContent,
-											timestamp: new Date().toISOString(),
-											reason: "prevented_content_clearing",
-											initialContent: initialContentRef.current
-										}));
-										console.error("Emergency backup saved to:", emergencyKey);
+										localStorage.setItem(
+											emergencyKey,
+											JSON.stringify({
+												content: currentContent,
+												timestamp:
+													new Date().toISOString(),
+												reason: "prevented_content_clearing",
+												initialContent:
+													initialContentRef.current,
+											}),
+										);
+										console.error(
+											"Emergency backup saved to:",
+											emergencyKey,
+										);
 									} catch (error) {
-										console.error("Failed to create emergency backup:", error);
+										console.error(
+											"Failed to create emergency backup:",
+											error,
+										);
 									}
-									
+
 									return; // ABORT - Don't clear existing content
 								}
-								
-								console.log("Setting editor content:", {
-									from: currentContent,
-									to: initialContentRef.current
-								});
-								
+
 								editor.commands.setContent(
 									initialContentRef.current,
 									{ emitUpdate: false },
 								);
 							} catch (error) {
-								console.error("Failed to set initial content:", error);
+								console.error(
+									"Failed to set initial content:",
+									error,
+								);
 							}
 						}
 					}, 100);
@@ -331,11 +358,6 @@ export function EditorProvider(props: EditorProviderProps) {
 				// Only include AI extension if we have a token
 				...(aiToken
 					? (() => {
-							console.log('🤖 Loading AI extension with token:', { 
-								hasToken: !!aiToken, 
-								appId: TIPTAP_AI_APP_ID,
-								tokenLength: aiToken?.length 
-							});
 							return [
 								Ai.configure({
 									appId: TIPTAP_AI_APP_ID,
@@ -372,7 +394,9 @@ export function EditorProvider(props: EditorProviderProps) {
 							];
 						})()
 					: (() => {
-							console.log('🤖 AI extension NOT loaded - no token');
+							console.log(
+								"🤖 AI extension NOT loaded - no token",
+							);
 							return [];
 						})()),
 			],
@@ -387,13 +411,15 @@ export function EditorProvider(props: EditorProviderProps) {
 	return (
 		<div className="notion-like-editor-wrapper">
 			<EditorContext.Provider value={{ editor }}>
-				<NotionEditorHeader />
-				<EditorContentArea />
-				<EditorFooter 
-					isSaving={savingState?.isSaving}
-					lastSaved={savingState?.lastSaved}
-					hasUnsavedChanges={savingState?.hasUnsavedChanges}
-				/>
+				<CustomEditorProvider editor={editor}>
+					<NotionEditorHeader />
+					<EditorContentArea />
+					<EditorFooter
+						isSaving={savingState?.isSaving}
+						lastSaved={savingState?.lastSaved}
+						hasUnsavedChanges={savingState?.hasUnsavedChanges}
+					/>
+				</CustomEditorProvider>
 			</EditorContext.Provider>
 		</div>
 	);

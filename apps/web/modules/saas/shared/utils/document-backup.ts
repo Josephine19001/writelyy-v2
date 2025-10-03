@@ -53,10 +53,6 @@ export function createDocumentBackup(
 		);
 
 		localStorage.setItem(backupKey, JSON.stringify(trimmedBackups));
-
-		console.log(
-			`📦 Created backup v${backup.version} for document ${documentId}`,
-		);
 	} catch (error) {
 		console.error("Failed to create document backup:", error);
 	}
@@ -91,9 +87,6 @@ export function restoreDocumentBackup(
 		const backup = backups.find((b) => b.version === version);
 
 		if (backup) {
-			console.log(
-				`🔄 Restored backup v${version} for document ${documentId}`,
-			);
 			return backup;
 		}
 
@@ -121,7 +114,6 @@ export function clearDocumentBackups(documentId: string): void {
 	try {
 		const backupKey = `${BACKUP_KEY_PREFIX}${documentId}`;
 		localStorage.removeItem(backupKey);
-		console.log(`🗑️  Cleared all backups for document ${documentId}`);
 	} catch (error) {
 		console.error("Failed to clear document backups:", error);
 	}
@@ -175,12 +167,6 @@ export function emergencyContentRecovery(
 				new Date(a.timestamp).getTime()
 			);
 		});
-
-		if (recoveredData.length > 0) {
-			console.log(
-				`🚨 Emergency recovery found ${recoveredData.length} potential content versions for document ${documentId}`,
-			);
-		}
 	} catch (error) {
 		console.error("Emergency content recovery failed:", error);
 	}
