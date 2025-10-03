@@ -84,6 +84,19 @@ export function WorkspaceEditor() {
 			}));
 
 			try {
+				// Validate content before saving to prevent clearing documents
+				const isValidContent = content && (
+					typeof content === 'object' && 
+					content.type === 'doc' &&
+					content.content && 
+					Array.isArray(content.content)
+				);
+				
+				if (!isValidContent) {
+					console.error("Attempted to save invalid content for document:", documentId, content);
+					throw new Error("Invalid content - preventing save to avoid data loss");
+				}
+				
 				const savedDocument = await updateDocument.mutateAsync({
 					id: documentId,
 					content,
@@ -242,9 +255,21 @@ export function WorkspaceEditor() {
 									},
 								}));
 
-								// Trigger save after a delay
+								// Trigger save after a delay with content validation
 								setTimeout(() => {
-									debouncedSave(documentId, draft.content);
+									// Double-check content is still valid before auto-saving
+									const isValidContent = draft.content && (
+										typeof draft.content === 'object' && 
+										draft.content.type === 'doc' &&
+										draft.content.content && 
+										Array.isArray(draft.content.content)
+									);
+									
+									if (isValidContent) {
+										debouncedSave(documentId, draft.content);
+									} else {
+										console.warn("Skipping auto-save of invalid draft content for document:", documentId);
+									}
 								}, 2000);
 							}
 						}
@@ -259,6 +284,33 @@ export function WorkspaceEditor() {
 	// Handle document content changes
 	const handleDocumentChange = useCallback(
 		(documentId: string, content: any) => {
+			// CRITICAL: Emergency validation to prevent data loss
+			if (!content) {
+				console.error("CRITICAL: Attempted to save null/undefined content for document:", documentId);
+				return;
+			}
+			
+			// Validate Tiptap content structure
+			if (typeof content === 'object' && 
+				(!content.type || !content.content || !Array.isArray(content.content))) {
+				console.error("CRITICAL: Invalid Tiptap content structure for document:", documentId, content);
+				
+				// Create emergency backup of invalid content for debugging
+				const emergencyKey = `invalid-content-${documentId}-${Date.now()}`;
+				try {
+					localStorage.setItem(emergencyKey, JSON.stringify({
+						content,
+						timestamp: new Date().toISOString(),
+						reason: "invalid_tiptap_structure",
+						documentId
+					}));
+					console.error("Invalid content backed up to:", emergencyKey);
+				} catch (error) {
+					console.error("Failed to backup invalid content:", error);
+				}
+				return;
+			}
+			
 			const tab = tabs.find(
 				(t) =>
 					t.type === "document" &&
@@ -282,9 +334,15 @@ export function WorkspaceEditor() {
 				const localKey = `doc-draft-${documentId}`;
 				
 				// Only save to localStorage if content is not empty/null
-				const hasValidContent = content && 
-					(typeof content === 'string' ? content.trim().length > 0 : 
-					 typeof content === 'object' ? Object.keys(content).length > 0 : false);
+				const hasValidContent = content && (
+					typeof content === 'string' ? content.trim().length > 0 : 
+					typeof content === 'object' ? (
+						// Check for valid Tiptap JSON structure
+						content.type === 'doc' && content.content && Array.isArray(content.content) ||
+						// Fallback for other object types
+						Object.keys(content).length > 0
+					) : false
+				);
 
 				if (hasValidContent) {
 					const draft = {
@@ -307,7 +365,14 @@ export function WorkspaceEditor() {
 					}
 				} else {
 					// Don't overwrite existing drafts with empty content
-					console.warn("Skipping localStorage save - empty content detected for document:", documentId);
+					console.warn("Skipping localStorage save - empty content detected for document:", documentId, {
+						content,
+						contentType: typeof content,
+						hasContent: !!content,
+						isString: typeof content === 'string',
+						isObject: typeof content === 'object',
+						objectKeys: typeof content === 'object' ? Object.keys(content || {}) : 'N/A'
+					});
 				}
 
 				// Mark as having unsaved changes

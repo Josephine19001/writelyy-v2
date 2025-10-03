@@ -6,6 +6,8 @@ import { File, Folder, Check, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUpdateDocumentMutation } from "@saas/lib/api";
 import { useUpdateFolderMutation } from "@saas/folders/lib/api";
+import { useTabContext } from "../../providers/TabProvider";
+import { useTabManager } from "../../../hooks/use-tab-manager";
 import { toast } from "sonner";
 
 interface InlineRenameItemProps {
@@ -29,6 +31,8 @@ export function InlineRenameItem({
 	const inputRef = useRef<HTMLInputElement>(null);
 	const updateDocumentMutation = useUpdateDocumentMutation();
 	const updateFolderMutation = useUpdateFolderMutation();
+	const { updateTabDocument } = useTabContext();
+	const { updateTabTitle } = useTabManager();
 
 	useEffect(() => {
 		// Focus input and select all text when component mounts
@@ -53,15 +57,23 @@ export function InlineRenameItem({
 				});
 				toast.success("Folder renamed successfully");
 			} else {
-				await updateDocumentMutation.mutateAsync({
+				const updatedDocument = await updateDocumentMutation.mutateAsync({
 					id: itemId,
 					title: name.trim(),
 				});
+				
+				// Update any open tabs with the new document title
+				updateTabDocument(itemId, updatedDocument);
+				
+				// Update browser tab title as well
+				const tabId = `doc-${itemId}`;
+				updateTabTitle(tabId, name.trim());
+				
 				toast.success("Document renamed successfully");
 			}
 			
 			onSuccess?.();
-		} catch (error) {
+		} catch {
 			toast.error(`Failed to rename ${type}`);
 		}
 	};

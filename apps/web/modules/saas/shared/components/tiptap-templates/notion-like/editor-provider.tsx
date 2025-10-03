@@ -131,22 +131,71 @@ export function EditorProvider(props: EditorProviderProps) {
 						
 						// Only set content if initialContent is not empty and different from current
 						// This prevents overwriting user content with empty content
-						const hasInitialContent = initialContentRef.current && 
-							(initialContentRef.current.content?.length > 0 || 
-							 (typeof initialContentRef.current === 'object' && 
-							  Object.keys(initialContentRef.current).length > 0));
+						const hasInitialContent = initialContentRef.current && (
+							// Check for valid Tiptap JSON structure
+							(typeof initialContentRef.current === 'object' && 
+							 initialContentRef.current.type === 'doc' &&
+							 Array.isArray(initialContentRef.current.content) &&
+							 initialContentRef.current.content.length > 0) ||
+							// Fallback for string content
+							(typeof initialContentRef.current === 'string' && 
+							 initialContentRef.current.trim().length > 0) ||
+							// Fallback for any other valid object with content
+							(typeof initialContentRef.current === 'object' && 
+							 Object.keys(initialContentRef.current).length > 0 &&
+							 initialContentRef.current.type)
+						);
 
 						if (hasInitialContent &&
 							JSON.stringify(currentContent) !==
 							JSON.stringify(initialContentRef.current)
 						) {
 							try {
+								// CRITICAL SAFETY CHECK: Never overwrite content with empty/invalid content
+								const currentHasContent = currentContent && 
+									currentContent.type === 'doc' && 
+									Array.isArray(currentContent.content) && 
+									currentContent.content.length > 0;
+								
+								const initialIsEmpty = !initialContentRef.current ||
+									!initialContentRef.current.content ||
+									(Array.isArray(initialContentRef.current.content) && 
+									 initialContentRef.current.content.length === 0);
+								
+								if (currentHasContent && initialIsEmpty) {
+									console.error("CRITICAL: Prevented clearing valid document content!", {
+										currentContent: JSON.stringify(currentContent, null, 2),
+										initialContent: JSON.stringify(initialContentRef.current, null, 2)
+									});
+									
+									// EMERGENCY BACKUP: Save current content before any potential data loss
+									const emergencyKey = `emergency-backup-${Date.now()}`;
+									try {
+										localStorage.setItem(emergencyKey, JSON.stringify({
+											content: currentContent,
+											timestamp: new Date().toISOString(),
+											reason: "prevented_content_clearing",
+											initialContent: initialContentRef.current
+										}));
+										console.error("Emergency backup saved to:", emergencyKey);
+									} catch (error) {
+										console.error("Failed to create emergency backup:", error);
+									}
+									
+									return; // ABORT - Don't clear existing content
+								}
+								
+								console.log("Setting editor content:", {
+									from: currentContent,
+									to: initialContentRef.current
+								});
+								
 								editor.commands.setContent(
 									initialContentRef.current,
 									{ emitUpdate: false },
 								);
 							} catch (error) {
-								console.warn("Failed to set initial content:", error);
+								console.error("Failed to set initial content:", error);
 							}
 						}
 					}, 100);
