@@ -217,31 +217,70 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 		(command: AICommand) => {
 			if (!editor) return;
 
+			// Debug: Check if AI commands are available
+			console.log('🤖 Executing AI command:', command, {
+				hasAiExtend: typeof editor.commands.aiExtend,
+				hasAiFixSpelling: typeof editor.commands.aiFixSpellingAndGrammar,
+				availableAiCommands: Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai'))
+			});
+
 			editor.chain().focus().aiGenerationShow().run();
 
 			setTimeout(() => {
-				switch (command) {
-					case "fixSpellingAndGrammar":
-						editor.commands.aiFixSpellingAndGrammar(defaultOptions);
-						break;
-					case "extend":
-						editor.commands.aiExtend(defaultOptions);
-						break;
-					case "shorten":
-						editor.commands.aiShorten(defaultOptions);
-						break;
-					case "simplify":
-						editor.commands.aiSimplify(defaultOptions);
-						break;
-					case "emojify":
-						editor.commands.aiEmojify(defaultOptions);
-						break;
-					case "complete":
-						editor.commands.aiComplete(defaultOptions);
-						break;
-					case "summarize":
-						editor.commands.aiSummarize(defaultOptions);
-						break;
+				try {
+					switch (command) {
+						case "fixSpellingAndGrammar":
+							if (editor.commands.aiFixSpellingAndGrammar) {
+								editor.commands.aiFixSpellingAndGrammar(defaultOptions);
+							} else {
+								console.error('aiFixSpellingAndGrammar command not available');
+							}
+							break;
+						case "extend":
+							if (editor.commands.aiExtend) {
+								editor.commands.aiExtend(defaultOptions);
+							} else {
+								console.error('aiExtend command not available');
+							}
+							break;
+						case "shorten":
+							if (editor.commands.aiShorten) {
+								editor.commands.aiShorten(defaultOptions);
+							} else {
+								console.error('aiShorten command not available');
+							}
+							break;
+						case "simplify":
+							if (editor.commands.aiSimplify) {
+								editor.commands.aiSimplify(defaultOptions);
+							} else {
+								console.error('aiSimplify command not available');
+							}
+							break;
+						case "emojify":
+							if (editor.commands.aiEmojify) {
+								editor.commands.aiEmojify(defaultOptions);
+							} else {
+								console.error('aiEmojify command not available');
+							}
+							break;
+						case "complete":
+							if (editor.commands.aiComplete) {
+								editor.commands.aiComplete(defaultOptions);
+							} else {
+								console.error('aiComplete command not available');
+							}
+							break;
+						case "summarize":
+							if (editor.commands.aiSummarize) {
+								editor.commands.aiSummarize(defaultOptions);
+							} else {
+								console.error('aiSummarize command not available');
+							}
+							break;
+					}
+				} catch (error) {
+					console.error('Error executing AI command:', error);
 				}
 			}, 0);
 		},

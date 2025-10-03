@@ -30,6 +30,11 @@ export function EditorContent({
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
 
+	// Debug AI token
+	React.useEffect(() => {
+		console.log('🤖 AI Token status:', { aiToken, hasToken: !!aiToken });
+	}, [aiToken]);
+
 	// Since collaboration is disabled, only wait for AI token (if needed)
 	// If AI token is null, we'll just disable AI features but still show editor
 	const isWaitingForRequiredTokens = false; // No required tokens for now

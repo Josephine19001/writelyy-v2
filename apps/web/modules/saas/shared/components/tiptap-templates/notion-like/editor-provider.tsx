@@ -119,6 +119,14 @@ export function EditorProvider(props: EditorProviderProps) {
 				}
 			},
 			onCreate: ({ editor }) => {
+				// Debug available commands
+				console.log('🤖 Editor created, available AI commands:', {
+					aiExtend: typeof editor.commands.aiExtend,
+					aiShorten: typeof editor.commands.aiShorten,
+					aiFixSpellingAndGrammar: typeof editor.commands.aiFixSpellingAndGrammar,
+					allCommands: Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai'))
+				});
+
 				// Always set initial content if provided, regardless of onChange
 				if (initialContentRef.current) {
 					setTimeout(() => {
@@ -322,41 +330,51 @@ export function EditorProvider(props: EditorProviderProps) {
 				UiState,
 				// Only include AI extension if we have a token
 				...(aiToken
-					? [
-							Ai.configure({
+					? (() => {
+							console.log('🤖 Loading AI extension with token:', { 
+								hasToken: !!aiToken, 
 								appId: TIPTAP_AI_APP_ID,
-								token: aiToken,
-								autocompletion: false,
-								showDecorations: true,
-								hideDecorationsOnStreamEnd: false,
-								onLoading: (context) => {
-									context.editor.commands.aiGenerationSetIsLoading(
-										true,
-									);
-									context.editor.commands.aiGenerationHasMessage(
-										false,
-									);
-								},
-								onChunk: (context) => {
-									context.editor.commands.aiGenerationSetIsLoading(
-										true,
-									);
-									context.editor.commands.aiGenerationHasMessage(
-										true,
-									);
-								},
-								onSuccess: (context) => {
-									const hasMessage = !!context.response;
-									context.editor.commands.aiGenerationSetIsLoading(
-										false,
-									);
-									context.editor.commands.aiGenerationHasMessage(
-										hasMessage,
-									);
-								},
-							}),
-						]
-					: []),
+								tokenLength: aiToken?.length 
+							});
+							return [
+								Ai.configure({
+									appId: TIPTAP_AI_APP_ID,
+									token: aiToken,
+									autocompletion: false,
+									showDecorations: true,
+									hideDecorationsOnStreamEnd: false,
+									onLoading: (context) => {
+										context.editor.commands.aiGenerationSetIsLoading(
+											true,
+										);
+										context.editor.commands.aiGenerationHasMessage(
+											false,
+										);
+									},
+									onChunk: (context) => {
+										context.editor.commands.aiGenerationSetIsLoading(
+											true,
+										);
+										context.editor.commands.aiGenerationHasMessage(
+											true,
+										);
+									},
+									onSuccess: (context) => {
+										const hasMessage = !!context.response;
+										context.editor.commands.aiGenerationSetIsLoading(
+											false,
+										);
+										context.editor.commands.aiGenerationHasMessage(
+											hasMessage,
+										);
+									},
+								}),
+							];
+						})()
+					: (() => {
+							console.log('🤖 AI extension NOT loaded - no token');
+							return [];
+						})()),
 			],
 		},
 		[], // Empty dependency array to prevent unnecessary recreations

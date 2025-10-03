@@ -228,16 +228,28 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
 
 /**
  * Fetch AI JWT token from the API
- * SIMPLIFIED: Returns hardcoded token for now, disable alerts
  */
 export const fetchAiToken = async () => {
-	// For development, just return the token if available without alerts
-	if (TIPTAP_AI_TOKEN) {
-		return TIPTAP_AI_TOKEN;
-	}
+	try {
+		// Use the JWT token generation API endpoint
+		const response = await fetch('/api/tiptap/ai-token', {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
 
-	// If no token, return null silently (AI features will be disabled)
-	return null;
+		if (!response.ok) {
+			console.error(`Failed to fetch AI token: ${response.status}`);
+			return null;
+		}
+
+		const data = await response.json();
+		return data.token;
+	} catch (error) {
+		console.error("Error fetching AI token:", error);
+		return null;
+	}
 
 	/* COMMENTED OUT - Full token fetching with alerts
   if (USE_JWT_TOKEN_API_ENDPOINT) {
