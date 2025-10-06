@@ -366,6 +366,7 @@ export function EditorProvider(props: EditorProviderProps) {
 									showDecorations: true,
 									hideDecorationsOnStreamEnd: false,
 									onLoading: (context) => {
+										console.log('🤖 AI Loading started');
 										context.editor.commands.aiGenerationSetIsLoading(
 											true,
 										);
@@ -374,6 +375,7 @@ export function EditorProvider(props: EditorProviderProps) {
 										);
 									},
 									onChunk: (context) => {
+										console.log('🤖 AI Chunk received');
 										context.editor.commands.aiGenerationSetIsLoading(
 											true,
 										);
@@ -382,6 +384,7 @@ export function EditorProvider(props: EditorProviderProps) {
 										);
 									},
 									onSuccess: (context) => {
+										console.log('🤖 AI Success:', !!context.response);
 										const hasMessage = !!context.response;
 										context.editor.commands.aiGenerationSetIsLoading(
 											false,
@@ -389,6 +392,9 @@ export function EditorProvider(props: EditorProviderProps) {
 										context.editor.commands.aiGenerationHasMessage(
 											hasMessage,
 										);
+									},
+									onError: (error) => {
+										console.error('🤖 AI Error:', error);
 									},
 								}),
 							];

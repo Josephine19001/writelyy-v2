@@ -176,6 +176,7 @@
 		"@tailwindcss/postcss": "^4.1.13",
 		"@types/is-hotkey": "^0.1.10",
 		"@types/js-cookie": "^3.0.4",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/lodash.throttle": "^4.1.9",
 		"@types/mdx": "^2.0.13",
 		"@types/node": "24.5.1",

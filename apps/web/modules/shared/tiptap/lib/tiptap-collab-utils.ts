@@ -94,7 +94,9 @@ export const isSelectionValid = (
 	excludedNodeTypes: string[] = ["imageUpload", "horizontalRule"],
 ): boolean => {
 	if (!editor || !editor.state) return false;
-	if (!selection) selection = editor.state.selection;
+	if (!selection) {
+		selection = editor.state.selection;
+	}
 
 	const { state } = editor;
 	const { doc } = state;
@@ -232,7 +234,7 @@ Follow this guide: https://tiptap.dev/docs/ui-components/templates/notion-like-e
 export const fetchAiToken = async () => {
 	try {
 		// Use the JWT token generation API endpoint
-		const response = await fetch('/api/tiptap/ai-token', {
+		const response = await fetch("/api/tiptap/ai-token", {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

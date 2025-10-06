@@ -290,10 +290,29 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 	const adjustTone = React.useCallback(
 		(tone: Tone) => {
 			if (!editor) return;
+			
+			// Debug: Check available AI commands
+			console.log('🤖 Available AI commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
+			
 			editor.chain().focus().aiGenerationShow().run();
 
 			setTimeout(() => {
-				editor.commands.aiAdjustTone(tone, defaultOptions);
+				try {
+					if (editor.commands.aiAdjustTone) {
+						editor.commands.aiAdjustTone(tone, defaultOptions);
+					} else if (editor.commands.aiChangeStyle) {
+						// Alternative command name
+						editor.commands.aiChangeStyle(tone, defaultOptions);
+					} else if (editor.commands.aiRewrite) {
+						// Fallback to rewrite with tone instruction
+						editor.commands.aiRewrite(`Rewrite this text in a ${tone} tone`, defaultOptions);
+					} else {
+						console.error('No suitable AI tone adjustment command found');
+						console.log('Available commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
+					}
+				} catch (error) {
+					console.error('Error adjusting tone:', error);
+				}
 			}, 0);
 		},
 		[editor, defaultOptions],
