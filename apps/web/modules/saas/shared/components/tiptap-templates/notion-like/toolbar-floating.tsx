@@ -58,6 +58,7 @@ import type { Editor } from "@tiptap/react";
 import * as React from "react";
 import { AskAIButton } from "../../ai-chat/ask-ai-button";
 import { useAIChat } from "../../ai-chat/ai-chat-context";
+import { SourcesDropdown } from "./sources-dropdown";
 
 export function NotionToolbarFloating() {
 	const { editor } = useTiptapEditor();
@@ -160,6 +161,7 @@ function NotionToolbarFloatingContent() {
 						<ImageNodeFloating />
 						<DrawingBlockNodeFloating />
 						<ChartBlockNodeFloating />
+						<SourcesDropdown />
 					</ToolbarGroup>
 
 					<ToolbarGroup>

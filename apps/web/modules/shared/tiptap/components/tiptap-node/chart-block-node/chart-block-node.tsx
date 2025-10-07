@@ -132,9 +132,11 @@ export const ChartBlockNode: React.FC<NodeViewProps> = ({
 				if (chartType === "line") {
 					return {
 						...dataset,
-						borderColor: dataset.borderColor || (isDark ? "#d1d5db" : "#374151"),
+						borderColor:
+							dataset.borderColor ||
+							(isDark ? "#d1d5db" : "#374151"),
 						borderWidth: dataset.borderWidth || 1,
-						pointRadius: dataset.pointRadius || 6,
+						pointRadius: dataset?.pointRadius || 6,
 						pointHoverRadius: dataset.pointHoverRadius || 8,
 					};
 				}
@@ -171,17 +173,23 @@ export const ChartBlockNode: React.FC<NodeViewProps> = ({
 				{renderChart()}
 
 				{/* Resize handles */}
-				<div
+				<button
+					type="button"
 					className="resize-handle resize-handle-se"
 					onMouseDown={(e) => handleResize(e, "se")}
+					aria-label="Resize chart diagonally"
 				/>
-				<div
+				<button
+					type="button"
 					className="resize-handle resize-handle-s"
 					onMouseDown={(e) => handleResize(e, "s")}
+					aria-label="Resize chart vertically"
 				/>
-				<div
+				<button
+					type="button"
 					className="resize-handle resize-handle-e"
 					onMouseDown={(e) => handleResize(e, "e")}
+					aria-label="Resize chart horizontally"
 				/>
 			</div>
 
@@ -235,6 +243,14 @@ export const ChartBlockNode: React.FC<NodeViewProps> = ({
           border-radius: 2px;
           opacity: 0;
           transition: opacity 0.2s;
+          padding: 0;
+          outline: none;
+        }
+        
+        .resize-handle:focus {
+          opacity: 1;
+          outline: 2px solid #3b82f6;
+          outline-offset: 1px;
         }
         
         .chart-container:hover .resize-handle,

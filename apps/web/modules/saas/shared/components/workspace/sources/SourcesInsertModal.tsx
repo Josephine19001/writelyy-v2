@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -33,11 +33,11 @@ export function SourcesInsertModal({
 
 	const sources = sourcesData?.sources || [];
 
-	const handleSourceSelect = (sourceId: string) => {
-		setSelectedSourceId(sourceId);
-	};
+	const handleSourceSelect = useCallback((source: Source) => {
+		setSelectedSourceId(source.id);
+	}, []);
 
-	const handleInsertSource = () => {
+	const handleInsertSource = useCallback(() => {
 		if (!selectedSourceId) return;
 		
 		const selectedSource = sources.find(source => source.id === selectedSourceId);
@@ -45,11 +45,11 @@ export function SourcesInsertModal({
 			onSourceSelect(selectedSource);
 			onOpenChange(false);
 		}
-	};
+	}, [selectedSourceId, sources, onSourceSelect, onOpenChange]);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-2xl max-h-[70vh] flex flex-col">
+			<DialogContent className="max-w-lg max-h-[70vh] flex flex-col">
 				<DialogHeader className="flex-shrink-0">
 					<DialogTitle>Insert from Sources</DialogTitle>
 				</DialogHeader>

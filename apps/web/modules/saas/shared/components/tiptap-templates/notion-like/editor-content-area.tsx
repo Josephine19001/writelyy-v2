@@ -16,8 +16,9 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { MobileToolbar } from "./toolbar";
 import { NotionToolbarFloating } from "./toolbar-floating";
-import { SourcesInsertModal } from "../../workspace/sources/SourcesInsertModal";
 import type { Source } from "../../workspace/sources/types";
+import { useSourcesQuery } from "@saas/lib/api";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 
 // Helper function to get proper image URL (same as SourcePreview)
 const getImageUrl = (source: Source) => {
@@ -41,9 +42,14 @@ export function EditorContentArea() {
 		aiGenerationHasMessage,
 		isDragging,
 	} = useUiEditorState(editor);
+	
+	// Get sources data for slash menu
+	const { activeWorkspace } = useActiveWorkspace();
+	const { data: sourcesData } = useSourcesQuery(
+		activeWorkspace?.id || "",
+		{ enabled: !!activeWorkspace?.id }
+	);
 
-	// Sources modal state
-	const [sourcesModalOpen, setSourcesModalOpen] = React.useState(false);
 
 	// Selection based effect to handle AI generation acceptance
 	React.useEffect(() => {
@@ -66,31 +72,26 @@ export function EditorContentArea() {
 
 	useScrollToHash();
 
-	// Listen for sources modal trigger from slash command
+	// Make sources data available globally for slash menu
 	React.useEffect(() => {
-		const handleOpenSourcesModal = () => {
-			setSourcesModalOpen(true);
-		};
+		if (sourcesData) {
+			(window as any).__workspace_sources__ = sourcesData;
+		}
+	}, [sourcesData]);
 
+	// Listen for direct source insertion from slash command
+	React.useEffect(() => {
 		const handleDirectSourceInsert = (event: any) => {
 			const { source } = event.detail;
 			handleSourceSelect(source);
 		};
 
 		window.addEventListener(
-			"tiptap-open-sources-modal",
-			handleOpenSourcesModal,
-		);
-		window.addEventListener(
 			"tiptap-insert-source-direct",
 			handleDirectSourceInsert,
 		);
 
 		return () => {
-			window.removeEventListener(
-				"tiptap-open-sources-modal",
-				handleOpenSourcesModal,
-			);
 			window.removeEventListener(
 				"tiptap-insert-source-direct",
 				handleDirectSourceInsert,
@@ -202,12 +203,6 @@ export function EditorContentArea() {
 
 			{createPortal(<MobileToolbar />, document.body)}
 
-			{/* Sources Insert Modal */}
-			<SourcesInsertModal
-				open={sourcesModalOpen}
-				onOpenChange={setSourcesModalOpen}
-				onSourceSelect={handleSourceSelect}
-			/>
 		</TiptapEditorContent>
 	);
 }

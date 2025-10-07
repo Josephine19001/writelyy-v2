@@ -10,6 +10,8 @@ export interface ChartData {
 		backgroundColor?: string | string[];
 		borderColor?: string | string[];
 		borderWidth?: number;
+		pointRadius?: number;
+		pointHoverRadius?: number;
 	}>;
 }
 
@@ -82,6 +84,7 @@ export const ChartBlockNode = Node.create<ChartBlockNodeOptions>({
 				parseHTML: (element) =>
 					Number.parseInt(
 						element.getAttribute("data-width") || "400",
+						10,
 					),
 				renderHTML: (attributes) => ({
 					"data-width": attributes.width.toString(),
@@ -92,6 +95,7 @@ export const ChartBlockNode = Node.create<ChartBlockNodeOptions>({
 				parseHTML: (element) =>
 					Number.parseInt(
 						element.getAttribute("data-height") || "300",
+						10,
 					),
 				renderHTML: (attributes) => ({
 					"data-height": attributes.height.toString(),

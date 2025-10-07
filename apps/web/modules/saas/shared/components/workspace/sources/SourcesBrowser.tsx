@@ -13,7 +13,7 @@ import {
 } from "@ui/components/select";
 import { cn } from "@ui/lib";
 import { File, FileImage, Image, Link, Search, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import { AddSourceModal } from "./dialogs/AddSourceModal";
 import { SourceContextMenu } from "./menus/SourceContextMenu";
 import type { Source } from "./types";
@@ -64,23 +64,25 @@ export function SourcesBrowser({
 
 	const sources = sourcesData?.sources || [];
 
-	// Filter sources
-	const filteredSources = sources.filter((source: Source) => {
-		// In insertion mode, only show images and links
-		if (mode === "insertion" && !["image", "url"].includes(source.type)) {
-			return false;
-		}
+	// Filter sources with useMemo for performance
+	const filteredSources = useMemo(() => {
+		return sources.filter((source: Source) => {
+			// In insertion mode, only show images and links
+			if (mode === "insertion" && !["image", "url"].includes(source.type)) {
+				return false;
+			}
 
-		const matchesFilter =
-			activeFilter === "all" ||
-			source.type === activeFilter ||
-			(activeFilter === "doc" &&
-				["doc", "docx"].includes(source.type as string));
-		const matchesSearch = source.name
-			.toLowerCase()
-			.includes(searchQuery.toLowerCase());
-		return matchesFilter && matchesSearch;
-	});
+			const matchesFilter =
+				activeFilter === "all" ||
+				source.type === activeFilter ||
+				(activeFilter === "doc" &&
+					["doc", "docx"].includes(source.type as string));
+			const matchesSearch = source.name
+				.toLowerCase()
+				.includes(searchQuery.toLowerCase());
+			return matchesFilter && matchesSearch;
+		});
+	}, [sources, mode, activeFilter, searchQuery]);
 
 	if (isLoading) {
 		return (
@@ -172,6 +174,7 @@ export function SourcesBrowser({
 						onSourceSelect={onSourceSelect}
 						onInsertSource={onInsertSource}
 						onUseAsAIContext={onUseAsAIContext}
+						mode={mode}
 					/>
 				))}
 			</div>
@@ -187,20 +190,26 @@ export function SourcesBrowser({
 	);
 }
 
-const SourceListItem = ({
+const SourceListItem = memo(({
 	source,
 	selectedSourceId,
 	onSourceSelect,
 	onInsertSource,
 	onUseAsAIContext,
+	mode,
 }: {
 	source: Source;
 	selectedSourceId?: string;
 	onSourceSelect?: (source: Source) => void;
 	onInsertSource?: (source: Source) => void;
 	onUseAsAIContext?: (source: Source) => void;
+	mode?: "insertion" | "management";
 }) => {
 	const isSelected = selectedSourceId === source.id;
+
+	const handleClick = useCallback(() => {
+		onSourceSelect?.(source);
+	}, [onSourceSelect, source]);
 
 	return (
 		<div
@@ -208,7 +217,7 @@ const SourceListItem = ({
 				"group flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors",
 				isSelected && "bg-accent",
 			)}
-			onClick={() => onSourceSelect?.(source)}
+			onClick={handleClick}
 		>
 			<div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
 				{getSourceIcon(source.type, "h-4 w-4 text-muted-foreground")}
@@ -229,15 +238,17 @@ const SourceListItem = ({
 				</div>
 			</div>
 
-			{/* Action Menu */}
-			<div className="flex-shrink-0">
-				<SourceContextMenu
-					sourceId={source.id}
-					source={source}
-					onInsertSource={onInsertSource}
-					onUseAsAIContext={onUseAsAIContext}
-				/>
-			</div>
+			{/* Action Menu - Only show in management mode */}
+			{mode !== "insertion" && (
+				<div className="flex-shrink-0">
+					<SourceContextMenu
+						sourceId={source.id}
+						source={source}
+						onInsertSource={onInsertSource}
+						onUseAsAIContext={onUseAsAIContext}
+					/>
+				</div>
+			)}
 		</div>
 	);
-};
+});

@@ -6,7 +6,7 @@ import { BlockquoteIcon } from "@shared/tiptap/components/tiptap-icons/blockquot
 import { ChartIcon } from "@shared/tiptap/components/tiptap-icons/chart-icon";
 // --- Icons ---
 import { CodeBlockIcon } from "@shared/tiptap/components/tiptap-icons/code-block-icon";
-import { DrawIcon } from "@shared/tiptap/components/tiptap-icons/draw-icon";
+// import { DrawIcon } from "@shared/tiptap/components/tiptap-icons/draw-icon";
 import { HeadingOneIcon } from "@shared/tiptap/components/tiptap-icons/heading-one-icon";
 import { HeadingThreeIcon } from "@shared/tiptap/components/tiptap-icons/heading-three-icon";
 import { HeadingTwoIcon } from "@shared/tiptap/components/tiptap-icons/heading-two-icon";
@@ -195,13 +195,13 @@ const texts = {
 		badge: SnippetIcon,
 		group: "Insert",
 	},
-	drawing: {
-		title: "Drawing",
-		subtext: "Insert a drawing canvas",
-		keywords: ["drawing", "canvas", "sketch", "draw", "art"],
-		badge: DrawIcon,
-		group: "Insert",
-	},
+	// drawing: {
+	// 	title: "Drawing",
+	// 	subtext: "Insert a drawing canvas",
+	// 	keywords: ["drawing", "canvas", "sketch", "draw", "art"],
+	// 	badge: DrawIcon,
+	// 	group: "Insert",
+	// },
 	sources: {
 		title: "Sources",
 		subtext: "Insert from workspace sources",
@@ -264,8 +264,8 @@ const getItemImplementations = () => {
 		},
 		ai_ask_button: {
 			check: (editor: Editor) =>
-				typeof editor.commands.aiGenerationShow === 'function' && 
-				typeof editor.commands.aiAccept === 'function',
+				typeof editor.commands.aiGenerationShow === "function" &&
+				typeof editor.commands.aiAccept === "function",
 			action: ({ editor }: { editor: Editor }) => {
 				const editorChain = editor.chain().focus();
 
@@ -472,12 +472,8 @@ const getItemImplementations = () => {
 				return true;
 			},
 			action: ({ editor }: { editor: Editor }) => {
-				// Trigger sources modal
-				// This will be handled by the editor implementation
-				const event = new CustomEvent('tiptap-open-sources-modal', {
-					detail: { editor }
-				});
-				window.dispatchEvent(event);
+				// No action needed - submenu handles source insertion
+				// This prevents the slash menu from closing when Sources is clicked
 			},
 		},
 	};
@@ -539,6 +535,55 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
 								itemImpl.action({ editor }),
 							...itemText,
 						};
+
+						// Special handling for sources - add submenu data
+						if (itemType === "sources") {
+							const sourcesData = (window as any)
+								.__workspace_sources__;
+							console.log("Sources data:", sourcesData); // Debug log
+							if (sourcesData?.sources) {
+								const insertableSources =
+									sourcesData.sources.filter((source: any) =>
+										["image", "url"].includes(source.type),
+									);
+								console.log(
+									"Insertable sources:",
+									insertableSources,
+								); // Debug log
+
+								if (insertableSources.length > 0) {
+									(item as any).submenuItems =
+										insertableSources.map(
+											(source: any) => ({
+												title: source.name,
+												subtext: source.type === "image" ? "Image" : "Link",
+												sourceType: source.type,
+												onSelect: ({
+													editor,
+												}: {
+													editor: any;
+												}) => {
+													const event =
+														new CustomEvent(
+															"tiptap-insert-source-direct",
+															{
+																detail: {
+																	source,
+																},
+															},
+														);
+													window.dispatchEvent(event);
+												},
+											}),
+										);
+									(item as any).hasSubmenu = true;
+									console.log(
+										"Sources item with submenu:",
+										item,
+									); // Debug log
+								}
+							}
+						}
 
 						if (config?.itemGroups?.[itemType]) {
 							item.group = config.itemGroups[itemType];
