@@ -264,7 +264,8 @@ const getItemImplementations = () => {
 		},
 		ai_ask_button: {
 			check: (editor: Editor) =>
-				isExtensionAvailable(editor, ["ai", "aiAdvanced"]),
+				typeof editor.commands.aiGenerationShow === 'function' && 
+				typeof editor.commands.aiAccept === 'function',
 			action: ({ editor }: { editor: Editor }) => {
 				const editorChain = editor.chain().focus();
 

@@ -32,17 +32,23 @@ export interface UseAiAskConfig {
 }
 
 export const AI_ASK_SHORTCUT_KEY = "mod+j";
-export const AI_EXTENSIONS = ["aiGeneration", "ai"];
+export const AI_EXTENSIONS = ["aiGeneration", "ai", "Ai"];
 export const EXCLUDED_SELECTION_TYPES = ["codeBlock", "image", "imageUpload"];
 
 export const canPerformAiAsk = (editor: Editor | null): boolean => {
 	if (!editor || !editor.isEditable) return false;
 	// TODO: Wait until AI extensions support for image
+	
+	// Check if AI commands are available instead of checking extension names
+	const hasAiCommands = typeof editor.commands.aiGenerationShow === 'function' && 
+						  typeof editor.commands.aiAccept === 'function';
+	
 	if (
-		!isExtensionAvailable(editor, AI_EXTENSIONS) ||
+		!hasAiCommands ||
 		isNodeTypeSelected(editor, ["image", "horizontalRule"])
-	)
+	) {
 		return false;
+	}
 
 	const { selection } = editor.state;
 	if (!selection || selection.empty) return false;

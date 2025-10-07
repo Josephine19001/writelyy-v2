@@ -10,7 +10,8 @@ import {
 	DropdownProvider,
 	useDropdownCoordination,
 } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
-import { ImproveDropdown } from "@shared/tiptap/components/tiptap-ui/improve-dropdown";
+import { AIAssistantDropdown } from "../../ai-chat/ai-assistant-dropdown";
+import { AIChatProvider } from "../../ai-chat/ai-chat-context";
 import { LinkPopover } from "@shared/tiptap/components/tiptap-ui/link-popover";
 import type { Mark } from "@shared/tiptap/components/tiptap-ui/mark-button";
 import {
@@ -19,7 +20,7 @@ import {
 } from "@shared/tiptap/components/tiptap-ui/mark-button";
 import {
 	TableCellOperationsDropdown,
-	TableCreationDropdown,
+	// TableCreationDropdown,
 	TableHeadersDropdown,
 	TableNavigationDropdown,
 	TableRowColumnDropdown,
@@ -55,6 +56,8 @@ import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
 import { isSelectionValid } from "@shared/tiptap/lib/tiptap-collab-utils";
 import type { Editor } from "@tiptap/react";
 import * as React from "react";
+import { AskAIButton } from "../../ai-chat/ask-ai-button";
+import { useAIChat } from "../../ai-chat/ai-chat-context";
 
 export function NotionToolbarFloating() {
 	const { editor } = useTiptapEditor();
@@ -72,10 +75,36 @@ export function NotionToolbarFloating() {
 
 	return (
 		<FloatingElement shouldShow={shouldShow}>
+			<AIChatProvider>
+				<NotionToolbarFloatingContent />
+			</AIChatProvider>
+		</FloatingElement>
+	);
+}
+
+function NotionToolbarFloatingContent() {
+	const { editor } = useTiptapEditor();
+	const { sendMessage } = useAIChat();
+
+	const handleCustomAskMessage = (message: string) => {
+		// The mentions are already included in the message formatting by the input component
+		// We can pass the message directly to the AI chat system
+		sendMessage(message);
+	};
+
+	return (
+		<div className="flex flex-col gap-2">
+			{/* AskAI Button positioned above the toolbar */}
+			<AskAIButton
+				placeholder="Ask what you want..."
+				onSendMessage={handleCustomAskMessage}
+			/>
+
+			{/* Main Floating Toolbar */}
 			<DropdownProvider>
 				<Toolbar variant="floating">
 					<ToolbarGroup>
-						<ImproveDropdown hideWhenUnavailable={true} />
+						{editor && <AIAssistantDropdown editor={editor} />}
 					</ToolbarGroup>
 
 					<ToolbarSeparator />
@@ -85,9 +114,9 @@ export function NotionToolbarFloating() {
 					</ToolbarGroup>
 
 					{/* 📌 Table Creation */}
-					<ToolbarGroup>
-						<TableCreationDropdown hideWhenUnavailable={true} />
-					</ToolbarGroup>
+					{/* <ToolbarGroup>
+							<TableCreationDropdown hideWhenUnavailable={true} />
+						</ToolbarGroup> */}
 
 					{/* 📌 Row & Column Management */}
 					<ToolbarGroup>
@@ -116,7 +145,7 @@ export function NotionToolbarFloating() {
 						<TableNavigationDropdown hideWhenUnavailable={true} />
 					</ToolbarGroup>
 
-					<ToolbarSeparator />
+					{/* <ToolbarSeparator /> */}
 
 					<ToolbarGroup>
 						<MarkButton type="bold" hideWhenUnavailable={true} />
@@ -125,7 +154,7 @@ export function NotionToolbarFloating() {
 						<MarkButton type="code" hideWhenUnavailable={true} />
 					</ToolbarGroup>
 
-					<ToolbarSeparator />
+					{/* <ToolbarSeparator /> */}
 
 					<ToolbarGroup>
 						<ImageNodeFloating />
@@ -144,7 +173,7 @@ export function NotionToolbarFloating() {
 					<MoreOptions hideWhenUnavailable={true} />
 				</Toolbar>
 			</DropdownProvider>
-		</FloatingElement>
+		</div>
 	);
 }
 

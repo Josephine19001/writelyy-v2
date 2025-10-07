@@ -1,179 +1,217 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
+	ArcElement,
+	BarElement,
+	CategoryScale,
+	Chart as ChartJS,
+	Legend,
+	LinearScale,
+	LineElement,
+	PointElement,
+	Title,
+	Tooltip,
 } from "chart.js";
+import React, { useEffect, useState } from "react";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import type { ChartData } from "./chart-block-node-extension";
 import { ChartEditModal } from "./chart-edit-modal";
 
 // Register Chart.js components
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  LineElement,
-  PointElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
+	CategoryScale,
+	LinearScale,
+	BarElement,
+	LineElement,
+	PointElement,
+	ArcElement,
+	Title,
+	Tooltip,
+	Legend,
 );
 
 export const ChartBlockNode: React.FC<NodeViewProps> = ({
-  node,
-  updateAttributes,
-  selected,
+	node,
+	updateAttributes,
+	selected,
 }) => {
-  const { chartType, data, width, height, isEditing: attrIsEditing } = node.attrs as {
-    chartType: "bar" | "line" | "pie";
-    data: ChartData;
-    width: number;
-    height: number;
-    isEditing?: boolean;
-  };
-  const [isEditing, setIsEditing] = useState(attrIsEditing || false);
-  const [editData, setEditData] = useState<ChartData>(data);
+	const {
+		chartType,
+		data,
+		width,
+		height,
+		isEditing: attrIsEditing,
+	} = node.attrs as {
+		chartType: "bar" | "line" | "pie";
+		data: ChartData;
+		width: number;
+		height: number;
+		isEditing?: boolean;
+	};
+	const [isEditing, setIsEditing] = useState(attrIsEditing || false);
+	const [editData, setEditData] = useState<ChartData>(data);
 
+	useEffect(() => {
+		setEditData(data);
+	}, [data]);
 
-  useEffect(() => {
-    setEditData(data);
-  }, [data]);
+	// Sync with attribute changes
+	useEffect(() => {
+		setIsEditing(attrIsEditing || false);
+	}, [attrIsEditing]);
 
-  // Sync with attribute changes
-  useEffect(() => {
-    setIsEditing(attrIsEditing || false);
-  }, [attrIsEditing]);
+	const handleSave = (newData: ChartData) => {
+		updateAttributes({ data: newData, isEditing: false });
+		setIsEditing(false);
+	};
 
-  const handleSave = (newData: ChartData) => {
-    updateAttributes({ data: newData, isEditing: false });
-    setIsEditing(false);
-  };
+	const handleCancel = () => {
+		setEditData(data);
+		setIsEditing(false);
+		updateAttributes({ isEditing: false });
+	};
 
-  const handleCancel = () => {
-    setEditData(data);
-    setIsEditing(false);
-    updateAttributes({ isEditing: false });
-  };
+	// Resize functionality
+	const handleResize = (e: React.MouseEvent, direction: "se" | "s" | "e") => {
+		e.preventDefault();
+		e.stopPropagation();
 
-  // Resize functionality
-  const handleResize = (e: React.MouseEvent, direction: 'se' | 's' | 'e') => {
-    e.preventDefault();
-    e.stopPropagation();
+		const startX = e.clientX;
+		const startY = e.clientY;
+		const startWidth = width;
+		const startHeight = height;
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startWidth = width;
-    const startHeight = height;
+		const handleMouseMove = (e: MouseEvent) => {
+			let newWidth = startWidth;
+			let newHeight = startHeight;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      let newWidth = startWidth;
-      let newHeight = startHeight;
+			if (direction === "se" || direction === "e") {
+				newWidth = Math.max(300, startWidth + (e.clientX - startX));
+			}
+			if (direction === "se" || direction === "s") {
+				newHeight = Math.max(200, startHeight + (e.clientY - startY));
+			}
 
-      if (direction === 'se' || direction === 'e') {
-        newWidth = Math.max(300, startWidth + (e.clientX - startX));
-      }
-      if (direction === 'se' || direction === 's') {
-        newHeight = Math.max(200, startHeight + (e.clientY - startY));
-      }
+			updateAttributes({ width: newWidth, height: newHeight });
+		};
 
-      updateAttributes({ width: newWidth, height: newHeight });
-    };
+		const handleMouseUp = () => {
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+		};
 
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+	};
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
+	const renderChart = () => {
+		const isDark =
+			document.documentElement.classList.contains("dark") ||
+			document.documentElement.getAttribute("data-theme") === "dark" ||
+			window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-  const renderChart = () => {
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top" as const,
-        },
-        title: {
-          display: true,
-          text: editData.datasets[0]?.label || "Chart",
-        },
-      },
-    };
+		const chartOptions = {
+			responsive: true,
+			maintainAspectRatio: false,
+			plugins: {
+				legend: {
+					position: "top" as const,
+				},
+				title: {
+					display: true,
+					text: editData.datasets[0]?.label || "Chart",
+				},
+			},
+		};
 
-    const commonProps = {
-      data: editData,
-      options: chartOptions,
-      width,
-      height,
-    };
+		// Ensure line borders are visible in dark mode
+		const themedData = {
+			...editData,
+			datasets: editData.datasets.map((dataset) => {
+				if (chartType === "line") {
+					return {
+						...dataset,
+						borderColor: dataset.borderColor || (isDark ? "#d1d5db" : "#374151"),
+						borderWidth: dataset.borderWidth || 1,
+						pointRadius: dataset.pointRadius || 6,
+						pointHoverRadius: dataset.pointHoverRadius || 8,
+					};
+				}
+				return dataset;
+			}),
+		};
 
-    switch (chartType) {
-      case "line":
-        return <Line {...commonProps} />;
-      case "pie":
-        return <Pie {...commonProps} />;
-      case "bar":
-      default:
-        return <Bar {...commonProps} />;
-    }
-  };
+		const commonProps = {
+			data: themedData,
+			options: chartOptions,
+			width,
+			height,
+		};
 
-  return (
-    <NodeViewWrapper
-      className={`chart-block ${selected ? "ProseMirror-selectednode" : ""}`}
-    >
-      <div className="chart-container" style={{ width: `${width}px`, height: `${height}px` }}>
-        {renderChart()}
-        
-        {/* Resize handles */}
-        <div className="resize-handle resize-handle-se" onMouseDown={(e) => handleResize(e, 'se')} />
-        <div className="resize-handle resize-handle-s" onMouseDown={(e) => handleResize(e, 's')} />
-        <div className="resize-handle resize-handle-e" onMouseDown={(e) => handleResize(e, 'e')} />
-      </div>
-      
-      {!data.labels.length && (
-        <div className="chart-placeholder">
-          <p>📊 Select this chart to add data</p>
-        </div>
-      )}
+		switch (chartType) {
+			case "line":
+				return <Line {...commonProps} />;
+			case "pie":
+				return <Pie {...commonProps} />;
+			case "bar":
+			default:
+				return <Bar {...commonProps} />;
+		}
+	};
 
-      {/* Edit Modal */}
-      <ChartEditModal
-        open={isEditing}
-        onOpenChange={(open) => {
-          if (!open) {
-            handleCancel();
-          }
-        }}
-        onSave={handleSave}
-        initialData={editData}
-        chartType={chartType}
-      />
-      
-      <style jsx>{`
+	return (
+		<NodeViewWrapper
+			className={`chart-block ${selected ? "ProseMirror-selectednode" : ""}`}
+		>
+			<div
+				className="chart-container"
+				style={{ width: `${width}px`, height: `${height}px` }}
+			>
+				{renderChart()}
+
+				{/* Resize handles */}
+				<div
+					className="resize-handle resize-handle-se"
+					onMouseDown={(e) => handleResize(e, "se")}
+				/>
+				<div
+					className="resize-handle resize-handle-s"
+					onMouseDown={(e) => handleResize(e, "s")}
+				/>
+				<div
+					className="resize-handle resize-handle-e"
+					onMouseDown={(e) => handleResize(e, "e")}
+				/>
+			</div>
+
+			{!data.labels.length && (
+				<div className="chart-placeholder">
+					<p>📊 Select this chart to add data</p>
+				</div>
+			)}
+
+			{/* Edit Modal */}
+			<ChartEditModal
+				open={isEditing}
+				onOpenChange={(open) => {
+					if (!open) {
+						handleCancel();
+					}
+				}}
+				onSave={handleSave}
+				initialData={editData}
+				chartType={chartType}
+			/>
+
+			<style jsx>{`
         .chart-block {
           margin: 1rem 0;
         }
         
-        .chart-block.ProseMirror-selectednode {
+        .chart-block.ProseMirror-selectednode .chart-container {
           outline: 2px solid #3b82f6;
           outline-offset: 2px;
-          border-radius: 8px;
         }
         
         .chart-container {
@@ -181,9 +219,13 @@ export const ChartBlockNode: React.FC<NodeViewProps> = ({
           display: inline-block;
           min-width: 300px;
           min-height: 200px;
-          border: 1px solid #e5e7eb;
           border-radius: 6px;
+          border: 1px solid #f3f4f6;
           overflow: hidden;
+        }
+        
+        :global(.dark) .chart-container {
+          border-color: #4b5563;
         }
         
         .resize-handle {
@@ -232,15 +274,19 @@ export const ChartBlockNode: React.FC<NodeViewProps> = ({
           left: 50%;
           transform: translate(-50%, -50%);
           text-align: center;
-          color: #6b7280;
+          color: var(--text-muted, #6b7280);
           font-size: 0.875rem;
           pointer-events: none;
+        }
+        
+        :global(.dark) .chart-placeholder {
+          color: #9ca3af;
         }
         
         .chart-placeholder p {
           margin: 0;
         }
       `}</style>
-    </NodeViewWrapper>
-  );
+		</NodeViewWrapper>
+	);
 };

@@ -29,7 +29,6 @@ import { UniqueID } from "@tiptap/extension-unique-id";
 import { Placeholder, Selection } from "@tiptap/extensions";
 import { EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { Ai } from "@tiptap-pro/extension-ai";
 import { PageKit } from "@tiptap-pro/extension-pages";
 import type { TiptapCollabProvider } from "@tiptap-pro/provider";
 import * as React from "react";
@@ -128,6 +127,12 @@ export function EditorProvider(props: EditorProviderProps) {
 			},
 			onCreate: ({ editor }) => {
 				console.log('🤖 AI Commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
+				console.log('🤖 Available Extensions:', editor.extensionManager.extensions.map(ext => ext.name));
+				console.log('🤖 AI Extension Check:', {
+					hasAi: editor.extensionManager.extensions.some(ext => ext.name === 'ai'),
+					hasAiGeneration: editor.extensionManager.extensions.some(ext => ext.name === 'aiGeneration'),
+					allExtensions: editor.extensionManager.extensions.map(ext => ext.name)
+				});
 				// Simple approach: Editor will use content prop for initialization
 				// No dangerous post-creation content manipulation
 			},
@@ -250,56 +255,7 @@ export function EditorProvider(props: EditorProviderProps) {
 					},
 				}),
 				UiState,
-				// Only include AI extension if we have a token
-				...(aiToken
-					? (() => {
-							return [
-								Ai.configure({
-									appId: TIPTAP_AI_APP_ID,
-									token: aiToken,
-									autocompletion: false,
-									showDecorations: true,
-									hideDecorationsOnStreamEnd: false,
-									onLoading: (context) => {
-										console.log('🤖 AI Loading started');
-										context.editor.commands.aiGenerationSetIsLoading(
-											true,
-										);
-										context.editor.commands.aiGenerationHasMessage(
-											false,
-										);
-									},
-									onChunk: (context) => {
-										console.log('🤖 AI Chunk received');
-										context.editor.commands.aiGenerationSetIsLoading(
-											true,
-										);
-										context.editor.commands.aiGenerationHasMessage(
-											true,
-										);
-									},
-									onSuccess: (context) => {
-										console.log('🤖 AI Success:', !!context.response);
-										const hasMessage = !!context.response;
-										context.editor.commands.aiGenerationSetIsLoading(
-											false,
-										);
-										context.editor.commands.aiGenerationHasMessage(
-											hasMessage,
-										);
-									},
-									onError: (error) => {
-										console.error('🤖 AI Error:', error);
-									},
-								}),
-							];
-						})()
-					: (() => {
-							console.log(
-								"🤖 AI extension NOT loaded - no token",
-							);
-							return [];
-						})()),
+				// Custom AI integration will be handled separately
 			],
 		},
 		[], // Empty dependency array to prevent unnecessary recreations
