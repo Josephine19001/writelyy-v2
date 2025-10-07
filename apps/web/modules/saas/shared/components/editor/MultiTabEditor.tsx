@@ -42,7 +42,6 @@ function renderTabContent(
 				<div className="h-full">
 					<Editor
 						key={`editor-instance-${documentTab.documentId}`}
-						room={`doc-${documentTab.documentId}`}
 						placeholder="Start writing..."
 						initialContent={documentTab.document.content}
 						onChange={

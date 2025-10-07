@@ -27,6 +27,10 @@ export const useDocumentsQuery = (
 	return useQuery({
 		queryKey: documentsQueryKey(organizationId),
 		queryFn: async () => {
+			// Validate organizationId before making the request
+			if (!organizationId || organizationId.trim() === '') {
+				throw new Error('Organization ID is required');
+			}
 			// Build the request params, only including defined values
 			const params: any = {
 				organizationId,
@@ -52,7 +56,7 @@ export const useDocumentsQuery = (
 
 			return { documents, total, hasMore };
 		},
-		enabled: options?.enabled !== false,
+		enabled: options?.enabled !== false && !!organizationId && organizationId.trim() !== '',
 	});
 };
 

@@ -46,11 +46,11 @@ export function ChatInterface({ editorContext }: ChatInterfaceProps) {
 	const sendAiMessageMutation = useSendAiMessageWithContextMutation();
 
 	// Fetch workspace data for mentions
-	const documentsQuery = useDocumentsQuery(activeWorkspace?.id || "", {
+	const documentsQuery = useDocumentsQuery(activeWorkspace?.id || "fallback-id", {
 		enabled: !!activeWorkspace?.id,
 		limit: 100,
 	});
-	const foldersQuery = useFoldersQuery(activeWorkspace?.id || "", {
+	const foldersQuery = useFoldersQuery(activeWorkspace?.id || "fallback-id", {
 		enabled: !!activeWorkspace?.id,
 	});
 	const sourcesQuery = useSourcesQuery(activeWorkspace?.id || "", {

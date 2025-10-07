@@ -96,15 +96,7 @@ export function EditorProvider(props: EditorProviderProps) {
 		});
 	}, []);
 
-	// Use refs to store current values to avoid recreating editor
-	const onChangeRef = React.useRef(onChange);
-	const initialContentRef = React.useRef(initialContent);
-
-	// Update refs when values change
-	React.useEffect(() => {
-		onChangeRef.current = onChange;
-		initialContentRef.current = initialContent;
-	}, [onChange, initialContent]);
+	// Simple approach: Use values directly - no dangerous ref management
 
 	const editor = useEditor(
 		{
@@ -114,127 +106,30 @@ export function EditorProvider(props: EditorProviderProps) {
 			enablePasteRules: true,
 			enableCoreExtensions: true,
 			content: initialContent,
-			onUpdate: ({ editor, transaction: _transaction }) => {
-				// Call onChange for all user changes, not just non-collaborative ones
-				if (onChangeRef.current) {
+			onUpdate: ({ editor, transaction }) => {
+				// CRITICAL: Only save non-empty content
+				if (onChange) {
 					const content = editor.getJSON();
-					onChangeRef.current(content);
+					
+					// Check if content is actually empty
+					const isEmpty = !content || 
+						!content.content || 
+						content.content.length === 0 ||
+						(content.content.length === 1 && 
+						 content.content[0].type === 'paragraph' && 
+						 (!content.content[0].content || content.content[0].content.length === 0));
+					
+					if (!isEmpty || transaction.getMeta('allowEmpty')) {
+						onChange(content);
+					} else {
+						console.warn('🛡️ Prevented empty content save');
+					}
 				}
 			},
 			onCreate: ({ editor }) => {
-				// Always set initial content if provided, regardless of onChange
-				if (initialContentRef.current) {
-					setTimeout(() => {
-						// Check if editor is still mounted and view is available
-						if (editor.isDestroyed || !editor.view?.dom) {
-							return;
-						}
-
-						const currentContent = editor.getJSON();
-
-						// Only set content if initialContent is not empty and different from current
-						// This prevents overwriting user content with empty content
-						const hasInitialContent =
-							initialContentRef.current &&
-							// Check for valid Tiptap JSON structure
-							((typeof initialContentRef.current === "object" &&
-								initialContentRef.current.type === "doc" &&
-								Array.isArray(
-									initialContentRef.current.content,
-								) &&
-								initialContentRef.current.content.length > 0) ||
-								// Fallback for string content
-								(typeof initialContentRef.current ===
-									"string" &&
-									initialContentRef.current.trim().length >
-										0) ||
-								// Fallback for any other valid object with content
-								(typeof initialContentRef.current ===
-									"object" &&
-									Object.keys(initialContentRef.current)
-										.length > 0 &&
-									initialContentRef.current.type));
-
-						if (
-							hasInitialContent &&
-							JSON.stringify(currentContent) !==
-								JSON.stringify(initialContentRef.current)
-						) {
-							try {
-								// CRITICAL SAFETY CHECK: Never overwrite content with empty/invalid content
-								const currentHasContent =
-									currentContent &&
-									currentContent.type === "doc" &&
-									Array.isArray(currentContent.content) &&
-									currentContent.content.length > 0;
-
-								const initialIsEmpty =
-									!initialContentRef.current ||
-									!initialContentRef.current.content ||
-									(Array.isArray(
-										initialContentRef.current.content,
-									) &&
-										initialContentRef.current.content
-											.length === 0);
-
-								if (currentHasContent && initialIsEmpty) {
-									console.error(
-										"CRITICAL: Prevented clearing valid document content!",
-										{
-											currentContent: JSON.stringify(
-												currentContent,
-												null,
-												2,
-											),
-											initialContent: JSON.stringify(
-												initialContentRef.current,
-												null,
-												2,
-											),
-										},
-									);
-
-									// EMERGENCY BACKUP: Save current content before any potential data loss
-									const emergencyKey = `emergency-backup-${Date.now()}`;
-									try {
-										localStorage.setItem(
-											emergencyKey,
-											JSON.stringify({
-												content: currentContent,
-												timestamp:
-													new Date().toISOString(),
-												reason: "prevented_content_clearing",
-												initialContent:
-													initialContentRef.current,
-											}),
-										);
-										console.error(
-											"Emergency backup saved to:",
-											emergencyKey,
-										);
-									} catch (error) {
-										console.error(
-											"Failed to create emergency backup:",
-											error,
-										);
-									}
-
-									return; // ABORT - Don't clear existing content
-								}
-
-								editor.commands.setContent(
-									initialContentRef.current,
-									{ emitUpdate: false },
-								);
-							} catch (error) {
-								console.error(
-									"Failed to set initial content:",
-									error,
-								);
-							}
-						}
-					}, 100);
-				}
+				console.log('🤖 AI Commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
+				// Simple approach: Editor will use content prop for initialization
+				// No dangerous post-creation content manipulation
 			},
 			editorProps: {
 				attributes: {

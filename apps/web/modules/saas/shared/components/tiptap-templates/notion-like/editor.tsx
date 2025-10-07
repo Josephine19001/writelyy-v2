@@ -2,7 +2,6 @@
 
 import { AiProvider } from "@shared/tiptap/contexts/ai-context";
 import { AppProvider } from "@shared/tiptap/contexts/app-context";
-import { CollabProvider } from "@shared/tiptap/contexts/collab-context";
 import { UserProvider } from "@shared/tiptap/contexts/user-context";
 import * as React from "react";
 
@@ -28,7 +27,6 @@ import { EditorContent } from "./editor-content";
 import type { NotionEditorProps } from "./types";
 
 export function Editor({
-	room,
 	placeholder = "Start writing...",
 	onChange,
 	initialContent,
@@ -37,18 +35,15 @@ export function Editor({
 	return (
 		<UserProvider>
 			<AppProvider>
-				<CollabProvider room={room}>
-					<AiProvider>
-						<EditorContent
-							placeholder={placeholder}
-							onChange={onChange}
-							initialContent={initialContent}
-							savingState={savingState}
-						/>
-					</AiProvider>
-				</CollabProvider>
+				<AiProvider>
+					<EditorContent
+						placeholder={placeholder}
+						onChange={onChange}
+						initialContent={initialContent}
+						savingState={savingState}
+					/>
+				</AiProvider>
 			</AppProvider>
 		</UserProvider>
 	);
 }
-

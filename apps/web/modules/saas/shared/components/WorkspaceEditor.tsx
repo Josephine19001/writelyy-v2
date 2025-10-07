@@ -169,14 +169,38 @@ export function WorkspaceEditor() {
 				"document",
 				document.id,
 			]) as any;
-			let content = document.content || "";
+			let content = document.content;
 			let baseDocument = document;
 
 			// Use cached document if available (it's more recent than passed document)
 			if (cachedDocument) {
 				baseDocument = cachedDocument;
-				content = cachedDocument.content || "";
+				content = cachedDocument.content;
 			}
+
+			// Handle different content states properly:
+			// - undefined: Document not loaded yet (don't render editor)
+			// - null: Document is legitimately empty (render editor with null)
+			// - "": Empty string (treat as null for safety)
+			// - object: Document has content (render editor with content)
+			
+			console.log(`📄 Document ${document.id} content:`, {
+				originalContent: content,
+				hasContent: !!content,
+				contentType: typeof content,
+				contentLength: typeof content === 'string' ? content.length : 'N/A',
+				isObject: typeof content === 'object',
+				willPassToEditor: content === '' ? null : content
+			});
+			
+			// Convert empty string to null (empty doc) to avoid confusion
+			if (content === '') {
+				console.log(`📄 Converting empty string to null for document ${document.id}`);
+				content = null;
+			}
+			
+			// Only set to undefined if we truly don't have the data loaded
+			// For now, assume we always have the data (even if null/empty)
 
 			// Then check for localStorage draft
 			const localKey = `doc-draft-${document.id}`;
