@@ -59,6 +59,8 @@ import * as React from "react";
 import { AskAIButton } from "../../ai-chat/ask-ai-button";
 import { useAIChat } from "../../ai-chat/ai-chat-context";
 import { SourcesDropdown } from "./sources-dropdown";
+import { SnippetsDropdown } from "./snippets-dropdown";
+import { SnippetButton } from "./snippet-button";
 
 export function NotionToolbarFloating() {
 	const { editor } = useTiptapEditor();
@@ -106,6 +108,7 @@ function NotionToolbarFloatingContent() {
 				<Toolbar variant="floating">
 					<ToolbarGroup>
 						{editor && <AIAssistantDropdown editor={editor} />}
+						<SnippetButton />
 					</ToolbarGroup>
 
 					<ToolbarSeparator />
@@ -162,6 +165,7 @@ function NotionToolbarFloatingContent() {
 						<DrawingBlockNodeFloating />
 						<ChartBlockNodeFloating />
 						<SourcesDropdown />
+						<SnippetsDropdown />
 					</ToolbarGroup>
 
 					<ToolbarGroup>

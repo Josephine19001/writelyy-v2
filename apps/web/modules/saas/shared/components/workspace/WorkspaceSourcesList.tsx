@@ -1,6 +1,7 @@
 "use client";
 
 import { SourcesBrowser } from "./sources/SourcesBrowser";
+import type { Source } from "./sources/types";
 
 interface WorkspaceSourcesListProps {
 	onSourceSelect?: (sourceId: string) => void;
@@ -17,7 +18,7 @@ export function WorkspaceSourcesList({
 }: WorkspaceSourcesListProps) {
 	return (
 		<SourcesBrowser
-			onSourceSelect={onSourceSelect}
+			onSourceSelect={onSourceSelect ? (source: Source) => onSourceSelect(source.id) : undefined}
 			selectedSourceId={selectedSourceId}
 			mode="management"
 			onInsertSource={onInsertSource}

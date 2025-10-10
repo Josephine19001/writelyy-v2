@@ -49,6 +49,7 @@ model User {
     documentComments   DocumentComment[]   @relation("DocumentCommentAuthor")
     documentShares     DocumentShare[]     @relation("DocumentShareUser")
     createdSources     Source[]            @relation("SourceCreator")
+    createdSnippets    Snippet[]           @relation("SnippetCreator")
 
     @@unique([email])
     @@unique([username])
@@ -151,6 +152,7 @@ model Organization {
     folders            Folder[]
     documents          Document[]
     sources            Source[]
+    snippets           Snippet[]
 
     @@unique([slug])
     @@map("organization")
@@ -260,6 +262,9 @@ model Document {
     
     // Relations to sources
     documentSources  DocumentSource[]
+    
+    // Relations to snippets
+    documentSnippets DocumentSnippet[]
     
     // AI chats related to this document
     aiChats          AiChat[]
@@ -402,5 +407,63 @@ model AiChat {
     @@index([organizationId])
     @@index([documentId])
     @@map("ai_chat")
+}
+
+// Reusable content snippets for workspace
+model Snippet {
+    id             String   @id @default(cuid())
+    title          String
+    content        String   @db.Text
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+    
+    // Categorization and tagging
+    category       String?
+    tags           String[] @default([])
+    
+    // Rich content metadata
+    /// [SnippetMetadata] - Content type, format, variables, etc.
+    metadata       Json     @default("{}")
+    
+    // AI Context
+    /// [SnippetContext] - Usage context for AI prompts
+    aiContext      String?  @db.Text
+    isPublic       Boolean  @default(false)
+    
+    // Relations
+    documentSnippets DocumentSnippet[]
+    
+    // Audit
+    createdBy      String
+    creator        User     @relation("SnippetCreator", fields: [createdBy], references: [id])
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+    
+    @@index([organizationId])
+    @@index([category])
+    @@index([createdBy])
+    @@index([title])
+    @@map("snippet")
+}
+
+// Many-to-many relationship between documents and snippets
+model DocumentSnippet {
+    id         String   @id @default(cuid())
+    documentId String
+    document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+    snippetId  String
+    snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+    
+    // Context of how snippet is used in document
+    context    String?  // "inserted" | "referenced" | "ai-context"
+    /// [SnippetUsage] - Where/how snippet is used
+    usage      Json?    @default("{}")
+    
+    createdAt  DateTime @default(now())
+
+    @@unique([documentId, snippetId])
+    @@index([documentId])
+    @@index([snippetId])
+    @@map("document_snippet")
 }
 

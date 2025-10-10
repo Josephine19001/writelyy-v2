@@ -6,22 +6,29 @@ import { TopIconBar } from "./sidebar/TopIconBar";
 import { WorkspaceDropdown } from "./sidebar/WorkspaceDropdown";
 import { WorkspaceDocumentTree } from "./workspace/WorkspaceDocumentTree";
 import { WorkspaceSourcesList } from "./workspace/WorkspaceSourcesList";
+import { WorkspaceSnippetsList } from "./workspace/WorkspaceSnippetsList";
 
 interface LeftSidebarProps {
 	onDocumentSelect?: (document: any) => void;
 	onSourceSelect?: (sourceId: string) => void;
+	onSnippetSelect?: (snippetId: string) => void;
 	selectedDocumentId?: string;
 	selectedSourceId?: string;
+	selectedSnippetId?: string;
 	onInsertSource?: (source: any) => void;
+	onInsertSnippet?: (snippet: any) => void;
 	onUseAsAIContext?: (source: any) => void;
 }
 
 export function LeftSidebar({
 	onDocumentSelect,
 	onSourceSelect,
+	onSnippetSelect,
 	selectedDocumentId,
 	selectedSourceId,
+	selectedSnippetId,
 	onInsertSource,
+	onInsertSnippet,
 	onUseAsAIContext,
 }: LeftSidebarProps) {
 	const { activeWorkspace } = useActiveWorkspace();
@@ -65,6 +72,23 @@ export function LeftSidebar({
 						<div className="text-center py-4">
 							<div className="text-xs text-muted-foreground">
 								Select a workspace to view sources
+							</div>
+						</div>
+					)}
+				</CollapsibleSection>
+				
+				<CollapsibleSection title="Snippets" defaultOpen={false}>
+					{activeWorkspace ? (
+						<WorkspaceSnippetsList
+							onSnippetSelect={onSnippetSelect}
+							selectedSnippetId={selectedSnippetId}
+							onInsertSnippet={onInsertSnippet}
+							onUseAsAIContext={onUseAsAIContext}
+						/>
+					) : (
+						<div className="text-center py-4">
+							<div className="text-xs text-muted-foreground">
+								Select a workspace to view snippets
 							</div>
 						</div>
 					)}

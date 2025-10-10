@@ -18,6 +18,7 @@ import { MobileToolbar } from "./toolbar";
 import { NotionToolbarFloating } from "./toolbar-floating";
 import type { Source } from "../../workspace/sources/types";
 import { useSourcesQuery } from "@saas/lib/api";
+import { useSnippetsQuery } from "@saas/snippets/lib/api";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 
 // Helper function to get proper image URL (same as SourcePreview)
@@ -43,9 +44,13 @@ export function EditorContentArea() {
 		isDragging,
 	} = useUiEditorState(editor);
 	
-	// Get sources data for slash menu
+	// Get sources and snippets data for slash menu
 	const { activeWorkspace } = useActiveWorkspace();
 	const { data: sourcesData } = useSourcesQuery(
+		activeWorkspace?.id || "",
+		{ enabled: !!activeWorkspace?.id }
+	);
+	const { data: snippetsData } = useSnippetsQuery(
 		activeWorkspace?.id || "",
 		{ enabled: !!activeWorkspace?.id }
 	);
@@ -72,12 +77,18 @@ export function EditorContentArea() {
 
 	useScrollToHash();
 
-	// Make sources data available globally for slash menu
+	// Make sources and snippets data available globally for slash menu
 	React.useEffect(() => {
 		if (sourcesData) {
 			(window as any).__workspace_sources__ = sourcesData;
 		}
 	}, [sourcesData]);
+
+	React.useEffect(() => {
+		if (snippetsData) {
+			(window as any).__workspace_snippets__ = snippetsData;
+		}
+	}, [snippetsData]);
 
 	// Listen for direct source insertion from slash command
 	React.useEffect(() => {
@@ -95,6 +106,26 @@ export function EditorContentArea() {
 			window.removeEventListener(
 				"tiptap-insert-source-direct",
 				handleDirectSourceInsert,
+			);
+		};
+	}, []);
+
+	// Listen for direct snippet insertion from slash command
+	React.useEffect(() => {
+		const handleDirectSnippetInsert = (event: any) => {
+			const { snippet } = event.detail;
+			handleSnippetSelect(snippet);
+		};
+
+		window.addEventListener(
+			"tiptap-insert-snippet-direct",
+			handleDirectSnippetInsert,
+		);
+
+		return () => {
+			window.removeEventListener(
+				"tiptap-insert-snippet-direct",
+				handleDirectSnippetInsert,
 			);
 		};
 	}, []);
@@ -176,6 +207,31 @@ export function EditorContentArea() {
 					text: source.name,
 					marks: [{ type: "link", attrs: { href: fileUrl } }],
 				})
+				.run();
+		}
+	};
+
+	// Handle snippet selection from slash command
+	const handleSnippetSelect = (snippet: any) => {
+		if (!editor) return;
+
+		// Insert snippet content as plain text
+		try {
+			editor
+				.chain()
+				.focus()
+				.insertContent({
+					type: "text",
+					text: snippet.content,
+				})
+				.run();
+		} catch (error) {
+			console.error("Failed to insert snippet:", error);
+			// Fallback: Insert as plain text
+			editor
+				.chain()
+				.focus()
+				.insertContent(snippet.content)
 				.run();
 		}
 	};

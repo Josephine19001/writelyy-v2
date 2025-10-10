@@ -118,6 +118,18 @@ export const AiChatScalarFieldEnumSchema = z.enum(['id', 'organizationId', 'user
 
 export type AiChatScalarFieldEnum = z.infer<typeof AiChatScalarFieldEnumSchema>;
 
+// File: SnippetScalarFieldEnum.schema.ts
+
+export const SnippetScalarFieldEnumSchema = z.enum(['id', 'title', 'content', 'organizationId', 'category', 'tags', 'metadata', 'aiContext', 'isPublic', 'createdBy', 'createdAt', 'updatedAt'])
+
+export type SnippetScalarFieldEnum = z.infer<typeof SnippetScalarFieldEnumSchema>;
+
+// File: DocumentSnippetScalarFieldEnum.schema.ts
+
+export const DocumentSnippetScalarFieldEnumSchema = z.enum(['id', 'documentId', 'snippetId', 'context', 'usage', 'createdAt'])
+
+export type DocumentSnippetScalarFieldEnum = z.infer<typeof DocumentSnippetScalarFieldEnumSchema>;
+
 // File: SortOrder.schema.ts
 
 export const SortOrderSchema = z.enum(['asc', 'desc'])
@@ -462,4 +474,38 @@ export const AiChatSchema = z.object({
 });
 
 export type AiChatType = z.infer<typeof AiChatSchema>;
+
+
+// File: Snippet.schema.ts
+
+export const SnippetSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string(),
+  organizationId: z.string(),
+  category: z.string().nullish(),
+  tags: z.array(z.string()),
+  metadata: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}"),
+  aiContext: z.string().nullish(),
+  isPublic: z.boolean(),
+  createdBy: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type SnippetType = z.infer<typeof SnippetSchema>;
+
+
+// File: DocumentSnippet.schema.ts
+
+export const DocumentSnippetSchema = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  snippetId: z.string(),
+  context: z.string().nullish(),
+  usage: z.unknown().refine((val) => { const getDepth = (obj: unknown, depth: number = 0): number => { if (depth > 10) return depth; if (obj === null || typeof obj !== 'object') return depth; const values = Object.values(obj as Record<string, unknown>); if (values.length === 0) return depth; return Math.max(...values.map(v => getDepth(v, depth + 1))); }; return getDepth(val) <= 10; }, "JSON nesting depth exceeds maximum of 10").default("{}").nullish(),
+  createdAt: z.date(),
+});
+
+export type DocumentSnippetType = z.infer<typeof DocumentSnippetSchema>;
 

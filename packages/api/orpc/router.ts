@@ -6,6 +6,7 @@ import { documentsRouter } from "../modules/documents/router";
 import { foldersRouter } from "../modules/folders/router";
 import { newsletterRouter } from "../modules/newsletter/router";
 import { paymentsRouter } from "../modules/payments/router";
+import { snippetsRouter } from "../modules/snippets/router";
 import { sourcesRouter } from "../modules/sources/router";
 import { usersRouter } from "../modules/users/router";
 import { workspacesRouter } from "../modules/workspaces/router";
@@ -24,6 +25,7 @@ export const router = publicProcedure
 		ai: aiRouter,
 		documents: documentsRouter,
 		folders: foldersRouter,
+		snippets: snippetsRouter,
 		sources: sourcesRouter,
 	});
 

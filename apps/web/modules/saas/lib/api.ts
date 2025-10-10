@@ -79,6 +79,33 @@ export {
   sourcesQueryKey,
 } from "../sources/lib/api";
 
+// Snippet API exports
+export {
+  // Helpers
+  groupSnippetsByCategory,
+  
+  // Mutations
+  createSnippetMutationKey,
+  deleteSnippetMutationKey,
+  linkSnippetToDocumentMutationKey,
+  updateSnippetMutationKey,
+  useCreateSnippetMutation,
+  useDeleteSnippetMutation,
+  useLinkSnippetToDocumentMutation,
+  useUpdateSnippetMutation,
+  
+  // Queries
+  useSnippetQuery,
+  useSnippetsByCategoryQuery,
+  useSnippetsGroupedByCategoryQuery,
+  useSnippetsQuery,
+  
+  // Query keys
+  snippetQueryKey,
+  snippetsByCategoryQueryKey,
+  snippetsQueryKey,
+} from "../snippets/lib/api";
+
 // Workspace AI Context exports
 export {
   // Mutations

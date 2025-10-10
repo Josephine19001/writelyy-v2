@@ -422,25 +422,13 @@ const getItemImplementations = () => {
 			},
 		},
 		snippet: {
-			check: (editor: Editor) => {
-				return editor.schema.nodes.snippetBlock !== undefined;
+			check: (_editor: Editor) => {
+				// Always available - snippets can be inserted anywhere
+				return true;
 			},
 			action: ({ editor }: { editor: Editor }) => {
-				try {
-					editor
-						.chain()
-						.focus()
-						.insertContent({
-							type: "snippetBlock",
-							attrs: {
-								snippetId: null,
-								placeholder: "Select a snippet...",
-							},
-						})
-						.run();
-				} catch (error) {
-					console.error("Snippet insertion failed:", error);
-				}
+				// No action needed - submenu handles snippet insertion
+				// This prevents the slash menu from closing when Snippets is clicked
 			},
 		},
 		drawing: {
@@ -579,6 +567,52 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
 									(item as any).hasSubmenu = true;
 									console.log(
 										"Sources item with submenu:",
+										item,
+									); // Debug log
+								}
+							}
+						}
+
+						// Special handling for snippets - add submenu data
+						if (itemType === "snippet") {
+							const snippetsData = (window as any)
+								.__workspace_snippets__;
+							console.log("Snippets data:", snippetsData); // Debug log
+							if (snippetsData?.snippets) {
+								const availableSnippets = snippetsData.snippets;
+								console.log(
+									"Available snippets:",
+									availableSnippets,
+								); // Debug log
+
+								if (availableSnippets.length > 0) {
+									(item as any).submenuItems =
+										availableSnippets.map(
+											(snippet: any) => ({
+												title: snippet.title,
+												subtext: snippet.category || "Snippet",
+												snippetType: "text",
+												onSelect: ({
+													editor,
+												}: {
+													editor: any;
+												}) => {
+													const event =
+														new CustomEvent(
+															"tiptap-insert-snippet-direct",
+															{
+																detail: {
+																	snippet,
+																},
+															},
+														);
+													window.dispatchEvent(event);
+												},
+											}),
+										);
+									(item as any).hasSubmenu = true;
+									console.log(
+										"Snippets item with submenu:",
 										item,
 									); // Debug log
 								}

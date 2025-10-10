@@ -3,6 +3,7 @@
 import {
 	useSourcesQuery,
 } from "@saas/lib/api";
+import { useSnippetsQuery } from "@saas/snippets/lib/api";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { IconButton } from "@ui/components/icon-button";
 import { Button } from "@ui/components/button";
@@ -43,14 +44,19 @@ export function AIInputWithSources({
 		limit: 100,
 	});
 
-	// Transform real data into mention items with simplified display names
-	const mentionItems: MentionItem[] = React.useMemo(() => {
-		const items: MentionItem[] = [];
+	const snippetsQuery = useSnippetsQuery(activeWorkspace?.id || "", {
+		enabled: !!activeWorkspace?.id,
+	});
 
-		// Add sources with just the filename
+	// Transform real data into grouped mention items
+	const groupedMentionItems = React.useMemo(() => {
+		const sources: MentionItem[] = [];
+		const snippets: MentionItem[] = [];
+
+		// Add sources
 		if (sourcesQuery.data?.sources) {
 			sourcesQuery.data.sources.forEach((source: any) => {
-				items.push({
+				sources.push({
 					id: `source-${source.id}`,
 					name: source.name,
 					type: "source",
@@ -61,8 +67,22 @@ export function AIInputWithSources({
 			});
 		}
 
-		return items;
-	}, [sourcesQuery.data]);
+		// Add snippets
+		if (snippetsQuery.data?.snippets) {
+			snippetsQuery.data.snippets.forEach((snippet: any) => {
+				snippets.push({
+					id: `snippet-${snippet.id}`,
+					name: snippet.title,
+					type: "snippet",
+					originalName: snippet.title,
+					content: snippet.content,
+					category: snippet.category,
+				} as MentionItem & { originalName?: string; content?: string; category?: string });
+			});
+		}
+
+		return { sources, snippets };
+	}, [sourcesQuery.data, snippetsQuery.data]);
 
 	// Close dropdown when clicking outside
 	React.useEffect(() => {
@@ -81,7 +101,12 @@ export function AIInputWithSources({
 		};
 	}, [showDropdown]);
 
-	const getSourceIcon = (item: MentionItem) => {
+	const getItemIcon = (item: MentionItem) => {
+		if (item.type === "snippet") {
+			return <FileText className="w-3.5 h-3.5 text-purple-600" />;
+		}
+		
+		// Source icons
 		if (item.subtype === "image") {
 			return <Image className="w-3.5 h-3.5 text-green-600" />;
 		}
@@ -175,32 +200,75 @@ export function AIInputWithSources({
 							icon={<Plus />}
 							onClick={() => setShowDropdown(!showDropdown)}
 							disabled={disabled}
-							title="Add sources to your question"
+							title="Add sources and snippets to your question"
 						/>
 						
 						{showDropdown && (
-							<div className="absolute bottom-full left-0 mb-2 w-64 max-h-48 bg-background border border-border rounded-md shadow-xl overflow-y-auto z-50">
-								{mentionItems.length > 0 ? (
-									<div className="p-1">
-										{mentionItems.map((item) => (
-											<Button
-												key={item.id}
-												variant="ghost"
-												onClick={() => handleMentionSelect(item)}
-												className="w-full justify-start h-auto px-3 py-2 text-left hover:bg-muted/50 rounded-sm"
-											>
-												<div className="flex items-center gap-2 w-full">
-													{getSourceIcon(item)}
-													<span className="text-xs truncate" title={item.name}>
-														{item.name}
-													</span>
+							<div className="absolute bottom-full left-0 mb-2 w-64 max-h-48 bg-background border border-border rounded-md shadow-xl z-50">
+								{(groupedMentionItems.sources.length > 0 || groupedMentionItems.snippets.length > 0) ? (
+									<div className="max-h-48 overflow-y-auto">
+										{/* Sources Section */}
+										{groupedMentionItems.sources.length > 0 && (
+											<>
+												<div className="px-2 py-0.5 text-xs text-muted-foreground">
+													Sources
 												</div>
-											</Button>
-										))}
+												<div className="px-1">
+													{groupedMentionItems.sources.map((item) => (
+														<Button
+															key={item.id}
+															variant="ghost"
+															onClick={() => handleMentionSelect(item)}
+															className="w-full justify-start h-auto px-2 py-1.5 text-left hover:bg-muted/50 rounded-sm"
+														>
+															<div className="flex items-center gap-2 w-full">
+																{getItemIcon(item)}
+																<span className="text-xs truncate" title={item.name}>
+																	{item.name}
+																</span>
+															</div>
+														</Button>
+													))}
+												</div>
+											</>
+										)}
+
+										{/* Snippets Section */}
+										{groupedMentionItems.snippets.length > 0 && (
+											<>
+												<div className="px-2 py-0.5 text-xs text-muted-foreground">
+													Snippets
+												</div>
+												<div className="px-1">
+													{groupedMentionItems.snippets.map((item) => (
+														<Button
+															key={item.id}
+															variant="ghost"
+															onClick={() => handleMentionSelect(item)}
+															className="w-full justify-start h-auto px-2 py-1.5 text-left hover:bg-muted/50 rounded-sm"
+														>
+															<div className="flex items-center gap-2 w-full">
+																{getItemIcon(item)}
+																<div className="flex flex-col items-start flex-1 min-w-0">
+																	<span className="text-xs font-medium truncate w-full" title={item.name}>
+																		{item.name}
+																	</span>
+																	{(item as any).category && (
+																		<span className="text-xs text-muted-foreground truncate w-full">
+																			{(item as any).category}
+																		</span>
+																	)}
+																</div>
+															</div>
+														</Button>
+													))}
+												</div>
+											</>
+										)}
 									</div>
 								) : (
 									<div className="p-3 text-xs text-muted-foreground text-center">
-										No sources available
+										No sources or snippets available
 									</div>
 								)}
 							</div>
