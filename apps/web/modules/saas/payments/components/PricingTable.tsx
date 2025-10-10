@@ -42,6 +42,8 @@ export function PricingTable({
 
 	const { planData } = usePlanData();
 
+	console.log("plan", planData);
+
 	const createCheckoutLinkMutation = useMutation(
 		orpc.payments.createCheckoutLink.mutationOptions(),
 	);
@@ -113,7 +115,7 @@ export function PricingTable({
 				</div>
 			)}
 			<div
-				className={cn("grid grid-cols-1 gap-4", {
+				className={cn("grid grid-cols-1 gap-4 mx-auto max-w-6xl", {
 					"@xl:grid-cols-2": filteredPlans.length >= 2,
 					"@3xl:grid-cols-3": filteredPlans.length >= 3,
 					"@4xl:grid-cols-4": filteredPlans.length >= 4,
@@ -152,8 +154,8 @@ export function PricingTable({
 						return (
 							<div
 								key={planId}
-								className={cn("rounded-3xl border p-6", {
-									"border-2 border-primary": recommended,
+								className={cn("rounded-3xl border-2 border-border p-6", {
+									"!border-primary": recommended,
 								})}
 								data-test="price-table-plan"
 							>

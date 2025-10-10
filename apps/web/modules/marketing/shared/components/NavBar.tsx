@@ -7,12 +7,12 @@ import { ColorModeToggle } from "@shared/components/ColorModeToggle";
 import { LocaleSwitch } from "@shared/components/LocaleSwitch";
 import { Logo } from "@shared/components/Logo";
 import { Button } from "@ui/components/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@ui/components/dropdown-menu";
+// import {
+// 	DropdownMenu,
+// 	DropdownMenuContent,
+// 	DropdownMenuItem,
+// 	DropdownMenuTrigger,
+// } from "@ui/components/dropdown-menu";
 import {
 	Sheet,
 	SheetContent,
@@ -21,12 +21,12 @@ import {
 } from "@ui/components/sheet";
 import { cn } from "@ui/lib";
 import {
-	MenuIcon,
-	ChevronDownIcon,
-	SparklesIcon,
-	ShieldCheckIcon,
+	// ChevronDownIcon,
 	FileTextIcon,
 	Layers,
+	MenuIcon,
+	ShieldCheckIcon,
+	SparklesIcon,
 } from "lucide-react";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
@@ -133,19 +133,26 @@ export function NavBar() {
 						</LocaleLink>
 					</div>
 
-					<div className="hidden flex-1 items-center justify-center lg:flex">
-						{/* Product Dropdown */}
+					{/* <div className="hidden flex-1 items-center justify-center lg:flex">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
 									variant="ghost"
-									className="px-3 py-2 font-medium text-foreground/80 text-sm hover:text-foreground transition-colors h-auto gap-1"
+									className={cn(
+										"px-3 py-2 font-medium text-sm transition-colors h-auto gap-1",
+										isTop && !isDocsPage
+											? "text-white/90 hover:text-white"
+											: "text-foreground/80 hover:text-foreground",
+									)}
 								>
 									Product
 									<ChevronDownIcon className="h-3 w-3" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="center" className="w-80">
+							<DropdownMenuContent
+								align="center"
+								className="w-80"
+							>
 								{productTools.map((tool) => (
 									<DropdownMenuItem
 										key={tool.href}
@@ -178,9 +185,14 @@ export function NavBar() {
 								key={menuItem.href}
 								href={menuItem.href}
 								className={cn(
-									"block px-3 py-2 font-medium text-foreground/80 text-sm hover:text-foreground transition-colors",
+									"block px-3 py-2 font-medium text-sm transition-colors",
+									isTop && !isDocsPage
+										? "text-white/90 hover:text-white"
+										: "text-foreground/80 hover:text-foreground",
 									isMenuItemActive(menuItem.href)
-										? "font-bold text-foreground"
+										? isTop && !isDocsPage
+											? "font-bold text-white"
+											: "font-bold text-foreground"
 										: "",
 								)}
 								prefetch
@@ -188,7 +200,7 @@ export function NavBar() {
 								{menuItem.label}
 							</LocaleLink>
 						))}
-					</div>
+					</div> */}
 
 					<div className="flex flex-1 items-center justify-end gap-3">
 						<ColorModeToggle />
@@ -289,7 +301,7 @@ export function NavBar() {
 									variant="secondary"
 								>
 									<NextLink href="/auth/login" prefetch>
-										{t("common.menu.login")}
+										Try now
 									</NextLink>
 								</Button>
 							))}

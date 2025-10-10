@@ -119,6 +119,7 @@
 		"deepmerge": "^4.3.1",
 		"es-toolkit": "^1.39.10",
 		"fabric": "^6.7.1",
+		"framer-motion": "^12.23.24",
 		"fumadocs-core": "^15.7.11",
 		"fumadocs-ui": "^15.7.11",
 		"hono": "^4.9.7",

@@ -56,12 +56,12 @@
   :root {
     --border: #e3ebf6;
     --input: #c7ced8;
-    --ring: #00c8b3;
+    --ring: #d946ef;
     --background: #fafafe;
     --background-text: #ffffff;
     --foreground: #292b35;
-    --primary: #00c8b3;
-    --primary-foreground: #f6f7f9;
+    --primary: #d946ef;
+    --primary-foreground: #ffffff;
     --secondary: #292b35;
     --secondary-foreground: #ffffff;
     --destructive: #ef4444;
@@ -89,12 +89,12 @@
   .dark {
     --border: #2b303d;
     --input: #4c5362;
-    --ring: #00c8b3;
+    --ring: #d946ef;
     --background: #070d12;
     --background-text: #151616;
     --foreground: #e9eef3;
-    --primary: #00c8b3;
-    --primary-foreground: #091521;
+    --primary: #d946ef;
+    --primary-foreground: #ffffff;
     --secondary: #e9eef3;
     --secondary-foreground: #091521;
     --destructive: #ef4444;

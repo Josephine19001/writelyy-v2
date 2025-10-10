@@ -21,50 +21,42 @@ export function FaqSection({ className }: { className?: string }) {
 		{
 			question: "What is Writelyy?",
 			icon: Sparkles,
-			answer:
-				"Writelyy is a smart text editor designed for writers who want to work smarter, not harder. Write documents, manage snippets, organize sources, and get AI help—all in one place.",
+			answer: "Writelyy is a smart text editor designed for writers who want to work smarter, not harder. Write documents, manage snippets, organize sources, and get AI help—all in one place.",
 		},
 		{
 			question: "How do snippets work?",
 			icon: Star,
-			answer:
-				"Snippets are reusable text blocks you can save and insert anywhere. Perfect for email templates, code blocks, common phrases, or anything you type repeatedly. Just create once, use forever.",
+			answer: "Snippets are reusable text blocks you can save and insert anywhere. Perfect for email templates, code blocks, common phrases, or anything you type repeatedly. Just create once, use forever.",
 		},
 		{
 			question: "What are sources for?",
 			icon: Shield,
-			answer:
-				"Sources let you save and organize reference materials—links, quotes, research notes. Keep everything you need in one place while you write. No more tab overload.",
+			answer: "Sources let you save and organize reference materials—links, quotes, research notes. Keep everything you need in one place while you write. No more tab overload.",
 		},
 		{
 			question: "How does the AI help?",
 			icon: Sparkles,
-			answer:
-				"Built-in AI tools help you write better: humanize AI text, detect AI content, summarize long docs, or paraphrase sentences. It's like having a writing assistant that actually gets it.",
+			answer: "Built-in AI tools help you write better: humanize AI text, detect AI content, summarize long docs, or paraphrase sentences. It's like having a writing assistant that actually gets it.",
 		},
 		{
 			question: "Can I work on multiple documents?",
 			icon: GraduationCap,
-			answer:
-				"Yep! Writelyy has tabs, just like your browser. Switch between documents without losing your flow. Perfect for research papers, blog posts, or juggling multiple projects.",
+			answer: "Yep! Writelyy has tabs, just like your browser. Switch between documents without losing your flow. Perfect for research papers, blog posts, or juggling multiple projects.",
 		},
 		{
 			question: "Do I need to install anything?",
 			icon: Globe,
-			answer:
-				"Nope. Writelyy runs in your browser. Sign up, start writing. Works on Mac, Windows, or whatever you've got.",
+			answer: "Nope. Writelyy runs in your browser. Sign up, start writing. Works on Mac, Windows, or whatever you've got.",
 		},
 		{
 			question: "Is my data private?",
 			icon: Lock,
-			answer:
-				"100%. Your docs, snippets, and sources are yours. We don't sell data or train AI models on your content. What you write stays yours.",
+			answer: "100%. Your docs, snippets, and sources are yours. We don't sell data or train AI models on your content. What you write stays yours.",
 		},
 		{
 			question: "How much does it cost?",
 			icon: DollarSign,
-			answer:
-				"We have a free plan to get started, plus paid plans with more features and AI credits. Check out our pricing page for details. No hidden fees.",
+			answer: "We have a free plan to get started, plus paid plans with more features and AI credits. Check out our pricing page for details. No hidden fees.",
 		},
 	];
 
@@ -85,12 +77,9 @@ export function FaqSection({ className }: { className?: string }) {
 		>
 			<div className="container max-w-4xl">
 				<div className="mb-12 lg:text-center">
-					<h1 className="mb-2 font-bold text-4xl lg:text-5xl">
-						Questions? We've got answers
+					<h1 className="mb-2 font-bold text-2xl lg:text-3xl">
+						Questions?
 					</h1>
-					<p className="text-lg opacity-50">
-						Everything you need to know about Writelyy
-					</p>
 				</div>
 				<div className="space-y-3">
 					{items.map((item, i) => {

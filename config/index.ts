@@ -5,7 +5,7 @@ export const config = {
 	// Internationalization
 	i18n: {
 		// Whether internationalization should be enabled (if disabled, you still need to define the locale you want to use below and set it as the default locale)
-		enabled: true,
+		enabled: false,
 		// Define all locales here that should be available in the app
 		// You need to define a label that is shown in the language selector and a currency that should be used for pricing with this locale
 		locales: {
@@ -129,15 +129,15 @@ export const config = {
 						productId: process.env
 							.NEXT_PUBLIC_PRICE_ID_PRO_MONTHLY as string,
 						amount: 10.0,
-						currency: "EUR",
+						currency: "USD",
 						interval: "month",
 					},
 					{
 						type: "recurring",
 						productId: process.env
 							.NEXT_PUBLIC_PRICE_ID_PRO_YEARLY as string,
-						amount: 80.0,
-						currency: "EUR",
+						amount: 100.0,
+						currency: "USD",
 						interval: "year",
 					},
 				],
@@ -153,9 +153,9 @@ export const config = {
 			// 		},
 			// 	],
 			// },
-			enterprise: {
-				isEnterprise: false,
-			},
+			// enterprise: {
+			// 	isEnterprise: false,
+			// },
 		},
 	},
 } as const satisfies Config;
