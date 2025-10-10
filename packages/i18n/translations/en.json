@@ -238,6 +238,51 @@
 		"description": "Do you have any questions? We have got you covered.",
 		"title": "Frequently asked questions"
 	},
+	"marketing": {
+		"hero": {
+			"trustedBy": "Trusted by 10,000+ users",
+			"tryItOut": "Try It Out"
+		},
+		"footer": {
+			"allRightsReserved": "All rights reserved"
+		},
+		"faq": {
+			"items": {
+				"howItWorks": {
+					"question": "How does Writelyy work?",
+					"answer": "Writelyy uses advanced AI technology to help you write better content. Simply paste your text, select a tool (humanizer, detector, summarizer, or paraphraser), and let our AI do the work."
+				},
+				"bypassDetectors": {
+					"question": "Can Writelyy bypass AI detectors?",
+					"answer": "Our AI Humanizer is designed to make AI-generated text sound more natural and human-like. While we can't guarantee it will bypass all detectors, our tool significantly improves the natural flow of AI content."
+				},
+				"pricing": {
+					"question": "How much does Writelyy cost?",
+					"answer": "We offer flexible pricing plans to suit different needs. You can start with our free plan to try out the tools, then upgrade to a paid plan for unlimited access and advanced features."
+				},
+				"privacy": {
+					"question": "Is my data safe and private?",
+					"answer": "Absolutely. We take data privacy seriously. Your content is processed securely and we never share or sell your data to third parties. All text processing happens in secure, encrypted environments."
+				},
+				"features": {
+					"question": "What features does Writelyy offer?",
+					"answer": "Writelyy offers AI Humanizer, AI Detector, Text Summarizer, and Paraphraser tools. We also provide a powerful editor with collaboration features, document management, and AI-assisted writing capabilities."
+				},
+				"academic": {
+					"question": "Can I use Writelyy for academic writing?",
+					"answer": "Yes! Writelyy is perfect for academic writing. Use our summarizer for research papers, the paraphraser to rewrite content, and the humanizer to ensure your writing sounds natural. However, always follow your institution's guidelines on AI usage."
+				},
+				"installation": {
+					"question": "Do I need to install anything?",
+					"answer": "No installation required! Writelyy is a web-based application that works directly in your browser. Simply create an account and start using our tools immediately."
+				},
+				"guarantee": {
+					"question": "Is there a money-back guarantee?",
+					"answer": "Yes, we offer a 30-day money-back guarantee on all paid plans. If you're not satisfied with Writelyy, contact us within 30 days of your purchase for a full refund."
+				}
+			}
+		}
+	},
 	"mail": {
 		"common": {
 			"openLinkInBrowser": "If you want to open the link in a different browser than your default one, copy and paste this link:",
@@ -852,5 +897,23 @@
 	"choosePlan": {
 		"title": "Choose your plan",
 		"description": "To continue, please select a plan."
+	},
+	"tools": {
+		"humanizer": {
+			"name": "AI Humanizer",
+			"description": "Transform AI-generated text into natural, human-like content"
+		},
+		"detector": {
+			"name": "AI Detector",
+			"description": "Detect AI-generated content with high accuracy"
+		},
+		"summariser": {
+			"name": "Text Summarizer",
+			"description": "Generate concise summaries of long-form content"
+		},
+		"paraphraser": {
+			"name": "Paraphraser",
+			"description": "Rewrite and rephrase text while maintaining meaning"
+		}
 	}
 }

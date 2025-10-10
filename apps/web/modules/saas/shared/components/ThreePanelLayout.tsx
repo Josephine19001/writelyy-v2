@@ -4,7 +4,7 @@ import { cn } from "@ui/lib";
 import { useState, type PropsWithChildren } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { IconButton } from "@ui/components/icon-button";
-import { ChevronLeft, ChevronRight, Search, Bot } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 interface ThreePanelLayoutProps {
 	leftPanel: React.ReactNode;
@@ -98,20 +98,22 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 	return (
 		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
 			{/* AI Icon - Main action to open AI panel */}
-			<IconButton
+			{/* Commented out temporarily */}
+			{/* <IconButton
 				variant="ghost"
 				size="default"
 				icon={<Bot />}
 				onClick={onExpand}
 				title="Open AI Panel"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
-			/>
+			/> */}
 
 			{/* Search Icon */}
 			<IconButton
 				variant="ghost"
 				size="default"
 				icon={<Search />}
+				onClick={onExpand}
 				title="Search"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
 			/>

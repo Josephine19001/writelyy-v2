@@ -8,13 +8,26 @@ import { LocaleSwitch } from "@shared/components/LocaleSwitch";
 import { Logo } from "@shared/components/Logo";
 import { Button } from "@ui/components/button";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
+import {
 	Sheet,
 	SheetContent,
 	SheetTitle,
 	SheetTrigger,
 } from "@ui/components/sheet";
 import { cn } from "@ui/lib";
-import { MenuIcon } from "lucide-react";
+import {
+	MenuIcon,
+	ChevronDownIcon,
+	SparklesIcon,
+	ShieldCheckIcon,
+	FileTextIcon,
+	Layers,
+} from "lucide-react";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { Suspense, useEffect, useState } from "react";
@@ -51,37 +64,44 @@ export function NavBar() {
 
 	const isDocsPage = localePathname.startsWith("/docs");
 
+	const productTools = [
+		{
+			label: "Writing Assistant",
+			href: "/#writing-assistant",
+			icon: SparklesIcon,
+			description: "AI-powered writing tools built in",
+		},
+		{
+			label: "Snippets",
+			href: "/#snippets",
+			icon: FileTextIcon,
+			description: "Reusable text blocks for faster writing",
+		},
+		{
+			label: "Sources",
+			href: "/#sources",
+			icon: ShieldCheckIcon,
+			description: "Organize research and references",
+		},
+		{
+			label: "Document Tabs",
+			href: "/#tabs",
+			icon: Layers,
+			description: "Work on multiple docs at once",
+		},
+	];
+
 	const menuItems: {
 		label: string;
 		href: string;
 	}[] = [
 		{
-			label: t("common.menu.pricing"),
+			label: "Pricing",
 			href: "/#pricing",
 		},
 		{
-			label: t("common.menu.faq"),
-			href: "/#faq",
-		},
-		{
-			label: t("common.menu.blog"),
-			href: "/blog",
-		},
-		{
-			label: t("common.menu.changelog"),
-			href: "/changelog",
-		},
-		...(config.contactForm.enabled
-			? [
-					{
-						label: t("common.menu.contact"),
-						href: "/contact",
-					},
-				]
-			: []),
-		{
-			label: t("common.menu.docs"),
-			href: "/docs",
+			label: "Contact",
+			href: "/contact",
 		},
 	];
 
@@ -114,12 +134,51 @@ export function NavBar() {
 					</div>
 
 					<div className="hidden flex-1 items-center justify-center lg:flex">
+						{/* Product Dropdown */}
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									className="px-3 py-2 font-medium text-foreground/80 text-sm hover:text-foreground transition-colors h-auto gap-1"
+								>
+									Product
+									<ChevronDownIcon className="h-3 w-3" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="center" className="w-80">
+								{productTools.map((tool) => (
+									<DropdownMenuItem
+										key={tool.href}
+										asChild
+										className="p-0"
+									>
+										<LocaleLink
+											href={tool.href}
+											className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors"
+										>
+											<div className="flex-shrink-0">
+												<tool.icon className="h-5 w-5 text-primary" />
+											</div>
+											<div className="flex-1">
+												<div className="font-medium text-sm">
+													{tool.label}
+												</div>
+												<div className="text-xs text-muted-foreground">
+													{tool.description}
+												</div>
+											</div>
+										</LocaleLink>
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
+
 						{menuItems.map((menuItem) => (
 							<LocaleLink
 								key={menuItem.href}
 								href={menuItem.href}
 								className={cn(
-									"block px-3 py-2 font-medium text-foreground/80 text-sm",
+									"block px-3 py-2 font-medium text-foreground/80 text-sm hover:text-foreground transition-colors",
 									isMenuItemActive(menuItem.href)
 										? "font-bold text-foreground"
 										: "",
@@ -156,6 +215,30 @@ export function NavBar() {
 							<SheetContent className="w-[280px]" side="right">
 								<SheetTitle />
 								<div className="flex flex-col items-start justify-center">
+									{/* Product Tools Section */}
+									<div className="w-full px-3 py-2">
+										<div className="text-sm font-medium text-foreground/60 mb-2">
+											Product
+										</div>
+										{productTools.map((tool) => (
+											<LocaleLink
+												key={tool.href}
+												href={tool.href}
+												className="flex items-center gap-3 px-3 py-2 text-base text-foreground/80 hover:text-foreground"
+											>
+												<tool.icon className="h-5 w-5 text-primary" />
+												<div>
+													<div className="font-medium">
+														{tool.label}
+													</div>
+													<div className="text-sm text-foreground/60">
+														{tool.description}
+													</div>
+												</div>
+											</LocaleLink>
+										))}
+									</div>
+
 									{menuItems.map((menuItem) => (
 										<LocaleLink
 											key={menuItem.href}
