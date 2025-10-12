@@ -34,11 +34,13 @@ import type { TiptapCollabProvider } from "@tiptap-pro/provider";
 import * as React from "react";
 import type { Doc as YDoc } from "yjs";
 
+import { EditorActionBar } from "./editor-action-bar";
 import { EditorContentArea } from "./editor-content-area";
 import { EditorFooter } from "./editor-footer";
 import { NotionEditorHeader } from "./editor-header";
 import { LoadingSpinner } from "./loading-spinner";
 import { EditorProvider as CustomEditorProvider } from "@shared/tiptap/contexts/editor-context";
+import { toast } from "sonner";
 
 export interface EditorProviderProps {
 	provider: TiptapCollabProvider | null;
@@ -109,29 +111,45 @@ export function EditorProvider(props: EditorProviderProps) {
 				// CRITICAL: Only save non-empty content
 				if (onChange) {
 					const content = editor.getJSON();
-					
+
 					// Check if content is actually empty
-					const isEmpty = !content || 
-						!content.content || 
+					const isEmpty =
+						!content ||
+						!content.content ||
 						content.content.length === 0 ||
-						(content.content.length === 1 && 
-						 content.content[0].type === 'paragraph' && 
-						 (!content.content[0].content || content.content[0].content.length === 0));
-					
-					if (!isEmpty || transaction.getMeta('allowEmpty')) {
+						(content.content.length === 1 &&
+							content.content[0].type === "paragraph" &&
+							(!content.content[0].content ||
+								content.content[0].content.length === 0));
+
+					if (!isEmpty || transaction.getMeta("allowEmpty")) {
 						onChange(content);
 					} else {
-						console.warn('🛡️ Prevented empty content save');
+						console.warn("🛡️ Prevented empty content save");
 					}
 				}
 			},
 			onCreate: ({ editor }) => {
-				console.log('🤖 AI Commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
-				console.log('🤖 Available Extensions:', editor.extensionManager.extensions.map(ext => ext.name));
-				console.log('🤖 AI Extension Check:', {
-					hasAi: editor.extensionManager.extensions.some(ext => ext.name === 'ai'),
-					hasAiGeneration: editor.extensionManager.extensions.some(ext => ext.name === 'aiGeneration'),
-					allExtensions: editor.extensionManager.extensions.map(ext => ext.name)
+				console.log(
+					"🤖 AI Commands:",
+					Object.keys(editor.commands).filter((cmd) =>
+						cmd.startsWith("ai"),
+					),
+				);
+				console.log(
+					"🤖 Available Extensions:",
+					editor.extensionManager.extensions.map((ext) => ext.name),
+				);
+				console.log("🤖 AI Extension Check:", {
+					hasAi: editor.extensionManager.extensions.some(
+						(ext) => ext.name === "ai",
+					),
+					hasAiGeneration: editor.extensionManager.extensions.some(
+						(ext) => ext.name === "aiGeneration",
+					),
+					allExtensions: editor.extensionManager.extensions.map(
+						(ext) => ext.name,
+					),
 				});
 				// Simple approach: Editor will use content prop for initialization
 				// No dangerous post-creation content manipulation
@@ -265,16 +283,234 @@ export function EditorProvider(props: EditorProviderProps) {
 		return <LoadingSpinner />;
 	}
 
+	const handleSnippetSelect = (snippet: any) => {
+		console.log("Snippet selected:", snippet);
+	};
+
+	const handleInsertSnippet = (snippet: any) => {
+		if (!editor) {
+			toast.error("Editor is not ready");
+			return;
+		}
+
+		try {
+			// Insert snippet content as text
+			const success = editor
+				.chain()
+				.focus()
+				.insertContent(snippet.content)
+				.run();
+
+			if (success) {
+				toast.success(`Inserted snippet: ${snippet.title}`);
+			} else {
+				toast.error("Failed to insert snippet");
+			}
+		} catch (error) {
+			console.error("Failed to insert snippet:", error);
+			toast.error("Failed to insert snippet");
+		}
+	};
+
+	const handleSourceSelect = (source: any) => {
+		console.log("Source selected:", source);
+	};
+
+	// Helper function to get proper image URL (same as toolbar dropdown)
+	const getImageUrl = (source: any) => {
+		if (source.type === "image" && source.filePath) {
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+			const bucketName =
+				process.env.NEXT_PUBLIC_IMAGES_BUCKET_NAME || "image-sources";
+			return `${supabaseUrl}/storage/v1/object/public/${bucketName}/${source.filePath}`;
+		}
+		return source.url || null;
+	};
+
+	const handleInsertSource = (source: any) => {
+		console.log("handleInsertSource called with:", source);
+
+		if (!editor) {
+			console.error("Editor is not ready");
+			toast.error("Editor is not ready");
+			return;
+		}
+
+		try {
+			// For images, insert image node (same method as toolbar dropdown)
+			if (source.type === "image") {
+				const imageUrl = getImageUrl(source);
+				console.log("Image URL:", imageUrl);
+
+				if (!imageUrl) {
+					console.error("Image URL not found in source:", source);
+					toast.error("Image URL not found");
+					return;
+				}
+
+				try {
+					const result = editor
+						.chain()
+						.focus()
+						.insertContent({
+							type: "image",
+							attrs: {
+								src: imageUrl,
+								alt: source.name,
+								title: source.name,
+							},
+						})
+						.run();
+
+					console.log("Image insertion result:", result);
+
+					if (!result) {
+						// Fallback to setImage method
+						editor
+							.chain()
+							.focus()
+							.setImage({
+								src: imageUrl,
+								alt: source.name,
+								title: source.name,
+							})
+							.run();
+					}
+
+					toast.success(`Inserted image: ${source.name}`);
+				} catch (error) {
+					console.error("Failed to insert image:", error);
+					// Final fallback: insert as link
+					editor
+						.chain()
+						.focus()
+						.insertContent({
+							type: "text",
+							text: `[Image: ${source.name}]`,
+							marks: [{ type: "link", attrs: { href: imageUrl } }],
+						})
+						.run();
+					toast.success(`Inserted image link: ${source.name}`);
+				}
+			}
+			// For links, insert link
+			else if (source.type === "url") {
+				const linkUrl = source.url;
+				console.log("Inserting link with URL:", linkUrl);
+
+				if (!linkUrl) {
+					console.error("Link URL not found in source:", source);
+					toast.error("Link URL not found");
+					return;
+				}
+
+				editor
+					.chain()
+					.focus()
+					.insertContent({
+						type: "text",
+						text: source.name || linkUrl,
+						marks: [{ type: "link", attrs: { href: linkUrl } }],
+					})
+					.run();
+
+				toast.success(`Inserted link: ${source.name}`);
+			}
+			// For PDFs and documents, insert as link
+			else if (["pdf", "doc", "docx"].includes(source.type)) {
+				const fileUrl = source.url || source.filePath;
+				console.log("Inserting document link with URL:", fileUrl);
+
+				if (!fileUrl) {
+					console.error("File URL not found in source:", source);
+					toast.error("File URL not found");
+					return;
+				}
+
+				editor
+					.chain()
+					.focus()
+					.insertContent({
+						type: "text",
+						text: source.name || "Document",
+						marks: [{ type: "link", attrs: { href: fileUrl } }],
+					})
+					.run();
+
+				toast.success(`Inserted ${source.type.toUpperCase()} link: ${source.name}`);
+			} else {
+				console.error("Unsupported source type:", source.type);
+				toast.error(`Unsupported source type: ${source.type}`);
+			}
+		} catch (error) {
+			console.error("Failed to insert source:", error);
+			toast.error("Failed to insert source");
+		}
+	};
+
+	const handleUseAsAIContext = (source: any) => {
+		// TODO: Implement AI context functionality
+		console.log("Using source as AI context:", source);
+		toast.info(`Added ${source.name} to AI context`);
+	};
+
+	const handleExport = (format: string) => {
+		if (!editor) return;
+		console.log(`Exporting as ${format}`);
+
+		// Export logic here
+		switch (format) {
+			case "json":
+				const content = editor.getJSON();
+				const dataStr = JSON.stringify(content, null, 2);
+				const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+				const exportFileDefaultName = 'document.json';
+				const linkElement = document.createElement('a');
+				linkElement.setAttribute('href', dataUri);
+				linkElement.setAttribute('download', exportFileDefaultName);
+				linkElement.click();
+				break;
+			case "html":
+				const html = editor.getHTML();
+				const htmlUri = 'data:text/html;charset=utf-8,'+ encodeURIComponent(html);
+				const htmlLink = document.createElement('a');
+				htmlLink.setAttribute('href', htmlUri);
+				htmlLink.setAttribute('download', 'document.html');
+				htmlLink.click();
+				break;
+			case "txt":
+				const text = editor.getText();
+				const textUri = 'data:text/plain;charset=utf-8,'+ encodeURIComponent(text);
+				const textLink = document.createElement('a');
+				textLink.setAttribute('href', textUri);
+				textLink.setAttribute('download', 'document.txt');
+				textLink.click();
+				break;
+			default:
+				console.log(`Export format ${format} not yet implemented`);
+		}
+	};
+
 	return (
 		<div className="notion-like-editor-wrapper">
 			<EditorContext.Provider value={{ editor }}>
 				<CustomEditorProvider editor={editor}>
-					<NotionEditorHeader />
+					{/* <NotionEditorHeader /> */}
 					<EditorContentArea />
 					<EditorFooter
 						isSaving={savingState?.isSaving}
 						lastSaved={savingState?.lastSaved}
 						hasUnsavedChanges={savingState?.hasUnsavedChanges}
+					/>
+					<EditorActionBar
+						onUndo={() => editor.chain().focus().undo().run()}
+						onRedo={() => editor.chain().focus().redo().run()}
+						onSourceSelect={handleSourceSelect}
+						onSnippetSelect={handleSnippetSelect}
+						onInsertSource={handleInsertSource}
+						onUseAsAIContext={handleUseAsAIContext}
+						onInsertSnippet={handleInsertSnippet}
+						onExport={handleExport}
 					/>
 				</CustomEditorProvider>
 			</EditorContext.Provider>

@@ -1,21 +1,24 @@
 "use client";
 
+import { FloatingAIButton } from "@saas/shared/components/FloatingAIButton";
 import { LeftSidebar } from "@saas/shared/components/LeftSidebar";
 import { RightAIPanel } from "@saas/shared/components/RightAIPanel";
-import { FloatingAIButton } from "@saas/shared/components/FloatingAIButton";
 import { TabProvider } from "@saas/shared/components/providers/TabProvider";
+import { SearchModal } from "./search/SearchModal";
+import { SearchProvider, useSearch } from "./search/SearchProvider";
+import { WorkspaceWelcome } from "./WorkspaceWelcome";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
+import { IconButton } from "@ui/components/icon-button";
+import { cn } from "@ui/lib";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
-	useState,
-	useEffect,
-	type PropsWithChildren,
 	createContext,
 	useContext,
+	useEffect,
+	useState,
+	type PropsWithChildren,
 } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
-import { WorkspaceWelcome } from "./WorkspaceWelcome";
-import { SearchProvider, useSearch } from "./search/SearchProvider";
-import { SearchModal } from "./search/SearchModal";
 
 // Context for editor interactions
 interface EditorContextType {
@@ -51,9 +54,58 @@ export const useEditorContext = () => {
 	return context;
 };
 
+// Collapse button component
+function CollapseButton({
+	isCollapsed,
+	onClick,
+}: {
+	isCollapsed: boolean;
+	onClick: () => void;
+}) {
+	return (
+		<div className="absolute top-1/2 -translate-y-1/2 -right-4 z-20">
+			<IconButton
+				variant="outline"
+				size="sm"
+				icon={isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+				onClick={onClick}
+				className="bg-background border-2 border-border shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+				title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+			/>
+		</div>
+	);
+}
+
+// Collapsed left panel component
+function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
+	const { openSearch } = useSearch();
+
+	return (
+		<div className="w-12 bg-muted/50 flex flex-col items-center pt-4 space-y-3 shadow-sm h-full">
+			<IconButton
+				variant="ghost"
+				size="sm"
+				icon={<ChevronRight className="h-4 w-4" />}
+				onClick={onExpand}
+				title="Open File Panel"
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-sm"
+			/>
+			<IconButton
+				variant="ghost"
+				size="sm"
+				icon={<Search className="h-4 w-4" />}
+				onClick={openSearch}
+				title="Search"
+				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-sm"
+			/>
+		</div>
+	);
+}
+
 function AppContent({ children }: PropsWithChildren) {
 	const { activeWorkspace } = useActiveWorkspace();
 	const [isAIOpen, setIsAIOpen] = useState(false);
+	const [leftCollapsed, setLeftCollapsed] = useState(false);
 	const [documentSelectHandler, setDocumentSelectHandler] = useState<
 		((document: any) => void) | null
 	>(null);
@@ -131,28 +183,55 @@ function AppContent({ children }: PropsWithChildren) {
 		<EditorContext.Provider value={editorContextValue}>
 			<div className="h-screen bg-background">
 				<PanelGroup direction="horizontal" id="main-layout">
-					{/* Left Panel - File Explorer */}
-					<Panel
-						defaultSize={20}
-						minSize={12}
-						maxSize={35}
-						className="min-w-[240px]"
-						id="left-panel"
-					>
-						<div className="h-full bg-background border-r">
-							{enhancedLeftSidebar}
-						</div>
-					</Panel>
+					{/* Left Panel - File Explorer or Collapsed */}
+					{leftCollapsed ? (
+						<Panel
+							defaultSize={3}
+							minSize={3}
+							maxSize={3}
+							id="left-panel-collapsed"
+						>
+							<CollapsedLeftPanel
+								onExpand={() => setLeftCollapsed(false)}
+							/>
+						</Panel>
+					) : (
+						<>
+							<Panel
+								defaultSize={18}
+								minSize={14}
+								maxSize={30}
+								className="min-w-[220px] relative overflow-visible"
+								id="left-panel"
+							>
+								<div className="h-full bg-background border-r relative overflow-visible">
+									{enhancedLeftSidebar}
+									<CollapseButton
+										isCollapsed={leftCollapsed}
+										onClick={() => setLeftCollapsed(true)}
+									/>
+								</div>
+							</Panel>
 
-					{/* Resize Handle */}
-					<PanelResizeHandle
-						className="w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40"
-						id="left-resize-handle"
-					/>
+							{/* Resize Handle */}
+							<PanelResizeHandle
+								className="w-0 hover:w-0.5 hover:bg-primary/20 transition-all cursor-col-resize data-[resize-handle-active]:w-1 data-[resize-handle-active]:bg-primary/40"
+								id="left-resize-handle"
+							/>
+						</>
+					)}
 
 					{/* Main Content Area */}
 					<Panel
-						defaultSize={isAIOpen ? 55 : 80}
+						defaultSize={
+							leftCollapsed
+								? isAIOpen
+									? 67
+									: 97
+								: isAIOpen
+									? 57
+									: 82
+						}
 						minSize={30}
 						id="main-panel"
 					>

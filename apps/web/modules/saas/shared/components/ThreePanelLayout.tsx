@@ -79,8 +79,8 @@ function CollapseButton({
 	return (
 		<div
 			className={cn(
-				"absolute top-1/2 -translate-y-1/2 z-20",
-				direction === "left" ? "-right-3" : "-left-3",
+				"absolute top-1/2 -translate-y-1/2 z-20 group",
+				direction === "left" ? "-right-4" : "-left-3",
 			)}
 		>
 			<IconButton
@@ -88,7 +88,8 @@ function CollapseButton({
 				size="sm"
 				icon={icon}
 				onClick={onClick}
-				className="bg-background border-2 border-border shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary"
+				className="bg-background border-2 border-border shadow-lg hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+				title={direction === "left" ? (isCollapsed ? "Expand sidebar" : "Collapse sidebar") : (isCollapsed ? "Expand AI panel" : "Collapse AI panel")}
 			/>
 		</div>
 	);
@@ -178,10 +179,10 @@ export function ThreePanelLayout({
 				) : (
 					<>
 						<Panel
-							defaultSize={22}
-							minSize={18}
-							maxSize={35}
-							className="min-w-[280px] relative overflow-visible"
+							defaultSize={15}
+							minSize={12}
+							maxSize={25}
+							className="min-w-[196px] relative overflow-visible"
 						>
 							<div className="relative h-full overflow-visible">
 								<LeftPanel>{leftPanel}</LeftPanel>
@@ -202,10 +203,10 @@ export function ThreePanelLayout({
 						leftCollapsed && rightCollapsed
 							? 94
 							: leftCollapsed
-								? 78
+								? 82
 								: rightCollapsed
-									? 81
-									: 64
+									? 85
+									: 65
 					}
 					minSize={30}
 				>
