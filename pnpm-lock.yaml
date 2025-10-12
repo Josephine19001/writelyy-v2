@@ -172,9 +172,6 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@tiptap-pro/extension-ai':
-        specifier: ^3.2.0
-        version: 3.2.0(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-image@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4)))(@tiptap/pm@3.4.4)
       '@tiptap-pro/extension-ai-agent':
         specifier: 3.0.0-beta.40
         version: 3.0.0-beta.40(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
@@ -3814,13 +3811,6 @@ packages:
       '@tiptap/core': ^3.0.1
       '@tiptap/pm': ^3.0.1
 
-  '@tiptap-pro/extension-ai@3.2.0':
-    resolution: {integrity: sha512-E2dweJQrujOfB4nG1Uip3bgII+HP48HoLr90tPVr5l75XNBftuQSZDu2UX6LcKjkPlunYfGGlDofAPAd8CEaSQ==}
-    peerDependencies:
-      '@tiptap/core': ^3.0.1
-      '@tiptap/extension-image': ^3.0.1
-      '@tiptap/pm': ^3.0.1
-
   '@tiptap-pro/extension-comments@3.2.1':
     resolution: {integrity: sha512-TsHW/ZySsbmLeS+gfuR/465coQBr8AK8FeikuP9rHGVZEENfnueQyrefWwyYP86t5Q0mpAj/NVGhnI0sMZlulA==}
     peerDependencies:
@@ -5947,9 +5937,6 @@ packages:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
     engines: {node: '>= 4.0.0'}
 
-  memoize-one@6.0.0:
-    resolution: {integrity: sha512-rkpe71W0N0c0Xz6QD0eJETuWAJGnJ9afsl1srmwPrI+yBCkge5EycXXbYRyvL29zZVUWQCY7InPRCv3GDXuZNw==}
-
   meow@3.6.0:
     resolution: {integrity: sha512-1zRGO8C/2QD8uBxZbwwKbIQHrHKANzVnlK/3Gj7xro+ks4HLmayvETy+BnCV+wm68PE6dYcfgyTDMVG2mjlQwg==}
     engines: {node: '>=0.10.0'}
@@ -7221,9 +7208,6 @@ packages:
 
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
-
-  tiny-invariant@1.3.3:
-    resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
 
   tinyexec@0.3.2:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
@@ -11120,14 +11104,6 @@ snapshots:
       '@tiptap/core': 3.4.4(@tiptap/pm@3.4.4)
       '@tiptap/pm': 3.4.4
 
-  '@tiptap-pro/extension-ai@3.2.0(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-image@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4)))(@tiptap/pm@3.4.4)':
-    dependencies:
-      '@tiptap/core': 3.4.4(@tiptap/pm@3.4.4)
-      '@tiptap/extension-image': 3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))
-      '@tiptap/pm': 3.4.4
-      memoize-one: 6.0.0
-      tiny-invariant: 1.3.3
-
   '@tiptap-pro/extension-comments@3.2.1(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(@hocuspocus/transformer@3.2.3(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)(y-prosemirror@1.3.7(prosemirror-model@1.25.3)(prosemirror-state@1.4.3)(prosemirror-view@1.41.0)(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(yjs@13.6.27))(@tiptap-pro/provider@3.2.1(@hocuspocus/provider@3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27))(lib0@0.2.114)(yjs@13.6.27))(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)':
     dependencies:
       '@hocuspocus/provider': 3.2.3(y-protocols@1.0.6(yjs@13.6.27))(yjs@13.6.27)
@@ -13390,8 +13366,6 @@ snapshots:
       fs-monkey: 1.1.0
     optional: true
 
-  memoize-one@6.0.0: {}
-
   meow@3.6.0:
     dependencies:
       camelcase-keys: 2.1.0
@@ -14964,8 +14938,6 @@ snapshots:
   throttleit@2.1.0: {}
 
   through@2.3.8: {}
-
-  tiny-invariant@1.3.3: {}
 
   tinyexec@0.3.2: {}
 

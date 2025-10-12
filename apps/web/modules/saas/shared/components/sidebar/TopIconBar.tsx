@@ -19,17 +19,17 @@ export function TopIconBar() {
 	const { openSearch } = useSearch();
 
 	return (
-		<div className="flex items-center justify-between px-3 py-1 border-b bg-background">
-			<div className="flex items-center space-x-2">
+		<div className="flex items-center justify-between px-3 py-2.5 border-b border-primary/10 bg-background/50 backdrop-blur-md relative z-20">
+			<div className="flex items-center gap-1">
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<IconButton
 								variant="ghost"
-								size="xs"
-								icon={<Search />}
+								size="sm"
+								icon={<Search className="h-4 w-4" />}
 								onClick={openSearch}
-								className="py-0"
+								className="h-8 w-8 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent transition-all duration-300"
 							/>
 						</TooltipTrigger>
 						<TooltipContent>
@@ -44,15 +44,15 @@ export function TopIconBar() {
 							<TooltipTrigger asChild>
 								<IconButton
 									variant="ghost"
-									size="xs"
-									icon={<FileText />}
+									size="sm"
+									icon={<FileText className="h-4 w-4" />}
 									onClick={() =>
 										onInlineCreate?.(
 											"document",
 											selectedFolderId || undefined,
 										)
 									}
-									className="py-0"
+									className="h-8 w-8 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent transition-all duration-300"
 								/>
 							</TooltipTrigger>
 							<TooltipContent>
@@ -68,15 +68,15 @@ export function TopIconBar() {
 							<TooltipTrigger asChild>
 								<IconButton
 									variant="ghost"
-									size="xs"
-									icon={<FolderPlus />}
+									size="sm"
+									icon={<FolderPlus className="h-4 w-4" />}
 									onClick={() =>
 										onInlineCreate?.(
 											"folder",
 											selectedFolderId || undefined,
 										)
 									}
-									className="py-0"
+									className="h-8 w-8 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent transition-all duration-300"
 								/>
 							</TooltipTrigger>
 							<TooltipContent>

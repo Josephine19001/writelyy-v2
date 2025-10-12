@@ -34,13 +34,13 @@ export function LeftSidebar({
 	const { activeWorkspace } = useActiveWorkspace();
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex flex-col h-full relative backdrop-blur-xl bg-gradient-to-b from-background/95 via-background/90 to-background/95 before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-primary/5 before:opacity-50">
 			<TopIconBar />
 
 			{/* Documents Section - Scrollable */}
-			<div className="flex-1 overflow-y-auto min-h-0">
+			<div className="flex-1 overflow-y-auto min-h-0 relative z-10">
 				<div className="p-3">
-					<div className="text-xs font-medium text-muted-foreground mb-2">
+					<div className="text-xs font-semibold text-foreground/70 tracking-wider mb-3 uppercase">
 						{activeWorkspace?.name || "Documents"}
 					</div>
 					{activeWorkspace ? (
@@ -59,8 +59,8 @@ export function LeftSidebar({
 			</div>
 
 			{/* Bottom Collapsible Sections */}
-			<div className="border-b bg-background">
-				<CollapsibleSection title="Sources" defaultOpen={false}>
+			<div className="relative z-10 px-3 pb-3 backdrop-blur-sm">
+				<CollapsibleSection title="Sources">
 					{activeWorkspace ? (
 						<WorkspaceSourcesList
 							onSourceSelect={onSourceSelect}
@@ -76,8 +76,8 @@ export function LeftSidebar({
 						</div>
 					)}
 				</CollapsibleSection>
-				
-				<CollapsibleSection title="Snippets" defaultOpen={false}>
+
+				<CollapsibleSection title="Snippets">
 					{activeWorkspace ? (
 						<WorkspaceSnippetsList
 							onSnippetSelect={onSnippetSelect}

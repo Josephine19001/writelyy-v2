@@ -66,7 +66,7 @@ export function WorkspaceDocumentTree({
 	// Memoize documents list to prevent re-renders when only content changes
 	const allDocuments = React.useMemo(() => {
 		if (!documentsData?.documents) return [];
-		
+
 		// Only include fields that affect the tree structure/display
 		// This prevents re-renders when document content changes
 		return documentsData.documents.map((doc: any) => ({
@@ -80,15 +80,12 @@ export function WorkspaceDocumentTree({
 	}, [documentsData?.documents]);
 
 	const documentsByFolder = React.useMemo(() => {
-		return allDocuments.reduce(
-			(acc: Record<string, any[]>, doc: any) => {
-				const folderId = doc.folderId || "root";
-				if (!acc[folderId]) acc[folderId] = [];
-				acc[folderId].push(doc);
-				return acc;
-			},
-			{},
-		);
+		return allDocuments.reduce((acc: Record<string, any[]>, doc: any) => {
+			const folderId = doc.folderId || "root";
+			if (!acc[folderId]) acc[folderId] = [];
+			acc[folderId].push(doc);
+			return acc;
+		}, {});
 	}, [allDocuments]);
 
 	const rootDocuments = documentsByFolder["root"] || [];
@@ -96,7 +93,7 @@ export function WorkspaceDocumentTree({
 	// Helper function to get all ancestor folder IDs for a given folder
 	const getFolderAncestors = (folderId: string, folders: any[]): string[] => {
 		const ancestors: string[] = [];
-		
+
 		const findParent = (targetId: string, folderList: any[]): any => {
 			for (const folder of folderList) {
 				if (folder.id === targetId) {
@@ -124,31 +121,37 @@ export function WorkspaceDocumentTree({
 
 	// Auto-expand folders that contain open tabs
 	useEffect(() => {
-		if (!tabs || tabs.length === 0 || !folderTree || !allDocuments.length) return;
+		if (!tabs || tabs.length === 0 || !folderTree || !allDocuments.length)
+			return;
 
 		const openDocumentIds = tabs
-			.filter(tab => tab.type === 'document')
-			.map(tab => (tab.content as any).documentId);
+			.filter((tab) => tab.type === "document")
+			.map((tab) => (tab.content as any).documentId);
 
 		if (openDocumentIds.length === 0) return;
 
 		const foldersToExpand = new Set<string>();
 
 		// Find which folders contain open documents
-		openDocumentIds.forEach(docId => {
-			const document = allDocuments.find(doc => doc.id === docId);
+		openDocumentIds.forEach((docId) => {
+			const document = allDocuments.find((doc) => doc.id === docId);
 			if (document?.folderId) {
 				// Add the direct folder
 				foldersToExpand.add(document.folderId);
 				// Add all ancestor folders
-				const ancestors = getFolderAncestors(document.folderId, folderTree);
-				ancestors.forEach(ancestorId => foldersToExpand.add(ancestorId));
+				const ancestors = getFolderAncestors(
+					document.folderId,
+					folderTree,
+				);
+				ancestors.forEach((ancestorId) => {
+					foldersToExpand.add(ancestorId);
+				});
 			}
 		});
 
 		// Update expanded folders if there are new folders to expand
 		if (foldersToExpand.size > 0) {
-			setExpandedFolders(prev => {
+			setExpandedFolders((prev) => {
 				const newExpanded = new Set([...prev, ...foldersToExpand]);
 				return newExpanded;
 			});
@@ -196,8 +199,6 @@ export function WorkspaceDocumentTree({
 		ancestorLines: boolean[] = [],
 	) => {
 		const isExpanded = expandedFolders.has(folder.id);
-		const hasSubFolders = folder.subFolders && folder.subFolders.length > 0;
-		const documentsInFolder = documentsByFolder[folder.id] || [];
 
 		// Always show chevron for folders - they can potentially have content
 		// The FolderDocuments component will handle whether to actually show documents
@@ -220,26 +221,26 @@ export function WorkspaceDocumentTree({
 						onSuccess={() => setInlineRename(null)}
 					/>
 				) : (
-					<div className="group flex items-center justify-between hover:bg-primary/10 rounded-sm relative">
+					<div className="group flex items-center justify-between hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent rounded-xl transition-all duration-300 relative hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5">
 						{/* Tree lines */}
 						{level > 0 && (
 							<div className="absolute left-0 top-0 bottom-0 pointer-events-none">
 								{ancestorLines.map((hasLine, index) => (
 									<div
 										key={index}
-										className="absolute top-0 bottom-0 w-px bg-border/30"
+										className="absolute top-0 bottom-0 w-px bg-border/20"
 										style={{
 											left: `${8 + index * 16.5}px`,
 										}}
 									>
 										{hasLine && (
-											<div className="w-full h-full bg-border/30" />
+											<div className="w-full h-full bg-border/20" />
 										)}
 									</div>
 								))}
 								{/* Current level connector */}
 								<div
-									className="absolute top-0 w-2 h-1/2 border-l border-b border-border/30"
+									className="absolute top-0 w-2 h-1/2 border-l border-b border-border/20"
 									style={{
 										left: `${8 + (level - 1) * 16.5}px`,
 										borderBottomLeftRadius: "2px",
@@ -247,7 +248,7 @@ export function WorkspaceDocumentTree({
 								/>
 								{!isLast && (
 									<div
-										className="absolute top-1/2 bottom-0 w-px bg-border/30"
+										className="absolute top-1/2 bottom-0 w-px bg-border/20"
 										style={{
 											left: `${8 + (level - 1) * 16.5}px`,
 										}}
@@ -258,47 +259,55 @@ export function WorkspaceDocumentTree({
 
 						<Button
 							variant="ghost"
-							className="flex-1 justify-start h-auto p-1 px-2 text-xs hover:bg-transparent"
-							style={{ paddingLeft: `${0.5 + level * 1.25}rem` }}
+							className="flex-1 justify-start h-auto p-2 text-[11px] hover:bg-transparent"
+							style={{ paddingLeft: `${0.5 + level * 1.5}rem` }}
 							onClick={() => {
 								toggleFolder(folder.id);
 								setSelectedFolderId(folder.id);
 							}}
 						>
-							<div className="flex items-center space-x-1">
+							<div className="flex items-center gap-1.5">
 								{showChevron &&
 									(isExpanded ? (
-										<ChevronDown className="h-3 w-3 text-muted-foreground" />
+										<ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
 									) : (
-										<ChevronRight className="h-3 w-3 text-muted-foreground" />
+										<ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
 									))}
-								<Folder className="h-4 w-4 text-blue-500" />
-								<span className="truncate">{folder.name}</span>
+								<Folder className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+								<span className="truncate text-foreground">
+									{folder.name}
+								</span>
 							</div>
 						</Button>
-						<FolderContextMenu
-							folderId={folder.id}
-							level={level}
-							onCreateItem={(type, parentFolderId, itemLevel) => {
-								setInlineCreate({
+						<div className="opacity-0 group-hover:opacity-100 transition-opacity">
+							<FolderContextMenu
+								folderId={folder.id}
+								level={level}
+								onCreateItem={(
 									type,
 									parentFolderId,
-									level: itemLevel,
-								});
-								// Ensure the folder is expanded to show the new item
-								setExpandedFolders(
-									(prev) => new Set([...prev, folder.id]),
-								);
-							}}
-							onRename={() => {
-								setInlineRename({
-									type: "folder",
-									itemId: folder.id,
-									currentName: folder.name,
-									level: level,
-								});
-							}}
-						/>
+									itemLevel,
+								) => {
+									setInlineCreate({
+										type,
+										parentFolderId,
+										level: itemLevel,
+									});
+									// Ensure the folder is expanded to show the new item
+									setExpandedFolders(
+										(prev) => new Set([...prev, folder.id]),
+									);
+								}}
+								onRename={() => {
+									setInlineRename({
+										type: "folder",
+										itemId: folder.id,
+										currentName: folder.name,
+										level: level,
+									});
+								}}
+							/>
+						</div>
 					</div>
 				)}
 
@@ -390,26 +399,31 @@ export function WorkspaceDocumentTree({
 						onSuccess={() => setInlineRename(null)}
 					/>
 				) : (
-					<div className="group flex items-center justify-between hover:bg-primary/10 rounded-sm relative">
+					<div
+						className={cn(
+							"group flex items-center justify-between hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent rounded-xl transition-all duration-300 relative hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5",
+							isSelected && "bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 shadow-sm shadow-primary/20",
+						)}
+					>
 						{/* Tree lines for documents */}
 						{level > 0 && (
 							<div className="absolute left-0 top-0 bottom-0 pointer-events-none">
 								{ancestorLines.map((hasLine, index) => (
 									<div
 										key={index}
-										className="absolute top-0 bottom-0 w-px bg-border/30"
+										className="absolute top-0 bottom-0 w-px bg-border/20"
 										style={{
 											left: `${8 + index * 16.5}px`,
 										}}
 									>
 										{hasLine && (
-											<div className="w-full h-full bg-border/30" />
+											<div className="w-full h-full bg-border/20" />
 										)}
 									</div>
 								))}
 								{/* Current level connector */}
 								<div
-									className="absolute top-0 w-2 h-1/2 border-l border-b border-border/30"
+									className="absolute top-0 w-2 h-1/2 border-l border-b border-border/20"
 									style={{
 										left: `${8 + (level - 1) * 16.5}px`,
 										borderBottomLeftRadius: "2px",
@@ -417,7 +431,7 @@ export function WorkspaceDocumentTree({
 								/>
 								{!isLast && (
 									<div
-										className="absolute top-1/2 bottom-0 w-px bg-border/30"
+										className="absolute top-1/2 bottom-0 w-px bg-border/20"
 										style={{
 											left: `${8 + (level - 1) * 16.5}px`,
 										}}
@@ -428,34 +442,33 @@ export function WorkspaceDocumentTree({
 
 						<Button
 							variant="ghost"
-							className={cn(
-								"flex-1 justify-start h-auto p-1 px-2 text-xs hover:bg-transparent",
-								isSelected && "bg-primary/20",
-							)}
-							style={{ paddingLeft: `${0.5 + level * 1.25}rem` }}
+							className="flex-1 justify-start h-auto p-2 text-[11px] hover:bg-transparent"
+							style={{ paddingLeft: `${0.5 + level * 1.5}rem` }}
 							onClick={() => {
 								onDocumentSelect?.(document);
 								setSelectedFolderId(null);
 							}}
 						>
-							<div className="flex items-center space-x-1">
-								<File className="h-4 w-4 text-gray-500" />
-								<span className="truncate">
+							<div className="flex items-center gap-1.5">
+								<File className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+								<span className="truncate text-foreground">
 									{document.title}
 								</span>
 							</div>
 						</Button>
-						<DocumentContextMenu
-							documentId={document.id}
-							onRename={() => {
-								setInlineRename({
-									type: "document",
-									itemId: document.id,
-									currentName: document.title,
-									level: level,
-								});
-							}}
-						/>
+						<div className="opacity-0 group-hover:opacity-100 transition-opacity">
+							<DocumentContextMenu
+								documentId={document.id}
+								onRename={() => {
+									setInlineRename({
+										type: "document",
+										itemId: document.id,
+										currentName: document.title,
+										level: level,
+									});
+								}}
+							/>
+						</div>
 					</div>
 				)}
 			</div>
@@ -510,7 +523,7 @@ export function WorkspaceDocumentTree({
 	}
 
 	return (
-		<div className="space-y-1">
+		<div className="space-y-0.5">
 			{/* Render root level folders */}
 			{folderTree?.map((folder: any, index: number) => {
 				const isLastFolder =

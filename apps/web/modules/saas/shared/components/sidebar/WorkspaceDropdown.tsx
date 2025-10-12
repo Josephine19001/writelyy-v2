@@ -4,7 +4,7 @@ import { OrganzationSelect } from "../../../workspaces/components/WorkspaceSelec
 
 export function WorkspaceDropdown() {
 	return (
-		<div className="p-3 border-b">
+		<div className="p-3 border-t">
 			<OrganzationSelect />
 		</div>
 	);
