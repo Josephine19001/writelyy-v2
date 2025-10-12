@@ -3,14 +3,16 @@ import { cn } from "@ui/lib";
 export function Logo({
 	withLabel = true,
 	className,
+	textClassName,
 }: {
 	className?: string;
 	withLabel?: boolean;
+	textClassName?: string;
 }) {
 	return (
 		<span
 			className={cn(
-				"flex items-center font-semibold text-foreground leading-none",
+				"flex items-center font-semibold leading-none",
 				className,
 			)}
 		>
@@ -23,7 +25,14 @@ export function Logo({
 			</svg>
 
 			{withLabel && (
-				<span className="ml-3 hidden text-lg md:block">Writelyy</span>
+				<span
+					className={cn(
+						"ml-3 hidden text-lg md:block",
+						textClassName || "text-foreground",
+					)}
+				>
+					Writelyy
+				</span>
 			)}
 		</span>
 	);

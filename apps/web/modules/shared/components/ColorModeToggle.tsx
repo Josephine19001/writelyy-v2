@@ -13,7 +13,11 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { useIsClient } from "usehooks-ts";
 
-export function ColorModeToggle() {
+export function ColorModeToggle({
+	iconClassName
+}: {
+	iconClassName?: string
+}) {
 	const { resolvedTheme, setTheme, theme } = useTheme();
 	const [value, setValue] = useState<string>(theme ?? "system");
 	const isClient = useIsClient();
@@ -50,9 +54,9 @@ export function ColorModeToggle() {
 					aria-label="Color mode"
 				>
 					{resolvedTheme === "light" ? (
-						<SunIcon className="size-4" />
+						<SunIcon className={iconClassName || "size-4"} />
 					) : (
-						<MoonIcon className="size-4" />
+						<MoonIcon className={iconClassName || "size-4"} />
 					)}
 				</Button>
 			</DropdownMenuTrigger>

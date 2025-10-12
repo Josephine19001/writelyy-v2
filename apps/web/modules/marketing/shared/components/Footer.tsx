@@ -22,14 +22,14 @@ export function Footer() {
 					{/* Product Links */}
 					<div className="flex flex-col gap-3">
 						<h4 className="font-semibold text-foreground text-sm">
-							Product
+							Features
 						</h4>
 						<div className="flex flex-col gap-2">
 							<LocaleLink
 								href="/#features"
 								className="hover:text-foreground transition-colors"
 							>
-								Product
+								Features
 							</LocaleLink>
 							<LocaleLink
 								href="/#pricing"
@@ -37,11 +37,17 @@ export function Footer() {
 							>
 								Pricing
 							</LocaleLink>
-							<LocaleLink
+							{/* <LocaleLink
 								href="/blog"
 								className="hover:text-foreground transition-colors"
 							>
 								Blogs
+							</LocaleLink> */}
+							<LocaleLink
+								href="/contact"
+								className="hover:text-foreground transition-colors"
+							>
+								Contact
 							</LocaleLink>
 						</div>
 					</div>
@@ -63,12 +69,6 @@ export function Footer() {
 								className="hover:text-foreground transition-colors"
 							>
 								Privacy
-							</LocaleLink>
-							<LocaleLink
-								href="/contact"
-								className="hover:text-foreground transition-colors"
-							>
-								Contact
 							</LocaleLink>
 						</div>
 					</div>

@@ -3,6 +3,7 @@
 import { Button } from "@ui/components/button";
 import { Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { WaitlistDialog } from "./WaitlistDialog";
 
 const placeholderTexts = [
 	"Write about importance of AI",
@@ -59,21 +60,8 @@ export function Hero() {
 
 	return (
 		<section className="relative min-h-[100vh] overflow-hidden flex items-center justify-center py-20 lg:py-32">
-			{/* Futuristic gradient background - inspired by modern mesh gradients */}
-			<div className="absolute inset-0 bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
-				{/* Animated gradient mesh overlay */}
-				<div className="absolute inset-0 opacity-80">
-					<div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-pink-400/40 via-purple-500/40 to-blue-500/40 animate-gradient-shift" />
-					<div className="absolute inset-0 bg-gradient-to-tl from-blue-400/30 via-pink-400/30 to-purple-400/30 animate-gradient-shift-reverse" />
-				</div>
-
-				{/* Floating gradient orbs */}
-				<div className="absolute inset-0 overflow-hidden pointer-events-none">
-					<div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-gradient-to-br from-pink-400/50 to-purple-600/50 rounded-full blur-3xl animate-float-slow" />
-					<div className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-gradient-to-br from-blue-400/40 to-purple-500/40 rounded-full blur-3xl animate-float-slower" />
-					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-purple-400/30 to-pink-500/30 rounded-full blur-3xl animate-pulse-slow" />
-				</div>
-
+			{/* Soft pastel gradient background inspired by the image - pink, purple, blue */}
+			<div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 dark:from-slate-900 dark:via-purple-950/50 dark:to-pink-950/50">
 				{/* Grain texture overlay for depth */}
 				<div className="absolute inset-0 opacity-[0.03] mix-blend-overlay bg-noise" />
 			</div>
@@ -91,36 +79,39 @@ export function Hero() {
 								: "opacity-0 -translate-x-8"
 						}`}
 					>
-						<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm px-4 py-2 shadow-lg">
-							<Sparkles className="h-4 w-4 text-purple-600 animate-pulse" />
-							<span className="text-sm font-medium text-gray-700">
+						<div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-4 py-2 shadow-lg">
+							<Sparkles className="h-4 w-4 text-fuchsia-500 dark:text-fuchsia-400 animate-pulse" />
+							<span className="text-sm font-medium text-gray-800 dark:text-gray-200">
 								AI-Powered Writing
 							</span>
 						</div>
 
-						<h1 className="mb-6 font-bold text-5xl leading-tight text-gray-900 lg:text-6xl xl:text-7xl">
+						<h1 className="mb-6 font-bold text-5xl leading-tight text-gray-900 dark:text-gray-100 lg:text-6xl xl:text-7xl">
 							Write at the
-							<span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+							<span className="bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 dark:from-pink-300 dark:via-fuchsia-400 dark:to-purple-400 bg-clip-text text-transparent">
 								{" "}
 								speed of AI
 							</span>
 						</h1>
 
-						<p className="max-w-xl text-lg text-gray-700 lg:text-xl mb-8 leading-relaxed">
+						<p className="max-w-xl text-lg text-gray-800 dark:text-gray-300 lg:text-xl mb-8 leading-relaxed">
 							Transform your ideas into polished documents with
 							AI-powered writing assistance. No more blank page
 							syndrome.
 						</p>
 
 						<div className="flex flex-wrap gap-4">
-							<Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
-								Get Started Free
-							</Button>
+							<WaitlistDialog>
+								<Button className="bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 hover:from-pink-500 hover:via-fuchsia-600 hover:to-purple-600 dark:from-pink-400/90 dark:via-fuchsia-500/90 dark:to-purple-500/90 dark:hover:from-pink-500 dark:hover:via-fuchsia-600 dark:hover:to-purple-600 text-white px-8 py-6 text-lg rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+									Join Waitlist
+								</Button>
+							</WaitlistDialog>
 							<Button
+								asChild
 								variant="outline"
-								className="px-8 py-6 text-lg rounded-xl border-2 border-gray-300 hover:border-purple-600 hover:bg-white/80 transition-all duration-300"
+								className="px-8 py-6 text-lg rounded-xl border-2 border-gray-400 dark:border-gray-600 hover:border-fuchsia-400 dark:hover:border-fuchsia-400 hover:bg-white/80 dark:hover:bg-gray-800/80 dark:text-gray-200 transition-all duration-300"
 							>
-								Watch Demo
+								<a href="/#features">Explore Features</a>
 							</Button>
 						</div>
 					</div>
@@ -136,25 +127,25 @@ export function Hero() {
 						<div className="relative w-full max-w-2xl mx-auto group">
 							{/* Floating animation wrapper */}
 							<div className="animate-float">
-								{/* Glow effect */}
-								<div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition duration-1000" />
+								{/* Glow effect - soft pastel themed */}
+								<div className="absolute -inset-1 bg-gradient-to-r from-pink-300 via-fuchsia-400 to-purple-400 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition duration-1000" />
 
 								{/* Main editor container */}
-								<div className="relative overflow-hidden rounded-2xl border-2 border-white/60 bg-white/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02]">
+								<div className="relative overflow-hidden rounded-2xl border-2 border-white/60 dark:border-gray-700/50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-[1.02]">
 									{/* Browser-style header */}
-									<div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-gray-50 to-white">
+									<div className="flex items-center gap-2 px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
 										<div className="flex gap-2">
 											<div className="w-3.5 h-3.5 rounded-full bg-red-400/80 hover:bg-red-500 transition cursor-pointer" />
 											<div className="w-3.5 h-3.5 rounded-full bg-yellow-400/80 hover:bg-yellow-500 transition cursor-pointer" />
 											<div className="w-3.5 h-3.5 rounded-full bg-green-400/80 hover:bg-green-500 transition cursor-pointer" />
 										</div>
-										<div className="text-sm text-gray-600 text-center flex-1 font-medium">
+										<div className="text-sm text-gray-600 dark:text-gray-400 text-center flex-1 font-medium">
 											Untitled Document
 										</div>
 									</div>
 
 									{/* Editor content */}
-									<div className="p-8 min-h-[400px] bg-white">
+									<div className="p-8 min-h-[400px] bg-white dark:bg-gray-900">
 										{/* Document Type Tabs */}
 										<div className="flex items-center gap-2 mb-6">
 											{(
@@ -172,8 +163,8 @@ export function Hero() {
 													}
 													className={`rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
 														selectedType === type
-															? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md"
-															: "text-gray-600 hover:bg-gray-100"
+															? "bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 text-white shadow-md"
+															: "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
 													}`}
 												>
 													{type}
@@ -184,15 +175,15 @@ export function Hero() {
 										{/* Typing area with animation */}
 										<div className="space-y-3">
 											<div className="min-h-[200px]">
-												<p className="font-mono text-gray-700 text-base leading-relaxed">
+												<p className="font-mono text-gray-700 dark:text-gray-300 text-base leading-relaxed">
 													{currentText}
-													<span className="inline-block w-0.5 h-5 bg-purple-600 animate-pulse ml-0.5" />
+													<span className="inline-block w-0.5 h-5 bg-fuchsia-500 dark:bg-fuchsia-400 animate-pulse ml-0.5" />
 												</p>
 											</div>
 
 											{/* Generate button inside editor */}
-											<div className="pt-4 border-t border-gray-200">
-												<Button className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group">
+											<div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+												<Button className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 hover:from-pink-500 hover:via-fuchsia-600 hover:to-purple-600 px-6 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] group">
 													<Sparkles className="h-5 w-5 group-hover:animate-spin" />
 													<span>
 														Generate with AI
@@ -204,9 +195,9 @@ export function Hero() {
 								</div>
 							</div>
 
-							{/* Decorative floating elements */}
-							<div className="absolute -top-4 -right-4 w-20 h-20 bg-purple-400/20 rounded-full blur-xl animate-pulse" />
-							<div className="absolute -bottom-4 -left-4 w-24 h-24 bg-pink-400/20 rounded-full blur-xl animate-pulse delay-500" />
+							{/* Decorative floating elements - soft pastel themed */}
+							<div className="absolute -top-4 -right-4 w-20 h-20 bg-purple-300/30 dark:bg-purple-400/20 rounded-full blur-xl animate-pulse" />
+							<div className="absolute -bottom-4 -left-4 w-24 h-24 bg-pink-300/30 dark:bg-pink-400/20 rounded-full blur-xl animate-pulse delay-500" />
 						</div>
 					</div>
 				</div>
@@ -224,83 +215,8 @@ export function Hero() {
 					}
 				}
 
-				@keyframes float-slow {
-					0%,
-					100% {
-						transform: translate(0, 0);
-					}
-					33% {
-						transform: translate(30px, -30px);
-					}
-					66% {
-						transform: translate(-20px, 20px);
-					}
-				}
-
-				@keyframes float-slower {
-					0%,
-					100% {
-						transform: translate(0, 0);
-					}
-					50% {
-						transform: translate(-40px, 40px);
-					}
-				}
-
-				@keyframes gradient-shift {
-					0%,
-					100% {
-						transform: translate(0, 0) scale(1);
-					}
-					50% {
-						transform: translate(5%, 5%) scale(1.1);
-					}
-				}
-
-				@keyframes gradient-shift-reverse {
-					0%,
-					100% {
-						transform: translate(0, 0) scale(1);
-					}
-					50% {
-						transform: translate(-5%, -5%) scale(1.05);
-					}
-				}
-
-				@keyframes pulse-slow {
-					0%,
-					100% {
-						opacity: 0.3;
-						transform: translate(-50%, -50%) scale(1);
-					}
-					50% {
-						opacity: 0.5;
-						transform: translate(-50%, -50%) scale(1.1);
-					}
-				}
-
 				.animate-float {
 					animation: float 3s ease-in-out infinite;
-				}
-
-				.animate-float-slow {
-					animation: float-slow 20s ease-in-out infinite;
-				}
-
-				.animate-float-slower {
-					animation: float-slower 25s ease-in-out infinite;
-				}
-
-				.animate-gradient-shift {
-					animation: gradient-shift 15s ease-in-out infinite;
-				}
-
-				.animate-gradient-shift-reverse {
-					animation: gradient-shift-reverse 20s ease-in-out infinite;
-				}
-
-				.animate-pulse-slow {
-					animation: pulse-slow 8s ease-in-out infinite;
 				}
 
 				/* Grain texture pattern */

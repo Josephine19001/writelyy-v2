@@ -129,7 +129,13 @@ export function NavBar() {
 							href="/"
 							className="block hover:no-underline active:no-underline"
 						>
-							<Logo />
+							<Logo
+								textClassName={
+									isTop && !isDocsPage
+										? "text-gray-900 dark:text-white"
+										: "text-foreground"
+								}
+							/>
 						</LocaleLink>
 					</div>
 
@@ -203,7 +209,13 @@ export function NavBar() {
 					</div> */}
 
 					<div className="flex flex-1 items-center justify-end gap-3">
-						<ColorModeToggle />
+						<ColorModeToggle
+							iconClassName={
+								isTop && !isDocsPage
+									? "size-4 text-gray-900 dark:text-white"
+									: "size-4"
+							}
+						/>
 						{config.i18n.enabled && (
 							<Suspense>
 								<LocaleSwitch />
@@ -216,7 +228,11 @@ export function NavBar() {
 						>
 							<SheetTrigger asChild>
 								<Button
-									className="lg:hidden"
+									className={cn(
+										"lg:hidden",
+										isTop && !isDocsPage &&
+											"text-gray-900 dark:text-gray-900",
+									)}
 									size="icon"
 									variant="light"
 									aria-label="Menu"
@@ -285,7 +301,12 @@ export function NavBar() {
 							(user ? (
 								<Button
 									key="dashboard"
-									className="hidden lg:flex"
+									className={cn(
+										"hidden lg:flex",
+										isTop && !isDocsPage
+											? "bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+											: "",
+									)}
 									asChild
 									variant="secondary"
 								>
@@ -296,7 +317,12 @@ export function NavBar() {
 							) : (
 								<Button
 									key="login"
-									className="hidden lg:flex"
+									className={cn(
+										"hidden lg:flex",
+										isTop && !isDocsPage
+											? "bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+											: "",
+									)}
 									asChild
 									variant="secondary"
 								>
