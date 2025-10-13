@@ -36,7 +36,7 @@ import { Separator } from "@shared/tiptap/components/tiptap-ui-primitive/separat
 // -- Hooks --
 import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
 import type { Editor } from "@tiptap/react";
-import type { Language, TextOptions } from "@tiptap-pro/extension-ai";
+import type { Language, TextOptions } from "@shared/tiptap/types/ai-types";
 import * as React from "react";
 import {
 	SUPPORTED_LANGUAGES,

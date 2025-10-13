@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { TiptapCollabProvider } from "@tiptap-pro/provider";
+import { WebsocketProvider } from "y-websocket";
 import { Doc as YDoc } from "yjs";
 import {
 	fetchCollabToken,
@@ -11,7 +11,7 @@ import {
 } from "../lib/tiptap-collab-utils";
 
 export type CollabContextValue = {
-	provider: TiptapCollabProvider | null;
+	provider: WebsocketProvider | null;
 	ydoc: YDoc;
 	hasCollab: boolean;
 };
@@ -32,10 +32,9 @@ export const useCollab = (): CollabContextValue => {
 };
 
 export const useCollaboration = (room: string) => {
-	const [provider, setProvider] = React.useState<TiptapCollabProvider | null>(
+	const [provider, setProvider] = React.useState<WebsocketProvider | null>(
 		null,
 	);
-	const [collabToken, setCollabToken] = React.useState<string | null>(null);
 	const [hasCollab, setHasCollab] = React.useState<boolean>(true);
 	const ydoc = React.useMemo(() => new YDoc(), []);
 
@@ -47,34 +46,26 @@ export const useCollaboration = (room: string) => {
 	React.useEffect(() => {
 		if (!hasCollab) return;
 
-		const getToken = async () => {
-			const token = await fetchCollabToken();
-			setCollabToken(token);
-		};
-
-		getToken();
-	}, [hasCollab]);
-
-	React.useEffect(() => {
-		if (!hasCollab || !collabToken) return;
-
 		const docPrefix = TIPTAP_COLLAB_DOC_PREFIX;
 		const documentName = room ? `${docPrefix}${room}` : docPrefix;
-		const appId = TIPTAP_COLLAB_APP_ID;
 
-		const newProvider = new TiptapCollabProvider({
-			name: documentName,
-			appId,
-			token: collabToken,
-			document: ydoc,
-		});
+		// Use your own WebSocket server URL
+		// For development, you might use ws://localhost:1234
+		// For production, use your deployed WebSocket server
+		const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:1234";
+
+		const newProvider = new WebsocketProvider(
+			wsUrl,
+			documentName,
+			ydoc
+		);
 
 		setProvider(newProvider);
 
 		return () => {
 			newProvider.destroy();
 		};
-	}, [collabToken, ydoc, room, hasCollab]);
+	}, [ydoc, room, hasCollab]);
 
 	return { provider, ydoc, hasCollab };
 };

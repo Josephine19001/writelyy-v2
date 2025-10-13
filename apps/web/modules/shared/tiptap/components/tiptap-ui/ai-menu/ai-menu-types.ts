@@ -1,4 +1,4 @@
-import type { Language, Tone } from "@tiptap-pro/extension-ai"
+import type { Language, Tone } from "@shared/tiptap/types/ai-types"
 
 export interface AiMenuPosition {
   element: HTMLElement | null

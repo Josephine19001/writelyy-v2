@@ -44,7 +44,7 @@ import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
 import { useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
-import type { Language, TextOptions, Tone } from "@tiptap-pro/extension-ai";
+import type { Language, TextOptions, Tone } from "@shared/tiptap/types/ai-types";
 import * as React from "react";
 
 export interface ToneOption {

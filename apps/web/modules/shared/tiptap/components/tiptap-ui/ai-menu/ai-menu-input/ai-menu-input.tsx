@@ -31,7 +31,7 @@ import {
 	ToolbarGroup,
 } from "@shared/tiptap/components/tiptap-ui-primitive/toolbar";
 // Tiptap Core Extensions
-import type { Tone } from "@tiptap-pro/extension-ai";
+import type { Tone } from "@shared/tiptap/types/ai-types";
 import * as React from "react";
 
 import { useBlurHandler, useKeyboardHandlers } from "./ai-menu-input-hooks";

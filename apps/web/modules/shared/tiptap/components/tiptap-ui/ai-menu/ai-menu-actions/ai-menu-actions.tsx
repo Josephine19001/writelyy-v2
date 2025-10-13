@@ -9,7 +9,7 @@ import {
 } from "@shared/tiptap/components/tiptap-ui-primitive/button";
 import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
 import type { Editor } from "@tiptap/react";
-import type { TextOptions } from "@tiptap-pro/extension-ai";
+import type { TextOptions } from "@shared/tiptap/types/ai-types";
 import * as React from "react";
 
 import "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions.scss";

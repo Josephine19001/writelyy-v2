@@ -1,4 +1,4 @@
-import type { TiptapCollabProvider } from "@tiptap-pro/provider";
+import type { WebsocketProvider } from "y-websocket";
 import type { Doc as YDoc } from "yjs";
 
 export interface NotionEditorProps {
@@ -13,7 +13,7 @@ export interface NotionEditorProps {
 }
 
 export interface EditorProviderProps {
-	provider: TiptapCollabProvider | null;
+	provider: WebsocketProvider | null;
 	ydoc: YDoc;
 	placeholder?: string;
 	aiToken: string | null;

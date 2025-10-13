@@ -31,8 +31,6 @@ import { UniqueID } from "@tiptap/extension-unique-id";
 import { Placeholder, Selection } from "@tiptap/extensions";
 import { EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { PageKit } from "@tiptap-pro/extension-pages";
-import type { TiptapCollabProvider } from "@tiptap-pro/provider";
 import * as React from "react";
 import { toast } from "sonner";
 import type { Doc as YDoc } from "yjs";
@@ -42,7 +40,7 @@ import { EditorFooter } from "./editor-footer";
 import { LoadingSpinner } from "./loading-spinner";
 
 export interface EditorProviderProps {
-	provider: TiptapCollabProvider | null;
+	provider: any | null;
 	ydoc: YDoc;
 	placeholder?: string;
 	aiToken: string | null;
@@ -241,15 +239,6 @@ export function EditorProvider(props: EditorProviderProps) {
 						!isChangeOrigin(transaction),
 				}),
 				Typography,
-				// Page layout with Google Docs-like page demarcation
-				PageKit.configure({
-					pages: {
-						pageFormat: "A4",
-						header: "",
-						footer: "Page {page} of {total}",
-						pageBreakBackground: "var(--tt-border-color)",
-					},
-				}),
 				UiState,
 				// Custom AI integration will be handled separately
 			],
