@@ -97,13 +97,13 @@ function CollapseButton({
 
 function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 	return (
-		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
+		<div className="bg-muted/50 flex flex-col items-center px-2 py-6 space-y-3 shadow-sm">
 			{/* AI Icon - Main action to open AI panel */}
 			{/* Commented out temporarily */}
 			{/* <IconButton
 				variant="ghost"
-				size="default"
-				icon={<Bot />}
+				size="sm"
+				icon={<Bot className="h-4 w-4" />}
 				onClick={onExpand}
 				title="Open AI Panel"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
@@ -112,8 +112,8 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 			{/* Search Icon */}
 			<IconButton
 				variant="ghost"
-				size="default"
-				icon={<Search />}
+				size="sm"
+				icon={<Search className="h-4 w-4" />}
 				onClick={onExpand}
 				title="Search"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
@@ -124,12 +124,12 @@ function CollapsedRightPanel({ onExpand }: { onExpand: () => void }) {
 
 function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 	return (
-		<div className="w-12 bg-muted/50 flex flex-col items-center py-6 space-y-4 shadow-sm">
+		<div className="bg-muted/50 flex flex-col items-center px-2 py-6 space-y-3 shadow-sm">
 			{/* File Panel Icon - Main action to open file panel */}
 			<IconButton
 				variant="ghost"
-				size="default"
-				icon={<ChevronRight />}
+				size="sm"
+				icon={<ChevronRight className="h-4 w-4" />}
 				onClick={onExpand}
 				title="Open File Panel"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
@@ -138,8 +138,8 @@ function CollapsedLeftPanel({ onExpand }: { onExpand: () => void }) {
 			{/* Quick Search */}
 			<IconButton
 				variant="ghost"
-				size="default"
-				icon={<Search />}
+				size="sm"
+				icon={<Search className="h-4 w-4" />}
 				title="Search"
 				className="bg-background hover:bg-primary hover:text-primary-foreground shadow-md"
 			/>

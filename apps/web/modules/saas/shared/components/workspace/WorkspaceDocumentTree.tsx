@@ -119,6 +119,21 @@ export function WorkspaceDocumentTree({
 		return ancestors;
 	};
 
+	// Auto-expand root-level folders by default
+	useEffect(() => {
+		if (!folderTree || folderTree.length === 0) return;
+
+		// Expand all root-level folders on initial load
+		const rootFolderIds = folderTree.map((folder: any) => folder.id);
+		setExpandedFolders((prev) => {
+			// Only set if not already expanded (to preserve user's manual collapse)
+			if (prev.size === 0) {
+				return new Set(rootFolderIds);
+			}
+			return prev;
+		});
+	}, [folderTree]);
+
 	// Auto-expand folders that contain open tabs
 	useEffect(() => {
 		if (!tabs || tabs.length === 0 || !folderTree || !allDocuments.length)
