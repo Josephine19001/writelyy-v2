@@ -19,16 +19,16 @@ export default async function AiDemoPage({
 		redirect("/app");
 	}
 
-	const workspaceId = workspace.id;
+	const organizationId = workspace.id;
 
 	const { chats } = await orpcClient.ai.chats.list({
-		workspaceId,
+		organizationId,
 	});
 
 	await queryClient.prefetchQuery({
 		queryKey: orpc.ai.chats.list.queryKey({
 			input: {
-				workspaceId,
+				organizationId,
 			},
 		}),
 		queryFn: async () => ({ chats }),
@@ -51,7 +51,7 @@ export default async function AiDemoPage({
 				subtitle="This is an example chatbot built with the OpenAI API"
 			/>
 
-			<AiChat workspaceId={workspaceId} />
+			<AiChat organizationId={organizationId} />
 		</>
 	);
 }

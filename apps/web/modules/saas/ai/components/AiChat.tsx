@@ -20,7 +20,7 @@ import { useQueryState } from "nuqs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-export function AiChat({ workspaceId }: { workspaceId?: string }) {
+export function AiChat({ organizationId }: { organizationId?: string }) {
 	const formatter = useFormatter();
 	const queryClient = useQueryClient();
 	const [input, setInput] = useState("");
@@ -28,7 +28,7 @@ export function AiChat({ workspaceId }: { workspaceId?: string }) {
 	const { data, status: chatsStatus } = useQuery(
 		orpc.ai.chats.list.queryOptions({
 			input: {
-				workspaceId,
+				organizationId,
 			},
 		}),
 	);
@@ -103,12 +103,12 @@ export function AiChat({ workspaceId }: { workspaceId?: string }) {
 
 	const createNewChat = useCallback(async () => {
 		const newChat = await createChatMutation.mutateAsync({
-			workspaceId,
+			organizationId,
 		});
 		await queryClient.invalidateQueries({
 			queryKey: orpc.ai.chats.list.queryKey({
 				input: {
-					workspaceId,
+					organizationId,
 				},
 			}),
 		});
