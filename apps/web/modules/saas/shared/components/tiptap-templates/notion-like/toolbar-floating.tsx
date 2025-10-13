@@ -88,26 +88,27 @@ export function NotionToolbarFloating() {
 function NotionToolbarFloatingContent() {
 	const { editor } = useTiptapEditor();
 	const { sendMessage } = useAIChat();
+	const [showAskAI, setShowAskAI] = React.useState(false);
 
 	const handleCustomAskMessage = (message: string) => {
 		// The mentions are already included in the message formatting by the input component
 		// We can pass the message directly to the AI chat system
 		sendMessage(message);
+		setShowAskAI(false); // Close the input after sending
 	};
 
 	return (
 		<div className="flex flex-col gap-2">
-			{/* AskAI Button positioned above the toolbar */}
-			<AskAIButton
-				placeholder="Ask what you want..."
-				onSendMessage={handleCustomAskMessage}
-			/>
-
 			{/* Main Floating Toolbar */}
 			<DropdownProvider>
 				<Toolbar variant="floating">
 					<ToolbarGroup>
-						{editor && <AIAssistantDropdown editor={editor} />}
+						{editor && (
+							<AIAssistantDropdown
+								editor={editor}
+								onAskAIClick={() => setShowAskAI(true)}
+							/>
+						)}
 						<SnippetButton />
 					</ToolbarGroup>
 
@@ -179,6 +180,16 @@ function NotionToolbarFloatingContent() {
 					<MoreOptions hideWhenUnavailable={true} />
 				</Toolbar>
 			</DropdownProvider>
+
+			{/* AskAI Button positioned below the toolbar (industry standard) - only shown when triggered */}
+			{showAskAI && (
+				<AskAIButton
+					placeholder="Ask what you want..."
+					onSendMessage={handleCustomAskMessage}
+					onCancel={() => setShowAskAI(false)}
+					autoFocus={true}
+				/>
+			)}
 		</div>
 	);
 }

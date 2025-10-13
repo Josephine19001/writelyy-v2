@@ -25,6 +25,7 @@ import { useAIChat } from "./ai-chat-context";
 
 export interface AIAssistantDropdownProps {
 	editor: Editor;
+	onAskAIClick?: () => void;
 }
 
 // MVP: Only the most essential AI features
@@ -79,10 +80,9 @@ const TONE_OPTIONS = [
 	},
 ];
 
-export function AIAssistantDropdown({ editor }: AIAssistantDropdownProps) {
+export function AIAssistantDropdown({ editor, onAskAIClick }: AIAssistantDropdownProps) {
 	const { sendMessage, insertTextToEditor, setEditor } = useAIChat();
 	const [isOpen, setIsOpen] = React.useState(false);
-	const [showCustomAsk, setShowCustomAsk] = React.useState(false);
 
 	React.useEffect(() => {
 		setEditor(editor);
@@ -144,12 +144,7 @@ export function AIAssistantDropdown({ editor }: AIAssistantDropdownProps) {
 
 	const openCustomAsk = () => {
 		setIsOpen(false);
-		setShowCustomAsk(true);
-	};
-
-	const handleCustomAskMessage = (message: string) => {
-		handleAIAction(message);
-		setShowCustomAsk(false);
+		onAskAIClick?.(); // Trigger the parent's handler to show the AskAIButton
 	};
 
 	const handleAddContext = () => {

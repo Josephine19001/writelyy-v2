@@ -35,22 +35,17 @@ export type Language =
   | "vi";
 
 export type Tone =
-  | "professional"
-  | "casual"
-  | "straightforward"
-  | "confident"
-  | "friendly"
   | "academic"
   | "business"
-  | "technical"
-  | "creative"
-  | "persuasive"
-  | "empathetic"
-  | "formal"
+  | "casual"
   | "childfriendly"
+  | "confident"
   | "conversational"
+  | "creative"
   | "emotional"
   | "excited"
+  | "formal"
+  | "friendly"
   | "funny"
   | "humorous"
   | "informative"
@@ -58,8 +53,13 @@ export type Tone =
   | "memeify"
   | "narrative"
   | "objective"
+  | "persuasive"
   | "poetic"
-  | string; // Allow any string for custom tones
+  | "professional"
+  | "straightforward"
+  | "technical"
+  | "empathetic"
+  | string; // Allow any custom tone string
 
 export interface TextOptions {
   tone?: Tone;

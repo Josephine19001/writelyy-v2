@@ -15,19 +15,23 @@ import type { MentionItem } from "../ai-panel/types";
 export interface AIInputWithSourcesProps {
 	placeholder?: string;
 	onSendMessage: (message: string, mentions?: MentionItem[]) => void;
+	onCancel?: () => void;
 	disabled?: boolean;
 	className?: string;
 	minRows?: number;
 	maxRows?: number;
+	autoFocus?: boolean;
 }
 
 export function AIInputWithSources({
 	placeholder = "Ask what you want...",
 	onSendMessage,
+	onCancel,
 	disabled = false,
 	className = "",
 	minRows = 1,
 	maxRows = 4,
+	autoFocus = false,
 }: AIInputWithSourcesProps) {
 	const { activeWorkspace } = useActiveWorkspace();
 	const [inputValue, setInputValue] = React.useState("");
@@ -172,8 +176,21 @@ export function AIInputWithSources({
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleSendMessage();
+		} else if (e.key === "Escape") {
+			e.preventDefault();
+			onCancel?.();
 		}
 	};
+
+	// Auto-focus on mount if requested
+	React.useEffect(() => {
+		if (autoFocus && inputRef.current) {
+			// Small delay to ensure the component is rendered
+			setTimeout(() => {
+				inputRef.current?.focus();
+			}, 100);
+		}
+	}, [autoFocus]);
 
 	return (
 		<div className={`relative ${className}`}>
