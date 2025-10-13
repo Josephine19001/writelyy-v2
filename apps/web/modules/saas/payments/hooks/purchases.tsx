@@ -7,7 +7,7 @@ export const usePurchases = (workspaceId?: string) => {
 		queryKey: ['payments', 'listPurchases', workspaceId],
 		queryFn: async () => {
 			return await orpcClient.payments.listPurchases({
-				workspaceId,
+				organizationId: workspaceId,
 			});
 		},
 		// Disable retries for unauthorized errors

@@ -3,7 +3,7 @@ import { cache } from "react";
 
 export const getPurchases = cache(async (workspaceId?: string) => {
 	const { purchases } = await orpcClient.payments.listPurchases({
-		workspaceId,
+		organizationId: workspaceId,
 	});
 
 	return purchases;

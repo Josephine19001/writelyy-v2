@@ -42,13 +42,13 @@ export default async function Layout({ children }: PropsWithChildren) {
 			config.users.enableBilling) &&
 		!hasFreePlan
 	) {
-		const workspaceId = config.workspaces.enable
+		const organizationId = config.workspaces.enable
 			? session?.session.activeOrganizationId || workspaces?.at(0)?.id
 			: undefined;
 
 		const [error, data] = await attemptAsync(() =>
 			orpcClient.payments.listPurchases({
-				workspaceId,
+				organizationId,
 			}),
 		);
 

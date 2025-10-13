@@ -71,7 +71,7 @@ export function PricingTable({
 					type:
 						price.type === "one-time" ? "one-time" : "subscription",
 					productId: price.productId,
-					workspaceId,
+					organizationId: workspaceId,
 					redirectUrl: window.location.href,
 				});
 

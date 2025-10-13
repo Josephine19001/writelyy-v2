@@ -32,7 +32,7 @@ export default async function BillingSettingsPage({
 
 	const [error, purchasesData] = await attemptAsync(() =>
 		orpcClient.payments.listPurchases({
-			workspaceId: workspace.id,
+			organizationId: workspace.id,
 		}),
 	);
 
@@ -46,7 +46,7 @@ export default async function BillingSettingsPage({
 	await queryClient.prefetchQuery({
 		queryKey: orpc.payments.listPurchases.queryKey({
 			input: {
-				workspaceId: workspace.id,
+				organizationId: workspace.id,
 			},
 		}),
 		queryFn: () => purchasesData,
