@@ -42,7 +42,6 @@
 		"@tanstack/react-table": "^8.21.3",
 		"@tiptap-pro/extension-ai-agent": "3.0.0-beta.40",
 		"@tiptap-pro/extension-ai-changes": "3.0.0-beta.36",
-		"@tiptap-pro/extension-comments": "^3.2.1",
 		"@tiptap-pro/extension-export-docx": "1.0.0-beta.6",
 		"@tiptap-pro/extension-import-docx": "1.0.0-beta.3",
 		"@tiptap-pro/extension-pages": "1.0.0-alpha.8",
