@@ -7,8 +7,10 @@ import { HorizontalRule } from "@shared/tiptap/components/tiptap-node/horizontal
 import { Image } from "@shared/tiptap/components/tiptap-node/image-node/image-node-extension";
 import { ImageUploadNode } from "@shared/tiptap/components/tiptap-node/image-upload-node/image-upload-node-extension";
 import { SnippetBlockNode } from "@shared/tiptap/components/tiptap-node/snippet-block-node/snippet-block-node-extension";
+// import { PageNavigator } from "./page-navigator";
+import { EditorProvider as CustomEditorProvider } from "@shared/tiptap/contexts/editor-context";
 import { useUser } from "@shared/tiptap/contexts/user-context";
-import { TIPTAP_AI_APP_ID } from "@shared/tiptap/lib/tiptap-collab-utils";
+// import { TIPTAP_AI_APP_ID } from "@shared/tiptap/lib/tiptap-collab-utils";
 import {
 	handleImageUpload,
 	MAX_FILE_SIZE,
@@ -32,15 +34,12 @@ import { StarterKit } from "@tiptap/starter-kit";
 import { PageKit } from "@tiptap-pro/extension-pages";
 import type { TiptapCollabProvider } from "@tiptap-pro/provider";
 import * as React from "react";
+import { toast } from "sonner";
 import type { Doc as YDoc } from "yjs";
-
 import { EditorActionBar } from "./editor-action-bar";
 import { EditorContentArea } from "./editor-content-area";
 import { EditorFooter } from "./editor-footer";
-import { NotionEditorHeader } from "./editor-header";
 import { LoadingSpinner } from "./loading-spinner";
-import { EditorProvider as CustomEditorProvider } from "@shared/tiptap/contexts/editor-context";
-import { toast } from "sonner";
 
 export interface EditorProviderProps {
 	provider: TiptapCollabProvider | null;
@@ -130,27 +129,6 @@ export function EditorProvider(props: EditorProviderProps) {
 				}
 			},
 			onCreate: ({ editor }) => {
-				console.log(
-					"🤖 AI Commands:",
-					Object.keys(editor.commands).filter((cmd) =>
-						cmd.startsWith("ai"),
-					),
-				);
-				console.log(
-					"🤖 Available Extensions:",
-					editor.extensionManager.extensions.map((ext) => ext.name),
-				);
-				console.log("🤖 AI Extension Check:", {
-					hasAi: editor.extensionManager.extensions.some(
-						(ext) => ext.name === "ai",
-					),
-					hasAiGeneration: editor.extensionManager.extensions.some(
-						(ext) => ext.name === "aiGeneration",
-					),
-					allExtensions: editor.extensionManager.extensions.map(
-						(ext) => ext.name,
-					),
-				});
 				// Simple approach: Editor will use content prop for initialization
 				// No dangerous post-creation content manipulation
 			},
@@ -328,8 +306,6 @@ export function EditorProvider(props: EditorProviderProps) {
 	};
 
 	const handleInsertSource = (source: any) => {
-		console.log("handleInsertSource called with:", source);
-
 		if (!editor) {
 			console.error("Editor is not ready");
 			toast.error("Editor is not ready");
@@ -340,7 +316,6 @@ export function EditorProvider(props: EditorProviderProps) {
 			// For images, insert image node (same method as toolbar dropdown)
 			if (source.type === "image") {
 				const imageUrl = getImageUrl(source);
-				console.log("Image URL:", imageUrl);
 
 				if (!imageUrl) {
 					console.error("Image URL not found in source:", source);
@@ -361,8 +336,6 @@ export function EditorProvider(props: EditorProviderProps) {
 							},
 						})
 						.run();
-
-					console.log("Image insertion result:", result);
 
 					if (!result) {
 						// Fallback to setImage method
@@ -387,7 +360,9 @@ export function EditorProvider(props: EditorProviderProps) {
 						.insertContent({
 							type: "text",
 							text: `[Image: ${source.name}]`,
-							marks: [{ type: "link", attrs: { href: imageUrl } }],
+							marks: [
+								{ type: "link", attrs: { href: imageUrl } },
+							],
 						})
 						.run();
 					toast.success(`Inserted image link: ${source.name}`);
@@ -396,7 +371,6 @@ export function EditorProvider(props: EditorProviderProps) {
 			// For links, insert link
 			else if (source.type === "url") {
 				const linkUrl = source.url;
-				console.log("Inserting link with URL:", linkUrl);
 
 				if (!linkUrl) {
 					console.error("Link URL not found in source:", source);
@@ -419,7 +393,6 @@ export function EditorProvider(props: EditorProviderProps) {
 			// For PDFs and documents, insert as link
 			else if (["pdf", "doc", "docx"].includes(source.type)) {
 				const fileUrl = source.url || source.filePath;
-				console.log("Inserting document link with URL:", fileUrl);
 
 				if (!fileUrl) {
 					console.error("File URL not found in source:", source);
@@ -437,7 +410,9 @@ export function EditorProvider(props: EditorProviderProps) {
 					})
 					.run();
 
-				toast.success(`Inserted ${source.type.toUpperCase()} link: ${source.name}`);
+				toast.success(
+					`Inserted ${source.type.toUpperCase()} link: ${source.name}`,
+				);
 			} else {
 				console.error("Unsupported source type:", source.type);
 				toast.error(`Unsupported source type: ${source.type}`);
@@ -449,43 +424,45 @@ export function EditorProvider(props: EditorProviderProps) {
 	};
 
 	const handleUseAsAIContext = (source: any) => {
-		// TODO: Implement AI context functionality
-		console.log("Using source as AI context:", source);
 		toast.info(`Added ${source.name} to AI context`);
 	};
 
 	const handleExport = (format: string) => {
 		if (!editor) return;
-		console.log(`Exporting as ${format}`);
 
 		// Export logic here
 		switch (format) {
-			case "json":
+			case "json": {
 				const content = editor.getJSON();
 				const dataStr = JSON.stringify(content, null, 2);
-				const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-				const exportFileDefaultName = 'document.json';
-				const linkElement = document.createElement('a');
-				linkElement.setAttribute('href', dataUri);
-				linkElement.setAttribute('download', exportFileDefaultName);
+				const dataUri =
+					"data:application/json;charset=utf-8," +
+					encodeURIComponent(dataStr);
+				const exportFileDefaultName = "document.json";
+				const linkElement = document.createElement("a");
+				linkElement.setAttribute("href", dataUri);
+				linkElement.setAttribute("download", exportFileDefaultName);
 				linkElement.click();
 				break;
-			case "html":
+			}
+			case "html": {
 				const html = editor.getHTML();
-				const htmlUri = 'data:text/html;charset=utf-8,'+ encodeURIComponent(html);
-				const htmlLink = document.createElement('a');
-				htmlLink.setAttribute('href', htmlUri);
-				htmlLink.setAttribute('download', 'document.html');
+				const htmlUri = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+				const htmlLink = document.createElement("a");
+				htmlLink.setAttribute("href", htmlUri);
+				htmlLink.setAttribute("download", "document.html");
 				htmlLink.click();
 				break;
-			case "txt":
+			}
+			case "txt": {
 				const text = editor.getText();
-				const textUri = 'data:text/plain;charset=utf-8,'+ encodeURIComponent(text);
-				const textLink = document.createElement('a');
-				textLink.setAttribute('href', textUri);
-				textLink.setAttribute('download', 'document.txt');
+				const textUri = `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`;
+				const textLink = document.createElement("a");
+				textLink.setAttribute("href", textUri);
+				textLink.setAttribute("download", "document.txt");
 				textLink.click();
 				break;
+			}
 			default:
 				console.log(`Export format ${format} not yet implemented`);
 		}
@@ -502,6 +479,7 @@ export function EditorProvider(props: EditorProviderProps) {
 						lastSaved={savingState?.lastSaved}
 						hasUnsavedChanges={savingState?.hasUnsavedChanges}
 					/>
+					{/* <PageNavigator /> */}
 					<EditorActionBar
 						onUndo={() => editor.chain().focus().undo().run()}
 						onRedo={() => editor.chain().focus().redo().run()}
