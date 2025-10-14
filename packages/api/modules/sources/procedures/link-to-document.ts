@@ -17,7 +17,7 @@ export const linkToDocument = protectedProcedure
 			sourceId: z.string(),
 			documentId: z.string(),
 			context: z.enum(["reference", "quote", "inspiration", "fact-check"]).optional(),
-			usage: z.record(z.any()).optional(),
+			usage: z.record(z.string(), z.any()).optional(),
 		}),
 	)
 	.handler(async ({ input, context }) => {

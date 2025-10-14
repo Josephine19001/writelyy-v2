@@ -2,7 +2,7 @@
 	"name": "writelyy-nextjs",
 	"private": true,
 	"scripts": {
-		"preinstall": "echo '@tiptap-pro:registry=https://registry.tiptap.dev/' > .npmrc && echo '//registry.tiptap.dev/:_authToken=${TIPTAP_PRO_TOKEN}' >> .npmrc",
+		"preinstall": "echo '@tiptap-pro:registry=https://registry.tiptap.dev/' > .npmrc && echo //registry.tiptap.dev/:_authToken=$TIPTAP_PRO_TOKEN >> .npmrc",
 		"build": "dotenv -c -- turbo build",
 		"dev": "dotenv -c -- turbo dev --concurrency 15",
 		"start": "dotenv -c -- turbo start",

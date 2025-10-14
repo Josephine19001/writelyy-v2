@@ -30,9 +30,9 @@ export const createCustomerPortalLink = protectedProcedure
 				throw new ORPCError("FORBIDDEN");
 			}
 
-			if (purchase.workspaceId) {
+			if (purchase.organizationId) {
 				const userWorkspaceMembership = await getWorkspaceMembership(
-					purchase.workspaceId,
+					purchase.organizationId,
 					user.id,
 				);
 				if (userWorkspaceMembership?.role !== "owner") {

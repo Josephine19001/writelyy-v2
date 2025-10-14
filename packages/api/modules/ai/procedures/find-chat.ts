@@ -27,9 +27,9 @@ export const findChat = protectedProcedure
 			throw new ORPCError("NOT_FOUND");
 		}
 
-		if (chat.workspaceId) {
+		if (chat.organizationId) {
 			const membership = await verifyWorkspaceMembership(
-				chat.workspaceId,
+				chat.organizationId,
 				context.user.id,
 			);
 

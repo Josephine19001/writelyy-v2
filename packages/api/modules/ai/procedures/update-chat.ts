@@ -28,8 +28,8 @@ export const updateChat = protectedProcedure
 			throw new ORPCError("NOT_FOUND");
 		}
 
-		if (chat.workspaceId) {
-			await verifyWorkspaceMembership(chat.workspaceId, user.id);
+		if (chat.organizationId) {
+			await verifyWorkspaceMembership(chat.organizationId, user.id);
 		} else if (chat.userId !== context.user.id) {
 			throw new ORPCError("FORBIDDEN");
 		}

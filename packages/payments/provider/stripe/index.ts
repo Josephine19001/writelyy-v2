@@ -171,7 +171,7 @@ export const webhookHandler: WebhookHandler = async (req) => {
 				}
 
 				await createPurchase({
-					workspaceId: metadata?.workspace_id || null,
+					organizationId: metadata?.workspace_id || null,
 					userId: metadata?.user_id || null,
 					customerId: customer as string,
 					type: "ONE_TIME",
@@ -198,7 +198,7 @@ export const webhookHandler: WebhookHandler = async (req) => {
 
 				await createPurchase({
 					subscriptionId: id,
-					workspaceId: metadata?.workspace_id || null,
+					organizationId: metadata?.workspace_id || null,
 					userId: metadata?.user_id || null,
 					customerId: customer as string,
 					type: "SUBSCRIPTION",
