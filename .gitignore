@@ -44,4 +44,4 @@ dist/
 .content-collections/
 
 # npm registry config (contains private tokens)
-.npmrc
+# .npmrc is now committed with env var reference
