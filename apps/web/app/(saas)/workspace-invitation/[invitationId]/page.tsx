@@ -23,13 +23,13 @@ export default async function WorkspaceInvitationPage({
 		redirect("/app");
 	}
 
-	const workspace = await getWorkspaceById(invitation.workspaceId);
+	const workspace = await getWorkspaceById(invitation.organizationId);
 
 	return (
 		<AuthWrapper>
 			<WorkspaceInvitationModal
-				workspaceName={invitation.workspaceName}
-				workspaceSlug={invitation.workspaceSlug}
+				workspaceName={invitation.organizationName}
+				workspaceSlug={invitation.organizationSlug}
 				logoUrl={workspace?.logo || undefined}
 				invitationId={invitationId}
 			/>

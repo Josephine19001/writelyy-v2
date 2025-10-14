@@ -43,7 +43,7 @@ export function AIChatProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           message: content,
           selectedText,
-          provider: selectedProvider,
+          provider: selectedProvider === 'gemini-free' ? 'gemini' : 'openai',
           history: messages.slice(-5), // Send last 5 messages for context
         }),
       });
@@ -59,7 +59,7 @@ export function AIChatProvider({ children }: { children: ReactNode }) {
         role: 'assistant',
         content: data.content,
         timestamp: new Date(),
-        provider: selectedProvider,
+        provider: selectedProvider === 'gemini-free' ? 'gemini' : 'openai',
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -70,7 +70,7 @@ export function AIChatProvider({ children }: { children: ReactNode }) {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
         timestamp: new Date(),
-        provider: selectedProvider,
+        provider: selectedProvider === 'gemini-free' ? 'gemini' : 'openai',
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {

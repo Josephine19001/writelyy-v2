@@ -41,14 +41,14 @@ export function QuickCreateDialog({ type }: QuickCreateDialogProps) {
 				await createDocumentMutation.mutateAsync({
 					title: name.trim(),
 					organizationId: activeWorkspace.id,
-					folderId: selectedFolderId,
+					folderId: selectedFolderId || undefined,
 				});
 				toast.success(`Document created successfully${selectedFolderId ? ' in selected folder' : ''}`);
 			} else {
 				await createFolderMutation.mutateAsync({
 					name: name.trim(),
 					organizationId: activeWorkspace.id,
-					parentFolderId: selectedFolderId,
+					parentFolderId: selectedFolderId || undefined,
 				});
 				toast.success(`Folder created successfully${selectedFolderId ? ' in selected folder' : ''}`);
 			}

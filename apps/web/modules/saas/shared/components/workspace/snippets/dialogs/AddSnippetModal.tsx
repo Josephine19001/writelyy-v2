@@ -32,7 +32,7 @@ export function AddSnippetModal() {
 
 		try {
 			await createSnippetMutation.mutateAsync({
-				workspaceId: activeWorkspace.id,
+				organizationId: activeWorkspace.id,
 				title: title.trim(),
 				content: content.trim(),
 				category: category.trim() || undefined,

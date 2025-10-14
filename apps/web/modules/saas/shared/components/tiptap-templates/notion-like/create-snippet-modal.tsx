@@ -116,7 +116,6 @@ export function CreateSnippetModal({
 				<DialogFooter>
 					<Button
 						type="button"
-						variant="outline"
 						onClick={handleClose}
 						disabled={isLoading}
 					>

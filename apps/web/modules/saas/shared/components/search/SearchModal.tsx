@@ -67,7 +67,7 @@ export function SearchModal({
 				id: doc.id,
 				title: doc.title,
 				type: "document" as const,
-				content: doc.content,
+				content: getTextContent(doc.content),
 				preview: "Document",
 			};
 		})

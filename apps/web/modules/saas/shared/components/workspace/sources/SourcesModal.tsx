@@ -25,8 +25,8 @@ export function SourcesModal({
 }: SourcesModalProps) {
 	const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
 
-	const handleSourceSelect = (sourceId: string) => {
-		setSelectedSourceId(sourceId);
+	const handleSourceSelect = (source: any) => {
+		setSelectedSourceId(source.id);
 	};
 
 	const handleInsert = () => {

@@ -77,7 +77,7 @@ export function AIInputWithSources({
 				snippets.push({
 					id: `snippet-${snippet.id}`,
 					name: snippet.title,
-					type: "snippet",
+					type: "asset",
 					originalName: snippet.title,
 					content: snippet.content,
 					category: snippet.category,
@@ -106,7 +106,7 @@ export function AIInputWithSources({
 	}, [showDropdown]);
 
 	const getItemIcon = (item: MentionItem) => {
-		if (item.type === "snippet") {
+		if (item.type === "asset" && 'category' in item) {
 			return <FileText className="w-3.5 h-3.5 text-purple-600" />;
 		}
 		

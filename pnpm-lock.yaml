@@ -172,6 +172,9 @@ importers:
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@tiptap-pro/extension-pages':
+        specifier: 1.0.0-alpha.8
+        version: 1.0.0-alpha.8(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-table@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
       '@tiptap/core':
         specifier: ^3.4.4
         version: 3.4.4(@tiptap/pm@3.4.4)
@@ -3759,6 +3762,13 @@ packages:
   '@tanstack/table-core@8.21.3':
     resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
     engines: {node: '>=12'}
+
+  '@tiptap-pro/extension-pages@1.0.0-alpha.8':
+    resolution: {integrity: sha512-gwy8CRJpVOdVUCa/YI2carj0elOh0/Mocdppks7CxPtI6274BwIydXgidk5FxfhpaqMCxOSFODN3XV1AdUwdLg==}
+    peerDependencies:
+      '@tiptap/core': ^3.4.3
+      '@tiptap/extension-table': ^3.4.3
+      '@tiptap/pm': ^3.4.3
 
   '@tiptap/core@3.4.4':
     resolution: {integrity: sha512-lZb/mD1edPbny90X6ejnj6rS7KGa9WHrbhOL1O4OBbV0pRdM+/YtSi1XBqtViT2jUZUWnJCBQmmlgY/GFsRnoA==}
@@ -10920,6 +10930,12 @@ snapshots:
       react-dom: 19.1.1(react@19.1.1)
 
   '@tanstack/table-core@8.21.3': {}
+
+  '@tiptap-pro/extension-pages@1.0.0-alpha.8(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/extension-table@3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)':
+    dependencies:
+      '@tiptap/core': 3.4.4(@tiptap/pm@3.4.4)
+      '@tiptap/extension-table': 3.4.4(@tiptap/core@3.4.4(@tiptap/pm@3.4.4))(@tiptap/pm@3.4.4)
+      '@tiptap/pm': 3.4.4
 
   '@tiptap/core@3.4.4(@tiptap/pm@3.4.4)':
     dependencies:

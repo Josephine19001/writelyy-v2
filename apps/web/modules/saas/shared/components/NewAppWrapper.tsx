@@ -172,10 +172,7 @@ function AppContent({ children }: PropsWithChildren) {
 	const enhancedLeftSidebar = (
 		<LeftSidebar
 			onDocumentSelect={documentSelectHandler || (() => {})}
-			onSourceSelect={sourceSelectHandler || (() => {})}
 			selectedDocumentId={selectedDocumentId || undefined}
-			onInsertSource={insertSourceHandler || undefined}
-			onUseAsAIContext={aiContextHandler || undefined}
 		/>
 	);
 

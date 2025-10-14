@@ -32,7 +32,7 @@ export function WorkspaceInvitationModal({
 		setSubmitting(accept ? "accept" : "reject");
 		try {
 			if (accept) {
-				const { error } = await authClient.workspace.acceptInvitation({
+				const { error } = await authClient.organization.acceptInvitation({
 					invitationId,
 				});
 
@@ -46,7 +46,7 @@ export function WorkspaceInvitationModal({
 
 				router.replace(`/app/${workspaceSlug}`);
 			} else {
-				const { error } = await authClient.workspace.rejectInvitation({
+				const { error } = await authClient.organization.rejectInvitation({
 					invitationId,
 				});
 

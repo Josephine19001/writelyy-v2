@@ -77,7 +77,7 @@ export function ScrollableTabs({
 				{tabs.map((tab) => (
 					<Button
 						key={tab.key}
-						variant={activeTab === tab.key ? "default" : "ghost"}
+						variant={activeTab === tab.key ? "primary" : "ghost"}
 						size="sm"
 						className="text-xs px-2 h-7"
 						onClick={() => onTabChange(tab.key)}
@@ -113,7 +113,7 @@ export function ScrollableTabs({
 				{tabs.map((tab) => (
 					<Button
 						key={tab.key}
-						variant={activeTab === tab.key ? "default" : "ghost"}
+						variant={activeTab === tab.key ? "primary" : "ghost"}
 						size="sm"
 						className="text-xs px-2 h-7 whitespace-nowrap flex-shrink-0"
 						onClick={() => onTabChange(tab.key)}

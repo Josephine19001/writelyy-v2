@@ -54,7 +54,8 @@ export default async function Layout({ children }: PropsWithChildren) {
 
 		if (error) {
 			// If it's an unauthorized error, treat as no purchases (free tier)
-			if (error.message === "Unauthorized") {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			if (errorMessage === "Unauthorized") {
 				console.warn("No billing access, treating as free tier");
 			} else {
 				throw new Error("Failed to fetch purchases");

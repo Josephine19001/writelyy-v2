@@ -24,6 +24,7 @@ import { Mathematics } from "@tiptap/extension-mathematics";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { TableCell, TableKit } from "@tiptap/extension-table";
+import { PageKit } from "@tiptap-pro/extension-pages";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
@@ -239,8 +240,15 @@ export function EditorProvider(props: EditorProviderProps) {
 						!isChangeOrigin(transaction),
 				}),
 				Typography,
+				PageKit.configure({
+					pages: {
+						pageFormat: "A4",
+						header: "",
+						footer: "Page {page} of {total}",
+						pageBreakBackground: "var(--tt-border-color)",
+					},
+				}),
 				UiState,
-				// Custom AI integration will be handled separately
 			],
 		},
 		[], // Empty dependency array to prevent unnecessary recreations

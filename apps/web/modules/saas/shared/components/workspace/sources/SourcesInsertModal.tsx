@@ -40,7 +40,7 @@ export function SourcesInsertModal({
 	const handleInsertSource = useCallback(() => {
 		if (!selectedSourceId) return;
 		
-		const selectedSource = sources.find(source => source.id === selectedSourceId);
+		const selectedSource = sources.find((source: any) => source.id === selectedSourceId);
 		if (selectedSource) {
 			onSourceSelect(selectedSource);
 			onOpenChange(false);
@@ -58,7 +58,7 @@ export function SourcesInsertModal({
 					<SourcesBrowser
 						mode="insertion" // Only show insertable sources (images, links)
 						onSourceSelect={handleSourceSelect}
-						selectedSourceId={selectedSourceId}
+						selectedSourceId={selectedSourceId || undefined}
 					/>
 				</div>
 

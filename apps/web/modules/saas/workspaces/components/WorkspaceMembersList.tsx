@@ -54,10 +54,10 @@ export function WorkspaceMembersList({ workspaceId }: { workspaceId: string }) {
 	) => {
 		toast.promise(
 			async () => {
-				await authClient.workspace.updateMemberRole({
+				await authClient.organization.updateMemberRole({
 					memberId,
 					role,
-					workspaceId,
+					organizationId: workspaceId,
 				});
 			},
 			{
@@ -83,9 +83,9 @@ export function WorkspaceMembersList({ workspaceId }: { workspaceId: string }) {
 	const removeMember = async (memberId: string) => {
 		toast.promise(
 			async () => {
-				await authClient.workspace.removeMember({
+				await authClient.organization.removeMember({
 					memberIdOrEmail: memberId,
-					workspaceId,
+					organizationId: workspaceId,
 				});
 			},
 			{

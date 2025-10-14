@@ -72,20 +72,21 @@ export function AggressiveWorkspaceCacheProvider({
 	const cacheHook = useAggressiveWorkspaceCache(activeWorkspace?.id || null);
 
 	// Performance monitoring
-	useEffect(() => {
-		if (!showPerformanceStats || process.env.NODE_ENV !== "development")
-			return;
+	// TODO: Implement logStats function if needed
+	// useEffect(() => {
+	// 	if (!showPerformanceStats || process.env.NODE_ENV !== "development")
+	// 		return;
 
-		// Set up periodic logging
-		const interval = setInterval(logStats, 30000); // Every 30 seconds
-		return () => clearInterval(interval);
-	}, [
-		cacheHook.isReady,
-		cacheHook.documents.length,
-		cacheHook.folders.length,
-		cacheHook.sources.length,
-		showPerformanceStats,
-	]);
+	// 	// Set up periodic logging
+	// 	const interval = setInterval(logStats, 30000); // Every 30 seconds
+	// 	return () => clearInterval(interval);
+	// }, [
+	// 	cacheHook.isReady,
+	// 	cacheHook.documents.length,
+	// 	cacheHook.folders.length,
+	// 	cacheHook.sources.length,
+	// 	showPerformanceStats,
+	// ]);
 
 	// Show loading screen only during initial cache load
 	if (activeWorkspace && cacheHook.isInitializing) {

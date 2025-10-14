@@ -38,8 +38,8 @@ export function ChangeWorkspaceNameForm() {
 		}
 
 		try {
-			const { error } = await authClient.workspace.update({
-				workspaceId: activeWorkspace.id,
+			const { error } = await authClient.organization.update({
+				organizationId: activeWorkspace.id,
 				data: {
 					name,
 				},

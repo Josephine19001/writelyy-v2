@@ -117,7 +117,7 @@ export function EditorDemo() {
 									size="sm"
 									variant={
 										activeAction === action.id
-											? "default"
+											? "primary"
 											: "outline"
 									}
 									onClick={() => handleQuickAction(action.id)}

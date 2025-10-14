@@ -39,7 +39,6 @@ export const useWorkspaceAiContextQuery = (
 				}),
 				orpcClient.sources.list({
 					organizationId,
-					processingStatus: "completed", // Only include processed sources
 					limit: 50,
 				}),
 			]);
@@ -194,7 +193,7 @@ export const createGetSourceContentTool = (organizationId: string) => ({
 		return {
 			name: source.name,
 			type: source.type,
-			content: source.extractedText,
+			content: source.url || source.filePath || '',
 			metadata: source.metadata,
 			linkedDocuments: source.documentSources?.map(ds => ds.document?.title),
 		};

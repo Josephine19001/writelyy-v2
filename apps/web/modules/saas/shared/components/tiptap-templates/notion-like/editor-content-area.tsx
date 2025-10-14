@@ -65,7 +65,8 @@ export function EditorContentArea() {
 			aiGenerationIsSelection &&
 			aiGenerationHasMessage
 		) {
-			editor.chain().focus().aiAccept().run();
+			// TODO: Check if aiAccept command exists in current Tiptap AI extension version
+		// editor.chain().focus().aiAccept().run();
 			editor.commands.resetUiState();
 		}
 	}, [

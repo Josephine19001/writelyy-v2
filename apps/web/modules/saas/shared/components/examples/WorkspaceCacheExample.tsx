@@ -93,7 +93,7 @@ function WorkspaceCacheExampleInner() {
           <h3>Document Tree (Cached)</h3>
           <CachedWorkspaceDocumentTree
             onDocumentSelect={handleDocumentSelect}
-            selectedDocumentId={selectedDocumentId}
+            selectedDocumentId={selectedDocumentId || undefined}
             className="example-tree"
           />
         </div>

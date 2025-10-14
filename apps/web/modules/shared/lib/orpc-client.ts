@@ -14,36 +14,23 @@ const link = new RPCLink({
 		return Object.fromEntries(await headers());
 	},
 	interceptors: [
-		onError((error, context) => {
-			// Add debug logging for document-related calls
-			if (context?.path?.includes("documents")) {
-				console.error("🔴 ORPC DOCUMENT ERROR:", {
-					path: context.path,
-					error: error,
-					message: error instanceof Error ? error.message : "Unknown error",
-					code: (error as any)?.code,
-					status: (error as any)?.status,
-				});
-			}
-
+		onError((error) => {
 			// Skip abort errors (user cancelled requests)
 			if (error instanceof Error && error.name === "AbortError") {
 				return;
 			}
 
 			// Skip 401 Unauthorized errors for payments - these are expected
-			if (error instanceof Error && 
-				error.message === "Unauthorized" && 
-				context?.path?.includes("payments")) {
+			if (error instanceof Error && error.message === "Unauthorized") {
 				return;
 			}
 
 			// Skip empty errors or meaningless error objects
-			if (!error || 
-				error === null || 
+			if (!error ||
+				error === null ||
 				error === undefined ||
 				(typeof error === 'object' && (
-					Object.keys(error).length === 0 || 
+					Object.keys(error).length === 0 ||
 					JSON.stringify(error) === '{}' ||
 					JSON.stringify(error) === 'null' ||
 					JSON.stringify(error) === 'undefined'
@@ -54,21 +41,16 @@ const link = new RPCLink({
 
 			// Skip certain known non-critical validation errors
 			if (error instanceof Error && error.message?.includes("Input validation failed")) {
-				console.warn("API validation error:", {
-					path: context?.path,
-					message: error.message,
-				});
+				console.warn("API validation error:", error.message);
 				return;
 			}
 
 			// Only log if error has meaningful content
 			const hasError = error instanceof Error;
 			const hasMessage = hasError && error.message && error.message.trim().length > 0;
-			const hasPath = context?.path && context.path.length > 0;
-			
-			if (hasError && hasMessage && hasPath) {
+
+			if (hasError && hasMessage) {
 				console.error("ORPC Error:", {
-					path: context.path,
 					message: error.message,
 					code: (error as any).code || 'UNKNOWN',
 					status: (error as any).status || 'N/A',

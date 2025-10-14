@@ -139,6 +139,7 @@ export function useTabManager() {
     if (!parsedTab) return;
 
     const fullTab: TabItem = {
+      ...tabData,
       id: parsedTab.id!,
       title: tabData.title || parsedTab.title || "Untitled",
       url: tabData.url,
@@ -148,7 +149,6 @@ export function useTabManager() {
       workspaceId: activeWorkspace.id,
       documentId: parsedTab.documentId,
       folderId: parsedTab.folderId,
-      ...tabData,
     };
 
     setState(prev => {

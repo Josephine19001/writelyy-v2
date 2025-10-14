@@ -75,7 +75,7 @@ export function useAggressiveWorkspaceCache(organizationId: string | null) {
 		},
 		enabled: !!organizationId,
 		staleTime: 10 * 60 * 1000, // 10 minutes
-		cacheTime: 30 * 60 * 1000, // 30 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes
 		refetchOnWindowFocus: false,
 		retry: 3,
 	});
@@ -153,7 +153,7 @@ export function useAggressiveWorkspaceCache(organizationId: string | null) {
 			// If no access data, preload recent documents
 			if (documentsToPreload.length === 0) {
 				const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-				documentsToPreload = cacheState.data.documents
+				documentsToPreload = (cacheState.data?.documents || [])
 					.filter((doc) => new Date(doc.updatedAt) > weekAgo)
 					.sort(
 						(a, b) =>

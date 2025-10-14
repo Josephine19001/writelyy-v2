@@ -91,7 +91,7 @@ export function CachedWorkspaceDocumentTree({
 
         // Add documents in this folder
         const folderDocs = documentsByFolder[folder.id] || [];
-        folderDocs.forEach(doc => {
+        folderDocs.forEach((doc: any) => {
           folderNode.children.push({
             id: doc.id,
             name: doc.title,
@@ -113,7 +113,7 @@ export function CachedWorkspaceDocumentTree({
 
     // Add root-level documents
     const rootDocuments = documentsByFolder.root || [];
-    rootDocuments.forEach(doc => {
+    rootDocuments.forEach((doc: any) => {
       rootTree.push({
         id: doc.id,
         name: doc.title,

@@ -30,7 +30,7 @@ export function SnippetsModal({
 		{ enabled: !!activeWorkspace?.id }
 	);
 
-	const snippets = snippetsData || [];
+	const snippets = snippetsData?.snippets || [];
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>

@@ -98,8 +98,8 @@ export function InstantWorkspaceDocumentTree({
 
         // Add documents in this folder
         folderDocs
-          .sort((a, b) => a.title.localeCompare(b.title)) // Sort alphabetically
-          .forEach(doc => {
+          .sort((a: any, b: any) => a.title.localeCompare(b.title)) // Sort alphabetically
+          .forEach((doc: any) => {
             folderNode.children.push({
               id: doc.id,
               name: doc.title,
@@ -122,8 +122,8 @@ export function InstantWorkspaceDocumentTree({
     // Add root-level documents
     const rootDocuments = documentsByFolder.root || [];
     rootDocuments
-      .sort((a, b) => a.title.localeCompare(b.title))
-      .forEach(doc => {
+      .sort((a: any, b: any) => a.title.localeCompare(b.title))
+      .forEach((doc: any) => {
         rootTree.push({
           id: doc.id,
           name: doc.title,

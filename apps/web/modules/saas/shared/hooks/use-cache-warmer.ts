@@ -31,12 +31,12 @@ export function useCacheWarmer(
   } = options;
 
   const queryClient = useQueryClient();
-  const warmerIntervalRef = useRef<NodeJS.Timeout>();
+  const warmerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const prefetchQueueRef = useRef<string[]>([]);
   const activePrefetchesRef = useRef<Set<string>>(new Set());
 
   // Check if data is stale and needs refreshing
-  const isDataStale = useCallback((queryKey: string[]) => {
+  const isDataStale = useCallback((queryKey: readonly string[]) => {
     const queryState = queryClient.getQueryState(queryKey);
     if (!queryState?.dataUpdatedAt) return true;
     

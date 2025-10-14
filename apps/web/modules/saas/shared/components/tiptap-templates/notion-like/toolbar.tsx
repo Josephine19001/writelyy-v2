@@ -560,9 +560,10 @@ function MainToolbarContent({
         <>
           <ToolbarSeparator />
 
-          <ToolbarGroup>
+          {/* TODO: Import and add ImproveDropdown component */}
+          {/* <ToolbarGroup>
             <ImproveDropdown portal={true} />
-          </ToolbarGroup>
+          </ToolbarGroup> */}
 
           <ToolbarSeparator />
 

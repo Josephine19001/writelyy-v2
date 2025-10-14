@@ -89,8 +89,8 @@ export function WorkspaceList() {
 	const deleteWorkspace = async (id: string) => {
 		toast.promise(
 			async () => {
-				const { error } = await authClient.workspace.delete({
-					workspaceId: id,
+				const { error } = await authClient.organization.delete({
+					organizationId: id,
 				});
 
 				if (error) {

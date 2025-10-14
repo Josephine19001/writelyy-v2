@@ -27,8 +27,8 @@ export function DeleteWorkspaceForm() {
 			message: t("workspaces.settings.deleteWorkspace.confirmation"),
 			destructive: true,
 			onConfirm: async () => {
-				const { error } = await authClient.workspace.delete({
-					workspaceId: activeWorkspace.id,
+				const { error } = await authClient.organization.delete({
+					organizationId: activeWorkspace.id,
 				});
 
 				if (error) {

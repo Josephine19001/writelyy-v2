@@ -65,8 +65,8 @@ export function WorkspaceLogoForm() {
 				throw new Error("Failed to upload image");
 			}
 
-			const { error } = await authClient.workspace.update({
-				workspaceId: activeWorkspace.id,
+			const { error } = await authClient.organization.update({
+				organizationId: activeWorkspace.id,
 				data: {
 					logo: path,
 				},

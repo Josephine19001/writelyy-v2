@@ -66,7 +66,7 @@ export function WorkspaceInvitationsList({
 	const revokeInvitation = (invitationId: string) => {
 		toast.promise(
 			async () => {
-				const { error } = await authClient.workspace.cancelInvitation({
+				const { error } = await authClient.organization.cancelInvitation({
 					invitationId,
 				});
 

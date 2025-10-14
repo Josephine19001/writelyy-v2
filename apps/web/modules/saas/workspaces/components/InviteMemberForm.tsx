@@ -42,9 +42,9 @@ export function InviteMemberForm({ workspaceId }: { workspaceId: string }) {
 
 	const onSubmit: SubmitHandler<FormValues> = async (values) => {
 		try {
-			const { error } = await authClient.workspace.inviteMember({
+			const { error } = await authClient.organization.inviteMember({
 				...values,
-				workspaceId,
+				organizationId: workspaceId,
 			});
 
 			if (error) {
