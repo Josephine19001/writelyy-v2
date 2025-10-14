@@ -45,6 +45,7 @@ import { useMenuActionVisibility } from "@shared/tiptap/components/tiptap-ui/dra
 import { AiAskButton } from "@shared/tiptap/components/tiptap-ui/ai-ask-button"
 import { DuplicateButton } from "@shared/tiptap/components/tiptap-ui/duplicate-button"
 import { CopyToClipboardButton } from "@shared/tiptap/components/tiptap-ui/copy-to-clipboard-button"
+import { BkAiSelector } from "@shared/tiptap/components/tiptap-ui/bk-ai-selector/bk-ai-selector"
 
 // --- Utils ---
 import { getNodeDisplayName } from "@shared/tiptap/lib/tiptap-collab-utils"
@@ -560,10 +561,9 @@ function MainToolbarContent({
         <>
           <ToolbarSeparator />
 
-          {/* TODO: Import and add ImproveDropdown component */}
-          {/* <ToolbarGroup>
-            <ImproveDropdown portal={true} />
-          </ToolbarGroup> */}
+          <ToolbarGroup>
+            <BkAiSelector />
+          </ToolbarGroup>
 
           <ToolbarSeparator />
 

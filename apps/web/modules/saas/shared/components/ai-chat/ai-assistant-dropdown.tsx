@@ -80,7 +80,10 @@ const TONE_OPTIONS = [
 	},
 ];
 
-export function AIAssistantDropdown({ editor, onAskAIClick }: AIAssistantDropdownProps) {
+export function AIAssistantDropdown({
+	editor,
+	onAskAIClick,
+}: AIAssistantDropdownProps) {
 	const { sendMessage, insertTextToEditor, setEditor } = useAIChat();
 	const [isOpen, setIsOpen] = React.useState(false);
 
@@ -145,11 +148,6 @@ export function AIAssistantDropdown({ editor, onAskAIClick }: AIAssistantDropdow
 	const openCustomAsk = () => {
 		setIsOpen(false);
 		onAskAIClick?.(); // Trigger the parent's handler to show the AskAIButton
-	};
-
-	const handleAddContext = () => {
-		// TODO: Implement add context functionality
-		console.log("Add context clicked");
 	};
 
 	const hasSelection = !editor.state.selection.empty;

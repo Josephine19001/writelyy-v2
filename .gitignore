@@ -39,9 +39,10 @@ dist/
 # typescript
 *.tsbuildinfo
 
-# other 
+# other
 .react-email/
 .content-collections/
+bk/
 
 # npm registry config (contains private tokens)
 # .npmrc is now committed with env var reference

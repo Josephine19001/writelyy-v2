@@ -1,17 +1,17 @@
 // --- Icons ---
 import { MoreVerticalIcon } from "@shared/tiptap/components/tiptap-icons/more-vertical-icon";
-import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-floating";
 import { ChartBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/chart-block-node/chart-block-node-floating";
+import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/drawing-block-node/drawing-block-node-floating";
 // --- Node ---
 import { ImageNodeFloating } from "@shared/tiptap/components/tiptap-node/image-node/image-node-floating";
+import { AiMenu } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu";
 // --- UI ---
 import { ColorTextPopover } from "@shared/tiptap/components/tiptap-ui/color-text-popover";
+import { ImproveDropdown } from "@shared/tiptap/components/tiptap-ui/improve-dropdown";
 import {
 	DropdownProvider,
 	useDropdownCoordination,
 } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
-import { AIAssistantDropdown } from "../../ai-chat/ai-assistant-dropdown";
-import { AIChatProvider } from "../../ai-chat/ai-chat-context";
 import { LinkPopover } from "@shared/tiptap/components/tiptap-ui/link-popover";
 import type { Mark } from "@shared/tiptap/components/tiptap-ui/mark-button";
 import {
@@ -56,10 +56,7 @@ import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
 import { isSelectionValid } from "@shared/tiptap/lib/tiptap-collab-utils";
 import type { Editor } from "@tiptap/react";
 import * as React from "react";
-import { AskAIButton } from "../../ai-chat/ask-ai-button";
-import { useAIChat } from "../../ai-chat/ai-chat-context";
-import { SourcesDropdown } from "./sources-dropdown";
-import { SnippetsDropdown } from "./snippets-dropdown";
+import { AIChatProvider } from "../../ai-chat/ai-chat-context";
 import { SnippetButton } from "./snippet-button";
 
 export function NotionToolbarFloating() {
@@ -87,28 +84,15 @@ export function NotionToolbarFloating() {
 
 function NotionToolbarFloatingContent() {
 	const { editor } = useTiptapEditor();
-	const { sendMessage } = useAIChat();
-	const [showAskAI, setShowAskAI] = React.useState(false);
-
-	const handleCustomAskMessage = (message: string) => {
-		// The mentions are already included in the message formatting by the input component
-		// We can pass the message directly to the AI chat system
-		sendMessage(message);
-		setShowAskAI(false); // Close the input after sending
-	};
 
 	return (
 		<div className="flex flex-col gap-2">
+			<AiMenu editor={editor} />
 			{/* Main Floating Toolbar */}
 			<DropdownProvider>
 				<Toolbar variant="floating">
 					<ToolbarGroup>
-						{editor && (
-							<AIAssistantDropdown
-								editor={editor}
-								onAskAIClick={() => setShowAskAI(true)}
-							/>
-						)}
+						<ImproveDropdown hideWhenUnavailable={true} />
 						<SnippetButton />
 					</ToolbarGroup>
 
@@ -165,8 +149,8 @@ function NotionToolbarFloatingContent() {
 						<ImageNodeFloating />
 						<DrawingBlockNodeFloating />
 						<ChartBlockNodeFloating />
-						<SourcesDropdown />
-						<SnippetsDropdown />
+						{/* <SourcesDropdown />
+						<SnippetsDropdown /> */}
 					</ToolbarGroup>
 
 					<ToolbarGroup>
@@ -180,16 +164,6 @@ function NotionToolbarFloatingContent() {
 					<MoreOptions hideWhenUnavailable={true} />
 				</Toolbar>
 			</DropdownProvider>
-
-			{/* AskAI Button positioned below the toolbar (industry standard) - only shown when triggered */}
-			{showAskAI && (
-				<AskAIButton
-					placeholder="Ask what you want..."
-					onSendMessage={handleCustomAskMessage}
-					onCancel={() => setShowAskAI(false)}
-					autoFocus={true}
-				/>
-			)}
 		</div>
 	);
 }

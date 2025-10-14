@@ -44,6 +44,10 @@ import Ai from "@tiptap-pro/extension-ai";
 import AiAgent from "@tiptap-pro/extension-ai-agent";
 import AiSuggestion from "@tiptap-pro/extension-ai-suggestion";
 import AiChanges from "@tiptap-pro/extension-ai-changes";
+// BK AI Extensions (from BK tiptap-block-editor - simple, no subscription required)
+import { BkAi } from "@shared/tiptap/extensions/bk-ai/bk-ai-extension";
+import { BkAiPlaceholder } from "@shared/tiptap/extensions/bk-ai/bk-ai-placeholder";
+import { BkAiWriter } from "@shared/tiptap/extensions/bk-ai/bk-ai-writer";
 import * as React from "react";
 import { toast } from "sonner";
 import type { Doc as YDoc } from "yjs";
@@ -261,7 +265,19 @@ export function EditorProvider(props: EditorProviderProps) {
 					},
 				}),
 				UiState,
-				// Tiptap Pro AI Extensions
+				// BK AI Extensions (from BK tiptap-block-editor)
+				BkAiPlaceholder,
+				BkAiWriter,
+				BkAi.configure({
+					onLoading: () => {
+						console.log("🤖 AI is generating...");
+					},
+					onError: (error) => {
+						console.error("AI generation failed:", error);
+						toast.error("AI generation failed. Please try again.");
+					},
+				}),
+				// Tiptap Pro AI Extensions (optional, requires subscription)
 				...(AI_FEATURES.textGeneration && aiToken
 					? [Ai.configure(getAiExtensionConfig(aiToken))]
 					: []),
