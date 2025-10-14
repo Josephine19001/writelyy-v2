@@ -278,7 +278,9 @@ export function PricingTable({
 												variant={
 													recommended
 														? "primary"
-														: "secondary"
+														: isFree
+															? "outline"
+															: "secondary"
 												}
 												onClick={() =>
 													onSelectPlan(

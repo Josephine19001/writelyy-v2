@@ -3,6 +3,7 @@
 import { LocaleLink, useLocalePathname } from "@i18n/routing";
 import { config } from "@repo/config";
 import { useSession } from "@saas/auth/hooks/use-session";
+import { WaitlistDialog } from "@marketing/home/components/WaitlistDialog";
 import { ColorModeToggle } from "@shared/components/ColorModeToggle";
 import { LocaleSwitch } from "@shared/components/LocaleSwitch";
 import { Logo } from "@shared/components/Logo";
@@ -283,16 +284,21 @@ export function NavBar() {
 										</LocaleLink>
 									))}
 
-									<NextLink
-										key={user ? "start" : "login"}
-										href={user ? "/app" : "/auth/login"}
-										className="block px-3 py-2 text-base"
-										prefetch={!user}
-									>
-										{user
-											? t("common.menu.dashboard")
-											: t("common.menu.login")}
-									</NextLink>
+									{user ? (
+										<NextLink
+											key="dashboard"
+											href="/app"
+											className="block px-3 py-2 text-base"
+										>
+											{t("common.menu.dashboard")}
+										</NextLink>
+									) : (
+										<WaitlistDialog>
+											<Button className="w-full mt-4 bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 hover:from-pink-500 hover:via-fuchsia-600 hover:to-purple-600 text-white shadow-lg">
+												Join Waitlist
+											</Button>
+										</WaitlistDialog>
+									)}
 								</div>
 							</SheetContent>
 						</Sheet>
@@ -315,21 +321,16 @@ export function NavBar() {
 									</NextLink>
 								</Button>
 							) : (
-								<Button
-									key="login"
-									className={cn(
-										"hidden lg:flex",
-										isTop && !isDocsPage
-											? "bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
-											: "",
-									)}
-									asChild
-									variant="secondary"
-								>
-									<NextLink href="/auth/login" prefetch>
-										Try now
-									</NextLink>
-								</Button>
+								<WaitlistDialog>
+									<Button
+										key="waitlist"
+										className={cn(
+											"hidden lg:flex bg-gradient-to-r from-pink-400 via-fuchsia-500 to-purple-500 hover:from-pink-500 hover:via-fuchsia-600 hover:to-purple-600 dark:from-pink-400/90 dark:via-fuchsia-500/90 dark:to-purple-500/90 dark:hover:from-pink-500 dark:hover:via-fuchsia-600 dark:hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
+										)}
+									>
+										Join Waitlist
+									</Button>
+								</WaitlistDialog>
 							))}
 					</div>
 				</div>

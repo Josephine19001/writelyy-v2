@@ -15,6 +15,13 @@ import {
 	handleImageUpload,
 	MAX_FILE_SIZE,
 } from "@shared/tiptap/lib/tiptap-utils";
+import {
+	getAiExtensionConfig,
+	getAiAgentConfig,
+	getAiSuggestionConfig,
+	getAiChangesConfig,
+	AI_FEATURES,
+} from "@shared/tiptap/config/ai-config";
 import { Collaboration, isChangeOrigin } from "@tiptap/extension-collaboration";
 import { CollaborationCaret } from "@tiptap/extension-collaboration-caret";
 import { Emoji, gitHubEmojis } from "@tiptap/extension-emoji";
@@ -32,6 +39,11 @@ import { UniqueID } from "@tiptap/extension-unique-id";
 import { Placeholder, Selection } from "@tiptap/extensions";
 import { EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
+// Tiptap Pro AI Extensions
+import Ai from "@tiptap-pro/extension-ai";
+import AiAgent from "@tiptap-pro/extension-ai-agent";
+import AiSuggestion from "@tiptap-pro/extension-ai-suggestion";
+import AiChanges from "@tiptap-pro/extension-ai-changes";
 import * as React from "react";
 import { toast } from "sonner";
 import type { Doc as YDoc } from "yjs";
@@ -249,6 +261,19 @@ export function EditorProvider(props: EditorProviderProps) {
 					},
 				}),
 				UiState,
+				// Tiptap Pro AI Extensions
+				...(AI_FEATURES.textGeneration && aiToken
+					? [Ai.configure(getAiExtensionConfig(aiToken))]
+					: []),
+				...(AI_FEATURES.aiAgent && aiToken
+					? [AiAgent.configure(getAiAgentConfig(aiToken))]
+					: []),
+				...(AI_FEATURES.aiSuggestions && aiToken
+					? [AiSuggestion.configure(getAiSuggestionConfig(aiToken))]
+					: []),
+				...(AI_FEATURES.trackChanges
+					? [AiChanges.configure(getAiChangesConfig())]
+					: []),
 			],
 		},
 		[], // Empty dependency array to prevent unnecessary recreations

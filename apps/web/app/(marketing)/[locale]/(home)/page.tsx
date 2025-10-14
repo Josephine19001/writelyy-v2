@@ -2,6 +2,8 @@ import { FaqSection } from "@marketing/home/components/FaqSection";
 import { Features } from "@marketing/home/components/Features";
 import { Hero } from "@marketing/home/components/Hero";
 import { PricingSection } from "@marketing/home/components/PricingSection";
+import { ValueStats } from "@marketing/home/components/ValueStats";
+import { WritingChaos } from "@marketing/home/components/WritingChaos";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 
@@ -88,7 +90,9 @@ export default async function Home({
 	return (
 		<>
 			<Hero />
+			<WritingChaos />
 			<Features />
+			<ValueStats />
 			<PricingSection />
 			<FaqSection />
 		</>
