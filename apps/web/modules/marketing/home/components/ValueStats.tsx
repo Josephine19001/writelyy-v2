@@ -77,7 +77,7 @@ export function ValueStats() {
 					}}
 					transition={{
 						duration: 8,
-						repeat: Infinity,
+						repeat: Number.POSITIVE_INFINITY,
 						ease: "easeInOut",
 					}}
 				/>
@@ -193,7 +193,7 @@ export function ValueStats() {
 								}}
 								transition={{
 									duration: 3,
-									repeat: Infinity,
+									repeat: Number.POSITIVE_INFINITY,
 									ease: "easeInOut",
 								}}
 							/>
@@ -292,7 +292,7 @@ export function ValueStats() {
 													}}
 													transition={{
 														duration: 2,
-														repeat: Infinity,
+														repeat: Number.POSITIVE_INFINITY,
 														delay: index * 0.2,
 													}}
 												/>

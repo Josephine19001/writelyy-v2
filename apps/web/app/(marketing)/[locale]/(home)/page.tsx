@@ -1,3 +1,4 @@
+import { AICapabilities } from "@marketing/home/components/AICapabilities";
 import { FaqSection } from "@marketing/home/components/FaqSection";
 import { Features } from "@marketing/home/components/Features";
 import { Hero } from "@marketing/home/components/Hero";
@@ -91,6 +92,7 @@ export default async function Home({
 		<>
 			<Hero />
 			<WritingChaos />
+			<AICapabilities />
 			<Features />
 			<ValueStats />
 			<PricingSection />

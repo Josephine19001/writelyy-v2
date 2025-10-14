@@ -6,9 +6,6 @@
  */
 
 import type { AiOptions } from "@tiptap-pro/extension-ai";
-import type { AIAgentOptions } from "@tiptap-pro/extension-ai-agent";
-import type { AiSuggestionOptions } from "@tiptap-pro/extension-ai-suggestion";
-import type { AiChangesOptions } from "@tiptap-pro/extension-ai-changes";
 
 /**
  * AI Extension Configuration
@@ -21,58 +18,22 @@ export const getAiExtensionConfig = (aiToken: string | null): Partial<AiOptions>
 
   return {
     // Tiptap Cloud configuration
-    appId: process.env.NEXT_PUBLIC_TIPTAP_AI_APP_ID,
+    appId: process.env.NEXT_PUBLIC_TIPTAP_AI_APP_ID || "",
     token: aiToken || "",
 
-    // Enable streaming for real-time AI responses
-    stream: true,
+    // Enable autocompletion
+    autocompletion: true,
 
-    // Auto-commands configuration
-    autoCommands: [
-      {
-        name: "improve",
-        label: "Improve writing",
-        description: "Improve the selected text",
-      },
-      {
-        name: "fixSpelling",
-        label: "Fix spelling & grammar",
-        description: "Fix spelling and grammar errors",
-      },
-      {
-        name: "makeShorter",
-        label: "Make shorter",
-        description: "Make the text more concise",
-      },
-      {
-        name: "makeLonger",
-        label: "Make longer",
-        description: "Expand the text with more details",
-      },
-      {
-        name: "simplify",
-        label: "Simplify",
-        description: "Use simpler language",
-      },
-      {
-        name: "emojify",
-        label: "Add emojis",
-        description: "Add relevant emojis",
-      },
-      {
-        name: "changeTone",
-        label: "Change tone",
-        description: "Change the tone of the text",
-      },
-      {
-        name: "translate",
-        label: "Translate",
-        description: "Translate to another language",
-      },
-    ],
-
-    // Custom commands can be added here
-    commands: [],
+    // Callbacks for AI events
+    onLoading: () => {
+      console.log("AI is generating...");
+    },
+    onSuccess: () => {
+      console.log("AI generation completed");
+    },
+    onError: (error) => {
+      console.error("AI generation error:", error);
+    },
   };
 };
 
@@ -80,7 +41,7 @@ export const getAiExtensionConfig = (aiToken: string | null): Partial<AiOptions>
  * AI Agent Configuration
  * Configures the AI Agent extension for document editing
  */
-export const getAiAgentConfig = (aiToken: string | null): Partial<AIAgentOptions> => {
+export const getAiAgentConfig = (aiToken: string | null): Record<string, any> => {
   if (!aiToken) {
     console.warn("AI Agent token not available");
   }
@@ -102,7 +63,7 @@ export const getAiAgentConfig = (aiToken: string | null): Partial<AIAgentOptions
  * AI Suggestions Configuration
  * Configures the AI Suggestion extension for proofreading
  */
-export const getAiSuggestionConfig = (aiToken: string | null): Partial<AiSuggestionOptions> => {
+export const getAiSuggestionConfig = (aiToken: string | null): Record<string, any> => {
   if (!aiToken) {
     console.warn("AI Suggestion token not available");
   }
@@ -151,7 +112,7 @@ export const getAiSuggestionConfig = (aiToken: string | null): Partial<AiSuggest
  * AI Changes Configuration
  * Configures the AI Changes extension for tracking AI-generated changes
  */
-export const getAiChangesConfig = (): Partial<AiChangesOptions> => {
+export const getAiChangesConfig = (): Record<string, any> => {
   return {
     // Track all AI-generated changes
     trackChanges: true,
