@@ -96,16 +96,15 @@ export function AiMenuContent({
 				}
 			}
 
-			editor
-				.chain()
-				.aiTextPrompt({
+			if ((editor.commands as any).aiTextPrompt) {
+				(editor.commands as any).aiTextPrompt({
 					text: promptWithContext,
 					insert: true,
 					stream: true,
 					tone: state.tone,
 					format: "rich-text",
-				})
-				.run();
+				});
+			}
 		},
 		[editor, state.tone, state.fallbackAnchor, setFallbackAnchor],
 	);
@@ -126,22 +125,30 @@ export function AiMenuContent({
 
 	const handleOnReject = React.useCallback(() => {
 		if (!editor) return;
-		editor.commands.aiReject();
+		if ((editor.commands as any).aiReject) {
+			(editor.commands as any).aiReject();
+		}
 		closeAiMenu();
 	}, [closeAiMenu, editor]);
 
 	const handleOnAccept = React.useCallback(() => {
 		if (!editor) return;
-		editor.commands.aiAccept();
+		if ((editor.commands as any).aiAccept) {
+			(editor.commands as any).aiAccept();
+		}
 		closeAiMenu();
 	}, [closeAiMenu, editor]);
 
 	const handleInputOnClose = React.useCallback(() => {
 		if (!editor) return;
 		if (aiGenerationIsLoading) {
-			editor.commands.aiReject({ type: "reset" });
+			if ((editor.commands as any).aiReject) {
+				(editor.commands as any).aiReject({ type: "reset" });
+			}
 		} else {
-			editor.commands.aiAccept();
+			if ((editor.commands as any).aiAccept) {
+			(editor.commands as any).aiAccept();
+		}
 		}
 		closeAiMenu();
 	}, [aiGenerationIsLoading, closeAiMenu, editor]);
@@ -151,7 +158,9 @@ export function AiMenuContent({
 			closeAiMenu();
 
 			if (!editor) return;
-			editor.commands.aiAccept();
+			if ((editor.commands as any).aiAccept) {
+			(editor.commands as any).aiAccept();
+		}
 		}
 	}, [aiGenerationIsLoading, closeAiMenu, editor]);
 
@@ -286,7 +295,9 @@ export function AiMenuProgress({ editor }: { editor: Editor }) {
 	const handleStop = React.useCallback(() => {
 		if (!editor) return;
 
-		editor.chain().aiReject({ type: "reset" }).run();
+		if ((editor.commands as any).aiReject) {
+			(editor.commands as any).aiReject({ type: "reset" });
+		}
 		reset();
 		editor.commands.resetUiState();
 	}, [editor, reset]);

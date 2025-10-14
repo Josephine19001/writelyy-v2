@@ -68,8 +68,9 @@ export interface TextOptions {
   format?: string;
   // Additional properties for AI commands
   text?: string;
-  insertAt?: number;
+  insertAt?: number | { from: number; to: number };
   stream?: boolean;
+  regenerate?: boolean;
 }
 
 export interface AICommandOptions {

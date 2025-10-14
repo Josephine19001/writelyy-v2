@@ -106,15 +106,13 @@ export const addMessageWithContext = protectedProcedure
 			// Add workspace sources context
 			if (includeSources) {
 				const sources = await db.source.findMany({
-					where: { 
+					where: {
 						organizationId: chat.organizationId,
-						processingStatus: "completed"
 					},
 					select: {
 						id: true,
 						name: true,
 						type: true,
-						extractedText: true,
 					},
 					orderBy: { createdAt: "desc" },
 					take: 5,

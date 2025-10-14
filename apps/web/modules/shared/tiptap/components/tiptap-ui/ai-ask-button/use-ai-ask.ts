@@ -40,8 +40,7 @@ export const canPerformAiAsk = (editor: Editor | null): boolean => {
 	// TODO: Wait until AI extensions support for image
 	
 	// Check if AI commands are available instead of checking extension names
-	const hasAiCommands = typeof editor.commands.aiGenerationShow === 'function' && 
-						  typeof editor.commands.aiAccept === 'function';
+	const hasAiCommands = typeof editor.commands.aiGenerationShow === 'function';
 	
 	if (
 		!hasAiCommands ||

@@ -7,7 +7,7 @@ export function getContextAndInsertAt(editor: Editor) {
 	let isSelection = true;
 	
 	// Safety check: ensure AI storage exists before accessing it
-	const aiStorage = editor.storage.ai || editor.storage.aiAdvanced;
+	const aiStorage = (editor.storage as any).ai || (editor.storage as any).aiAdvanced;
 	const generatedWith = aiStorage?.generatedWith;
 
 	if (generatedWith && generatedWith.range) {

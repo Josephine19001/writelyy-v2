@@ -250,22 +250,20 @@ const getItemImplementations = () => {
 						? `Context: ${snippet}\n\nContinue writing from where the text above ends. Write ONLY ONE SENTENCE. DONT REPEAT THE TEXT.`
 						: "Start writing a new paragraph. Write ONLY ONE SENTENCE.";
 
-					editor
-						.chain()
-						.focus()
-						.aiTextPrompt({
+					if ((editor.commands as any).aiTextPrompt) {
+						(editor.commands as any).aiTextPrompt({
 							stream: true,
 							format: "rich-text",
 							text: prompt,
-						})
-						.run();
+						});
+					}
 				});
 			},
 		},
 		ai_ask_button: {
 			check: (editor: Editor) =>
 				typeof editor.commands.aiGenerationShow === "function" &&
-				typeof editor.commands.aiAccept === "function",
+				typeof (editor.commands as any).aiAccept === "function",
 			action: ({ editor }: { editor: Editor }) => {
 				const editorChain = editor.chain().focus();
 

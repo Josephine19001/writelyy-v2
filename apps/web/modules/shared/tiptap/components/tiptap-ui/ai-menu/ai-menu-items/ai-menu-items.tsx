@@ -84,7 +84,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiFixSpellingAndGrammar(newOptions).run();
+				if ((editor.commands as any).aiFixSpellingAndGrammar) {
+					(editor.commands as any).aiFixSpellingAndGrammar(newOptions);
+				}
 			},
 		},
 		aiExtend: {
@@ -107,7 +109,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiExtend(newOptions).run();
+				if ((editor.commands as any).aiExtend) {
+					(editor.commands as any).aiExtend(newOptions);
+				}
 			},
 		},
 		aiShorten: {
@@ -130,7 +134,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiShorten(newOptions).run();
+				if ((editor.commands as any).aiShorten) {
+					(editor.commands as any).aiShorten(newOptions);
+				}
 			},
 		},
 		simplifyLanguage: {
@@ -153,7 +159,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiSimplify(newOptions).run();
+				if ((editor.commands as any).aiSimplify) {
+					(editor.commands as any).aiSimplify(newOptions);
+				}
 			},
 		},
 		improveWriting: {
@@ -176,7 +184,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiRephrase(newOptions).run();
+				if ((editor.commands as any).aiRephrase) {
+					(editor.commands as any).aiRephrase(newOptions);
+				}
 			},
 		},
 		emojify: {
@@ -199,7 +209,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiEmojify(newOptions).run();
+				if ((editor.commands as any).aiEmojify) {
+					(editor.commands as any).aiEmojify(newOptions);
+				}
 			},
 		},
 		continueWriting: {
@@ -222,7 +234,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiComplete(newOptions).run();
+				if ((editor.commands as any).aiComplete) {
+					(editor.commands as any).aiComplete(newOptions);
+				}
 			},
 		},
 		summarize: {
@@ -245,7 +259,9 @@ function initializeEditorMenuActions(): Record<
 					newOptions.text = context;
 				}
 
-				editor.chain().aiSummarize(newOptions).run();
+				if ((editor.commands as any).aiSummarize) {
+					(editor.commands as any).aiSummarize(newOptions);
+				}
 			},
 		},
 		translateTo: {
@@ -345,7 +361,9 @@ export function LanguageSelectionSubmenu({
 				langOptions.text = context;
 			}
 
-			editor.chain().aiTranslate(selectedLanguageCode, langOptions).run();
+			if ((editor.commands as any).aiTranslate) {
+				(editor.commands as any).aiTranslate(selectedLanguageCode, langOptions);
+			}
 		},
 		[editor, state.tone, updateState],
 	);
@@ -448,7 +466,9 @@ export function ToneSelectionSubmenu({ editor }: { editor: Editor | null }) {
 				toneOptions.text = context;
 			}
 
-			editor.chain().aiAdjustTone(selectedTone, toneOptions).run();
+			if ((editor.commands as any).aiAdjustTone) {
+				(editor.commands as any).aiAdjustTone(selectedTone, toneOptions);
+			}
 		},
 		[editor, state.language, state.tone, updateState],
 	);

@@ -33,19 +33,23 @@ export function AiMenuActions({
 
 	const handleRegenerate = React.useCallback(() => {
 		if (!editor) return;
-		editor.chain().focus().aiRegenerate(options).run();
+		// TODO: Implement regenerate functionality when AI commands are available
+		// The specific AI command API needs to be verified
+		console.warn('Regenerate functionality not yet implemented');
 		onRegenerate?.();
-	}, [editor, onRegenerate, options]);
+	}, [editor, onRegenerate]);
 
 	const handleDiscard = React.useCallback(() => {
 		if (!editor) return;
-		editor.chain().focus().aiReject().run();
+		// TODO: Implement discard functionality when AI commands are available
+		console.warn('Discard functionality not yet implemented');
 		onReject?.();
 	}, [editor, onReject]);
 
 	const handleApply = React.useCallback(() => {
 		if (!editor) return;
-		editor.chain().focus().aiAccept().run();
+		// TODO: Implement apply functionality when AI commands are available
+		console.warn('Apply functionality not yet implemented');
 		onAccept?.();
 	}, [editor, onAccept]);
 

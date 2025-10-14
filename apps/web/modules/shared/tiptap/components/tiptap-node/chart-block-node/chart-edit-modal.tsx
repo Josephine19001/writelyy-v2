@@ -248,8 +248,8 @@ export function ChartEditModal({ open, onOpenChange, onSave, initialData, chartT
 											/>
 										))}
 										{editData.labels.length > 1 && (
-											<Button 
-												variant="destructive"
+											<Button
+												variant="error"
 												size="sm"
 												className="col-span-2 h-8 w-8 p-0"
 												onClick={() => removeDataPoint(labelIndex)}

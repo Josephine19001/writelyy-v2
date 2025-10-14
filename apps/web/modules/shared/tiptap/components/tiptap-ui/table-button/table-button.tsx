@@ -43,7 +43,7 @@ export function TableInsertButton({
   const [show, setShow] = React.useState(false);
 
   React.useEffect(() => {
-    if (!editor) return;
+    if (!editor) return undefined;
 
     const handleUpdate = () => {
       const canInsert = editor.can().insertTable({ rows: 3, cols: 3, withHeaderRow: true });
@@ -58,7 +58,9 @@ export function TableInsertButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -105,7 +107,9 @@ export function TableAddRowAfterButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -150,7 +154,9 @@ export function TableAddRowBeforeButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -195,7 +201,9 @@ export function TableAddColumnAfterButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -240,7 +248,9 @@ export function TableAddColumnBeforeButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -285,7 +295,9 @@ export function TableDeleteRowButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -330,7 +342,9 @@ export function TableDeleteColumnButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -375,7 +389,9 @@ export function TableToggleHeaderRowButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -420,7 +436,9 @@ export function TableToggleHeaderColumnButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -465,7 +483,9 @@ export function TableMergeCellsButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -510,7 +530,9 @@ export function TableSplitCellButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -555,7 +577,9 @@ export function TableToggleHeaderCellButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -600,7 +624,9 @@ export function TableMergeOrSplitButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -645,7 +671,9 @@ export function TableSetCellBackgroundButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -690,7 +718,9 @@ export function TableFixTablesButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -735,7 +765,9 @@ export function TableGoToNextCellButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -780,7 +812,9 @@ export function TableGoToPreviousCellButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -849,7 +883,9 @@ export function TableInsertHTMLButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;
@@ -904,7 +940,9 @@ export function TableDeleteButton({
 
     handleUpdate();
     editor.on("selectionUpdate", handleUpdate);
-    return () => editor.off("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("selectionUpdate", handleUpdate);
+    };
   }, [editor, hideWhenUnavailable]);
 
   if (!show || !editor || !editor.isEditable) return null;

@@ -219,8 +219,8 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			// Debug: Check if AI commands are available
 			console.log('🤖 Executing AI command:', command, {
-				hasAiExtend: typeof editor.commands.aiExtend,
-				hasAiFixSpelling: typeof editor.commands.aiFixSpellingAndGrammar,
+				hasAiExtend: typeof (editor.commands as any).aiExtend,
+				hasAiFixSpelling: typeof (editor.commands as any).aiFixSpellingAndGrammar,
 				availableAiCommands: Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai'))
 			});
 
@@ -230,50 +230,50 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 				try {
 					switch (command) {
 						case "fixSpellingAndGrammar":
-							if (editor.commands.aiFixSpellingAndGrammar) {
-								editor.commands.aiFixSpellingAndGrammar(defaultOptions);
+							if ((editor.commands as any).aiFixSpellingAndGrammar) {
+								(editor.commands as any).aiFixSpellingAndGrammar(defaultOptions);
 							} else {
 								console.error('aiFixSpellingAndGrammar command not available');
 							}
 							break;
 						case "extend":
-							if (editor.commands.aiExtend) {
-								editor.commands.aiExtend(defaultOptions);
+							if ((editor.commands as any).aiExtend) {
+								(editor.commands as any).aiExtend(defaultOptions);
 							} else {
 								console.error('aiExtend command not available');
 							}
 							break;
 						case "shorten":
-							if (editor.commands.aiShorten) {
-								editor.commands.aiShorten(defaultOptions);
+							if ((editor.commands as any).aiShorten) {
+								(editor.commands as any).aiShorten(defaultOptions);
 							} else {
 								console.error('aiShorten command not available');
 							}
 							break;
 						case "simplify":
-							if (editor.commands.aiSimplify) {
-								editor.commands.aiSimplify(defaultOptions);
+							if ((editor.commands as any).aiSimplify) {
+								(editor.commands as any).aiSimplify(defaultOptions);
 							} else {
 								console.error('aiSimplify command not available');
 							}
 							break;
 						case "emojify":
-							if (editor.commands.aiEmojify) {
-								editor.commands.aiEmojify(defaultOptions);
+							if ((editor.commands as any).aiEmojify) {
+								(editor.commands as any).aiEmojify(defaultOptions);
 							} else {
 								console.error('aiEmojify command not available');
 							}
 							break;
 						case "complete":
-							if (editor.commands.aiComplete) {
-								editor.commands.aiComplete(defaultOptions);
+							if ((editor.commands as any).aiComplete) {
+								(editor.commands as any).aiComplete(defaultOptions);
 							} else {
 								console.error('aiComplete command not available');
 							}
 							break;
 						case "summarize":
-							if (editor.commands.aiSummarize) {
-								editor.commands.aiSummarize(defaultOptions);
+							if ((editor.commands as any).aiSummarize) {
+								(editor.commands as any).aiSummarize(defaultOptions);
 							} else {
 								console.error('aiSummarize command not available');
 							}
@@ -298,14 +298,14 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			setTimeout(() => {
 				try {
-					if (editor.commands.aiAdjustTone) {
-						editor.commands.aiAdjustTone(tone, defaultOptions);
-					} else if (editor.commands.aiChangeStyle) {
+					if ((editor.commands as any).aiAdjustTone) {
+						(editor.commands as any).aiAdjustTone(tone, defaultOptions);
+					} else if ((editor.commands as any).aiChangeStyle) {
 						// Alternative command name
-						editor.commands.aiChangeStyle(tone, defaultOptions);
-					} else if (editor.commands.aiRewrite) {
+						(editor.commands as any).aiChangeStyle(tone, defaultOptions);
+					} else if ((editor.commands as any).aiRewrite) {
 						// Fallback to rewrite with tone instruction
-						editor.commands.aiRewrite(`Rewrite this text in a ${tone} tone`, defaultOptions);
+						(editor.commands as any).aiRewrite(`Rewrite this text in a ${tone} tone`, defaultOptions);
 					} else {
 						console.error('No suitable AI tone adjustment command found');
 						console.log('Available commands:', Object.keys(editor.commands).filter(cmd => cmd.startsWith('ai')));
@@ -324,7 +324,7 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 			editor.chain().focus().aiGenerationShow().run();
 
 			setTimeout(() => {
-				editor.commands.aiTranslate(language, defaultOptions);
+				(editor.commands as any).aiTranslate(language, defaultOptions);
 			}, 0);
 		},
 		[editor, defaultOptions],

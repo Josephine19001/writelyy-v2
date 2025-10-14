@@ -82,7 +82,7 @@ const Item = (props: {
 	const itemRef = React.useRef<HTMLButtonElement>(null);
 	const submenuRef = React.useRef<HTMLDivElement>(null);
 	const [showSubmenu, setShowSubmenu] = React.useState(false);
-	const timeoutRef = React.useRef<NodeJS.Timeout>();
+	const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
 
 	// Debug logging
 	React.useEffect(() => {
