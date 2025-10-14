@@ -81,7 +81,9 @@ export const executeAiCommand = (
  * Accept AI-generated content
  */
 export const acceptAiContent = (editor: Editor | null) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).aiAccept?.() ?? false;
@@ -95,7 +97,9 @@ export const acceptAiContent = (editor: Editor | null) => {
  * Reject AI-generated content
  */
 export const rejectAiContent = (editor: Editor | null, options?: { type?: "reset" | "undo" }) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).aiReject?.(options) ?? false;
@@ -109,7 +113,9 @@ export const rejectAiContent = (editor: Editor | null, options?: { type?: "reset
  * Stop AI generation
  */
 export const stopAiGeneration = (editor: Editor | null) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).aiStop?.() ?? false;
@@ -150,7 +156,9 @@ export const getAiSuggestions = (editor: Editor | null) => {
  * Accept an AI suggestion
  */
 export const acceptAiSuggestion = (editor: Editor | null, suggestionId: string) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).acceptAiSuggestion?.({ id: suggestionId }) ?? false;
@@ -164,7 +172,9 @@ export const acceptAiSuggestion = (editor: Editor | null, suggestionId: string) 
  * Reject an AI suggestion
  */
 export const rejectAiSuggestion = (editor: Editor | null, suggestionId: string) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).rejectAiSuggestion?.({ id: suggestionId }) ?? false;
@@ -191,7 +201,9 @@ export const getAiChanges = (editor: Editor | null) => {
  * Accept an AI change
  */
 export const acceptAiChange = (editor: Editor | null, changeId: string) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).acceptAiChange?.({ id: changeId }) ?? false;
@@ -205,7 +217,9 @@ export const acceptAiChange = (editor: Editor | null, changeId: string) => {
  * Reject an AI change
  */
 export const rejectAiChange = (editor: Editor | null, changeId: string) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).rejectAiChange?.({ id: changeId }) ?? false;
@@ -219,7 +233,9 @@ export const rejectAiChange = (editor: Editor | null, changeId: string) => {
  * Accept all AI changes
  */
 export const acceptAllAiChanges = (editor: Editor | null) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).acceptAllAiChanges?.() ?? false;
@@ -233,7 +249,9 @@ export const acceptAllAiChanges = (editor: Editor | null) => {
  * Reject all AI changes
  */
 export const rejectAllAiChanges = (editor: Editor | null) => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   try {
     return (editor.commands as any).rejectAllAiChanges?.() ?? false;
@@ -247,7 +265,9 @@ export const rejectAllAiChanges = (editor: Editor | null) => {
  * Get the selected text in the editor
  */
 export const getSelectedText = (editor: Editor | null): string => {
-  if (!editor) return "";
+  if (!editor) {
+    return "";
+  }
 
   const { from, to } = editor.state.selection;
   return editor.state.doc.textBetween(from, to, " ");
@@ -264,7 +284,9 @@ export const getDocumentContext = (
     includeFullDocument?: boolean;
   }
 ): string => {
-  if (!editor) return "";
+  if (!editor) {
+    return "";
+  }
 
   const { maxLength = 5000, includeFullDocument = false } = options || {};
 
@@ -339,7 +361,9 @@ export const getLanguagePresets = () => {
  * Type guard for checking if editor has AI extension
  */
 export const hasAiExtension = (editor: Editor | null): boolean => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
   return !!editor.extensionManager.extensions.find((ext) => ext.name === "ai");
 };
 
@@ -347,7 +371,9 @@ export const hasAiExtension = (editor: Editor | null): boolean => {
  * Type guard for checking if editor has AI Agent extension
  */
 export const hasAiAgentExtension = (editor: Editor | null): boolean => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
   return !!editor.extensionManager.extensions.find((ext) => ext.name === "aiAgent");
 };
 
