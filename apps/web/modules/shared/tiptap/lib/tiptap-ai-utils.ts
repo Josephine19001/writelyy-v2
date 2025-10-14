@@ -5,7 +5,8 @@
  */
 
 import type { Editor } from "@tiptap/core";
-import { AI_TONE_PRESETS, AI_LANGUAGE_PRESETS } from "../config/ai-config";
+
+import { AI_LANGUAGE_PRESETS, AI_TONE_PRESETS } from "../config/ai-config";
 
 /**
  * Execute an AI command on the editor
@@ -381,7 +382,9 @@ export const hasAiAgentExtension = (editor: Editor | null): boolean => {
  * Type guard for checking if editor has AI Suggestion extension
  */
 export const hasAiSuggestionExtension = (editor: Editor | null): boolean => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
   return !!editor.extensionManager.extensions.find((ext) => ext.name === "aiSuggestion");
 };
 
@@ -389,6 +392,8 @@ export const hasAiSuggestionExtension = (editor: Editor | null): boolean => {
  * Type guard for checking if editor has AI Changes extension
  */
 export const hasAiChangesExtension = (editor: Editor | null): boolean => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
   return !!editor.extensionManager.extensions.find((ext) => ext.name === "aiChanges");
 };
