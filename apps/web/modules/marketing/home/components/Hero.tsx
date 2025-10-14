@@ -3,8 +3,9 @@
 import { Button } from "@ui/components/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, FileText } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { config } from "@repo/config";
+import { BetaCTA } from "@marketing/shared/components/BetaCTA";
 import { WaitlistDialog } from "./WaitlistDialog";
 
 const typingTexts = [
@@ -30,7 +31,9 @@ export function Hero() {
 			if (!isDeleting) {
 				// Typing forward
 				if (displayedText.length < targetText.length) {
-					setDisplayedText(targetText.slice(0, displayedText.length + 1));
+					setDisplayedText(
+						targetText.slice(0, displayedText.length + 1),
+					);
 				} else {
 					// Pause at the end before deleting
 					setTimeout(() => setIsDeleting(true), 2000);
@@ -42,7 +45,9 @@ export function Hero() {
 				} else {
 					// Move to next text
 					setIsDeleting(false);
-					setCurrentTextIndex((prev) => (prev + 1) % typingTexts.length);
+					setCurrentTextIndex(
+						(prev) => (prev + 1) % typingTexts.length,
+					);
 				}
 			}
 		}, typingSpeed);
@@ -91,7 +96,10 @@ export function Hero() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
+						transition={{
+							duration: 0.8,
+							ease: [0.22, 1, 0.36, 1] as const,
+						}}
 					>
 						{/* Simple badge */}
 						<motion.div
@@ -129,7 +137,8 @@ export function Hero() {
 							animate={{ opacity: 1 }}
 							transition={{ delay: 0.4, duration: 0.6 }}
 						>
-							All your writing tools in one place. No more juggling tabs.
+							All your writing tools in one place. No more
+							juggling tabs.
 						</motion.p>
 
 						{/* Simple CTAs */}
@@ -161,7 +170,11 @@ export function Hero() {
 					<motion.div
 						initial={{ opacity: 0, x: 50 }}
 						animate={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
+						transition={{
+							duration: 0.8,
+							delay: 0.3,
+							ease: [0.22, 1, 0.36, 1] as const,
+						}}
 					>
 						<div className="relative w-full max-w-2xl mx-auto group">
 							{/* Enhanced glow effect */}
@@ -196,6 +209,21 @@ export function Hero() {
 											My Amazing Essay.docx
 										</span>
 									</div>
+									{/* Beta badge - conditionally shown */}
+									{config.isInBeta && (
+										<motion.div
+											className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold"
+											initial={{ scale: 0 }}
+											animate={{ scale: 1 }}
+											transition={{
+												delay: 0.8,
+												type: "spring",
+												stiffness: 200,
+											}}
+										>
+											BETA
+										</motion.div>
+									)}
 								</div>
 
 								{/* Simplified demo content */}
@@ -237,25 +265,41 @@ export function Hero() {
 											</p>
 										</motion.div>
 
-										{/* Simple action buttons that lead to auth */}
+										{/* Simple action buttons - waitlist if beta, auth otherwise */}
 										<div className="flex flex-wrap gap-2">
-											{["Continue", "Improve", "Shorten"].map((action, i) => (
+											{[
+												"Continue",
+												"Improve",
+												"Shorten",
+											].map((action, i) => (
 												<motion.div
 													key={action}
-													initial={{ opacity: 0, scale: 0.9 }}
-													animate={{ opacity: 1, scale: 1 }}
-													transition={{ delay: 0.7 + i * 0.1 }}
+													initial={{
+														opacity: 0,
+														scale: 0.9,
+													}}
+													animate={{
+														opacity: 1,
+														scale: 1,
+													}}
+													transition={{
+														delay: 0.7 + i * 0.1,
+													}}
 												>
-													<Link href="/auth/sign-in">
+													<BetaCTA>
 														<motion.button
 															className="px-5 py-2.5 text-sm font-medium rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
-															whileHover={{ scale: 1.05 }}
-															whileTap={{ scale: 0.95 }}
+															whileHover={{
+																scale: 1.05,
+															}}
+															whileTap={{
+																scale: 0.95,
+															}}
 															type="button"
 														>
 															{action}
 														</motion.button>
-													</Link>
+													</BetaCTA>
 												</motion.div>
 											))}
 										</div>

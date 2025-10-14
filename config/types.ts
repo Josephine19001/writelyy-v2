@@ -1,5 +1,6 @@
 export type Config = {
 	appName: string;
+	isInBeta: boolean;
 	i18n: {
 		enabled: boolean;
 		locales: { [locale: string]: { currency: string; label: string } };

@@ -2,6 +2,8 @@ import type { Config } from "./types";
 
 export const config = {
 	appName: "Writelyy - AI for documenting",
+	// Beta status - controls marketing CTAs (if true, shows waitlist instead of auth)
+	isInBeta: true,
 	// Internationalization
 	i18n: {
 		// Whether internationalization should be enabled (if disabled, you still need to define the locale you want to use below and set it as the default locale)

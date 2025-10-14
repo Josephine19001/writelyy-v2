@@ -1,5 +1,6 @@
 "use client";
 import { LocaleLink } from "@i18n/routing";
+import { BetaCTA } from "@marketing/shared/components/BetaCTA";
 import { type Config, config } from "@repo/config";
 import { usePlanData } from "@saas/payments/hooks/plan-data";
 import type { PlanId } from "@saas/payments/types";
@@ -272,7 +273,7 @@ export function PricingTable({
 													{t("pricing.contactSales")}
 												</LocaleLink>
 											</Button>
-										) : (
+										) : (userId || workspaceId) ? (
 											<Button
 												className="mt-4 w-full"
 												variant={
@@ -290,11 +291,25 @@ export function PricingTable({
 												}
 												loading={loading === planId}
 											>
-												{userId || workspaceId
-													? t("pricing.choosePlan")
-													: t("pricing.getStarted")}
+												{t("pricing.choosePlan")}
 												<ArrowRightIcon className="ml-2 size-4" />
 											</Button>
+										) : (
+											<BetaCTA>
+												<Button
+													className="mt-4 w-full"
+													variant={
+														recommended
+															? "primary"
+															: isFree
+																? "outline"
+																: "secondary"
+													}
+												>
+													{t("pricing.getStarted")}
+													<ArrowRightIcon className="ml-2 size-4" />
+												</Button>
+											</BetaCTA>
 										)}
 									</div>
 								</div>
