@@ -123,22 +123,27 @@ export const stopAiGeneration = (editor: Editor | null) => {
  * Check if AI is currently generating
  */
 export const isAiGenerating = (editor: Editor | null): boolean => {
-  if (!editor) return false;
+  if (!editor) {
+    return false;
+  }
 
   // Check the editor state for AI activity
-  const aiState = editor.storage.ai || {};
-  return aiState.isGenerating || false;
+  // The AI storage has a 'state' property that indicates loading status
+  const aiState = editor.storage.ai as any;
+  return aiState?.state === "loading" || false;
 };
 
 /**
  * Get AI suggestions for the current document
  */
 export const getAiSuggestions = (editor: Editor | null) => {
-  if (!editor) return [];
+  if (!editor) {
+    return [];
+  }
 
-  // Get suggestions from the AI Suggestion extension
-  const suggestionState = editor.storage.aiSuggestion || {};
-  return suggestionState.suggestions || [];
+  // Get suggestions from the AI Suggestion extension using getSuggestions method
+  const suggestionState = editor.storage.aiSuggestion as any;
+  return suggestionState?.getSuggestions?.() || [];
 };
 
 /**
@@ -173,11 +178,13 @@ export const rejectAiSuggestion = (editor: Editor | null, suggestionId: string) 
  * Get AI changes in the document
  */
 export const getAiChanges = (editor: Editor | null) => {
-  if (!editor) return [];
+  if (!editor) {
+    return [];
+  }
 
   // Get changes from the AI Changes extension
-  const changesState = editor.storage.aiChanges || {};
-  return changesState.changes || [];
+  const changesState = editor.storage.aiChanges as any;
+  return changesState?.getChanges?.() || [];
 };
 
 /**
