@@ -36,38 +36,44 @@ export const executeAiCommand = (
     format: "rich-text",
   };
 
-  // Execute the command
-  switch (command) {
-    case "improve":
-      return editor.chain().focus().aiImprove?.(commandOptions).run();
+  // Execute the command using the actual Tiptap AI extension commands
+  try {
+    switch (command) {
+      case "improve":
+        // Use aiRephrase for improving text
+        return (editor.commands as any).aiRephrase?.(commandOptions) ?? false;
 
-    case "fixSpelling":
-      return editor.chain().focus().aiFixSpellingAndGrammar?.(commandOptions).run();
+      case "fixSpelling":
+        return (editor.commands as any).aiFixSpellingAndGrammar?.(commandOptions) ?? false;
 
-    case "makeShorter":
-      return editor.chain().focus().aiMakeShorter?.(commandOptions).run();
+      case "makeShorter":
+        return (editor.commands as any).aiShorten?.(commandOptions) ?? false;
 
-    case "makeLonger":
-      return editor.chain().focus().aiMakeLonger?.(commandOptions).run();
+      case "makeLonger":
+        return (editor.commands as any).aiExtend?.(commandOptions) ?? false;
 
-    case "simplify":
-      return editor.chain().focus().aiSimplify?.(commandOptions).run();
+      case "simplify":
+        return (editor.commands as any).aiSimplify?.(commandOptions) ?? false;
 
-    case "emojify":
-      return editor.chain().focus().aiEmojify?.(commandOptions).run();
+      case "emojify":
+        return (editor.commands as any).aiEmojify?.(commandOptions) ?? false;
 
-    case "changeTone":
-      return editor.chain().focus().aiChangeTone?.(commandOptions).run();
+      case "changeTone":
+        return (editor.commands as any).aiAdjustTone?.(tone, commandOptions) ?? false;
 
-    case "translate":
-      return editor.chain().focus().aiTranslate?.(commandOptions).run();
+      case "translate":
+        return (editor.commands as any).aiTranslate?.(language, commandOptions) ?? false;
 
-    case "custom":
-      return editor.chain().focus().aiTextPrompt?.(commandOptions).run();
+      case "custom":
+        return (editor.commands as any).aiTextPrompt?.(commandOptions) ?? false;
 
-    default:
-      console.warn(`Unknown AI command: ${command}`);
-      return false;
+      default:
+        console.warn(`Unknown AI command: ${command}`);
+        return false;
+    }
+  } catch (error) {
+    console.error("Error executing AI command:", error);
+    return false;
   }
 };
 
@@ -77,11 +83,12 @@ export const executeAiCommand = (
 export const acceptAiContent = (editor: Editor | null) => {
   if (!editor) return false;
 
-  if (editor.commands.aiAccept) {
-    return editor.chain().focus().aiAccept().run();
+  try {
+    return (editor.commands as any).aiAccept?.() ?? false;
+  } catch (error) {
+    console.error("Error accepting AI content:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -90,11 +97,12 @@ export const acceptAiContent = (editor: Editor | null) => {
 export const rejectAiContent = (editor: Editor | null, options?: { type?: "reset" | "undo" }) => {
   if (!editor) return false;
 
-  if (editor.commands.aiReject) {
-    return editor.chain().focus().aiReject(options).run();
+  try {
+    return (editor.commands as any).aiReject?.(options) ?? false;
+  } catch (error) {
+    console.error("Error rejecting AI content:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -103,11 +111,12 @@ export const rejectAiContent = (editor: Editor | null, options?: { type?: "reset
 export const stopAiGeneration = (editor: Editor | null) => {
   if (!editor) return false;
 
-  if (editor.commands.aiStop) {
-    return editor.chain().focus().aiStop().run();
+  try {
+    return (editor.commands as any).aiStop?.() ?? false;
+  } catch (error) {
+    console.error("Error stopping AI generation:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -138,11 +147,12 @@ export const getAiSuggestions = (editor: Editor | null) => {
 export const acceptAiSuggestion = (editor: Editor | null, suggestionId: string) => {
   if (!editor) return false;
 
-  if (editor.commands.acceptAiSuggestion) {
-    return editor.chain().focus().acceptAiSuggestion({ id: suggestionId }).run();
+  try {
+    return (editor.commands as any).acceptAiSuggestion?.({ id: suggestionId }) ?? false;
+  } catch (error) {
+    console.error("Error accepting AI suggestion:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -151,11 +161,12 @@ export const acceptAiSuggestion = (editor: Editor | null, suggestionId: string) 
 export const rejectAiSuggestion = (editor: Editor | null, suggestionId: string) => {
   if (!editor) return false;
 
-  if (editor.commands.rejectAiSuggestion) {
-    return editor.chain().focus().rejectAiSuggestion({ id: suggestionId }).run();
+  try {
+    return (editor.commands as any).rejectAiSuggestion?.({ id: suggestionId }) ?? false;
+  } catch (error) {
+    console.error("Error rejecting AI suggestion:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -175,11 +186,12 @@ export const getAiChanges = (editor: Editor | null) => {
 export const acceptAiChange = (editor: Editor | null, changeId: string) => {
   if (!editor) return false;
 
-  if (editor.commands.acceptAiChange) {
-    return editor.chain().focus().acceptAiChange({ id: changeId }).run();
+  try {
+    return (editor.commands as any).acceptAiChange?.({ id: changeId }) ?? false;
+  } catch (error) {
+    console.error("Error accepting AI change:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -188,11 +200,12 @@ export const acceptAiChange = (editor: Editor | null, changeId: string) => {
 export const rejectAiChange = (editor: Editor | null, changeId: string) => {
   if (!editor) return false;
 
-  if (editor.commands.rejectAiChange) {
-    return editor.chain().focus().rejectAiChange({ id: changeId }).run();
+  try {
+    return (editor.commands as any).rejectAiChange?.({ id: changeId }) ?? false;
+  } catch (error) {
+    console.error("Error rejecting AI change:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -201,11 +214,12 @@ export const rejectAiChange = (editor: Editor | null, changeId: string) => {
 export const acceptAllAiChanges = (editor: Editor | null) => {
   if (!editor) return false;
 
-  if (editor.commands.acceptAllAiChanges) {
-    return editor.chain().focus().acceptAllAiChanges().run();
+  try {
+    return (editor.commands as any).acceptAllAiChanges?.() ?? false;
+  } catch (error) {
+    console.error("Error accepting all AI changes:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
@@ -214,11 +228,12 @@ export const acceptAllAiChanges = (editor: Editor | null) => {
 export const rejectAllAiChanges = (editor: Editor | null) => {
   if (!editor) return false;
 
-  if (editor.commands.rejectAllAiChanges) {
-    return editor.chain().focus().rejectAllAiChanges().run();
+  try {
+    return (editor.commands as any).rejectAllAiChanges?.() ?? false;
+  } catch (error) {
+    console.error("Error rejecting all AI changes:", error);
+    return false;
   }
-
-  return false;
 };
 
 /**
