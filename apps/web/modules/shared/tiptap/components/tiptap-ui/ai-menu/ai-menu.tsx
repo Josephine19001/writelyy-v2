@@ -300,13 +300,22 @@ export function AiMenuContent({
 						flip={false}
 						unmountOnHide
 						autoFocus={false}
+						gutter={36}
 						onFocus={() => updateState({ inputIsFocused: true })}
 						autoFocusOnShow={smoothFocusAndScroll}
 						autoFocusOnHide={smoothFocusAndScroll}
 						getAnchorRect={() => {
-							return (
-								tiptapAiPromptInputRef.current?.getBoundingClientRect() ||
-								null
+							const rect =
+								tiptapAiPromptInputRef.current?.getBoundingClientRect();
+							if (!rect) {
+								return null;
+							}
+							// Position below the input by offsetting the rect
+							return new DOMRect(
+								rect.left,
+								rect.bottom,
+								rect.width,
+								0,
 							);
 						}}
 					>
