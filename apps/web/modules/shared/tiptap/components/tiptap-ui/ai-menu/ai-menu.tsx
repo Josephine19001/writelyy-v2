@@ -100,7 +100,10 @@ export function AiMenuContent({
 	}, [editor, reset, store]);
 
 	const handlePromptSubmit = React.useCallback(
-		(userPrompt: string) => {
+		(
+			userPrompt: string,
+			options?: { snippets?: any[]; sources?: any[] },
+		) => {
 			if (!editor || !userPrompt.trim()) return;
 
 			const { context } = getContextAndInsertAt(editor);
@@ -118,6 +121,24 @@ export function AiMenuContent({
 				}
 			}
 
+			// Prepare sources with content for AI (docs, images, pdfs, links)
+			const sourcesWithContent = options?.sources?.map((source) => ({
+				id: source.id,
+				name: source.name,
+				type: source.type,
+				content:
+					source.extractedText ||
+					source.url ||
+					source.metadata?.extractedText,
+			}));
+
+			// Prepare snippets for AI (plain text)
+			const snippetsWithContent = options?.snippets?.map((snippet) => ({
+				id: snippet.id,
+				title: snippet.title,
+				content: snippet.content,
+			}));
+
 			if ((editor.commands as any).bkAiTextPrompt) {
 				(editor.commands as any).bkAiTextPrompt({
 					text: promptWithContext,
@@ -125,6 +146,8 @@ export function AiMenuContent({
 					stream: true,
 					tone: state.tone,
 					format: "rich-text",
+					sources: sourcesWithContent,
+					snippets: snippetsWithContent,
 				});
 			}
 		},
@@ -218,13 +241,36 @@ export function AiMenuContent({
 	React.useEffect(() => {
 		if (!editor || !aiGenerationActive) return;
 
+		// Always set the menu as open when AI generation becomes active
+		updateState({ isOpen: true });
+
 		const selectedElement = getSelectedDOMElement(editor);
+
 		if (selectedElement) {
 			const rect = selectedElement.getBoundingClientRect();
 			setFallbackAnchor(selectedElement, rect);
 			show(selectedElement);
+		} else {
+			// No selection - try to get cursor position or use editor container
+			const { state, view } = editor;
+			const { selection } = state;
+
+			// Get the position from cursor
+			const cursorPos = view.coordsAtPos(selection.from);
+
+			if (cursorPos) {
+				// Create a virtual anchor element for positioning
+				const virtualRect = new DOMRect(
+					cursorPos.left,
+					cursorPos.top,
+					0,
+					cursorPos.bottom - cursorPos.top,
+				);
+				setFallbackAnchor(view.dom as HTMLElement, virtualRect);
+				show(view.dom as HTMLElement);
+			}
 		}
-	}, [editor, aiGenerationActive, setFallbackAnchor, show]);
+	}, [editor, aiGenerationActive, setFallbackAnchor, show, updateState]);
 
 	const smoothFocusAndScroll = (element: HTMLElement | null) => {
 		element?.focus();

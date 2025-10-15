@@ -6,14 +6,60 @@ export const runtime = "edge";
 // Enable maximum timeout for streaming
 export const maxDuration = 60;
 
+interface SourceContext {
+	id: string;
+	name: string;
+	type: string;
+	content?: string; // extracted text or URL
+}
+
+interface SnippetContext {
+	id: string;
+	title: string;
+	content: string;
+}
+
 interface GenerateRequest {
 	prompt: string;
+	sources?: SourceContext[];
+	snippets?: SnippetContext[];
 }
 
 export async function POST(request: NextRequest) {
 	try {
 		const body: GenerateRequest = await request.json();
-		const { prompt } = body;
+		const { prompt, sources, snippets } = body;
+
+		// Build enhanced prompt with context from sources and snippets
+		let enhancedPrompt = prompt;
+		const contextParts: string[] = [];
+
+		// Add snippet context if available
+		if (snippets && snippets.length > 0) {
+			const snippetDetails = snippets.map((snippet, idx) =>
+				`${idx + 1}. "${snippet.title}":\n${snippet.content}`
+			).join('\n\n');
+			contextParts.push(`Referenced Snippets:\n${snippetDetails}`);
+		}
+
+		// Add source context if available
+		if (sources && sources.length > 0) {
+			const sourceDetails = sources.map((source, idx) => {
+				const parts = [`${idx + 1}. "${source.name}" (${source.type})`];
+				if (source.content) {
+					// Limit content to avoid token limits
+					const contentPreview = source.content.slice(0, 1500);
+					parts.push(`Content: ${contentPreview}${source.content.length > 1500 ? '...' : ''}`);
+				}
+				return parts.join('\n');
+			}).join('\n\n');
+			contextParts.push(`Referenced Sources:\n${sourceDetails}`);
+		}
+
+		// Append context to prompt if available
+		if (contextParts.length > 0) {
+			enhancedPrompt = `${prompt}\n\n--- Additional Context ---\n${contextParts.join('\n\n')}\n--- End Context ---\n\nPlease use this additional context to help with the task.`;
+		}
 
 		const apiKey = process.env.OPENAI_API_KEY;
 
@@ -54,7 +100,7 @@ export async function POST(request: NextRequest) {
 						},
 						{
 							role: "user",
-							content: prompt,
+							content: enhancedPrompt,
 						},
 					],
 					stream: true, // Enable streaming for real-time response

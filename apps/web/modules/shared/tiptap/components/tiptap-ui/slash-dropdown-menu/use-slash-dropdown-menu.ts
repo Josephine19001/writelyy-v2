@@ -261,21 +261,17 @@ const getItemImplementations = () => {
 			},
 		},
 		ai_ask_button: {
-			check: (editor: Editor) =>
-				typeof editor.commands.aiGenerationShow === "function" &&
-				typeof (editor.commands as any).aiAccept === "function",
+			check: (editor: Editor) => {
+				// Always show Ask AI option
+				return true;
+			},
 			action: ({ editor }: { editor: Editor }) => {
-				const editorChain = editor.chain().focus();
-
-				const nodeSelectionPosition = findSelectionPosition({ editor });
-
-				if (nodeSelectionPosition !== null) {
-					editorChain.setNodeSelection(nodeSelectionPosition);
-				}
-
-				editorChain.run();
-
-				editor.chain().focus().aiGenerationShow().run();
+				// Dispatch custom event to show inline AI input
+				// This will be handled by the editor component
+				const event = new CustomEvent("tiptap-show-ai-input", {
+					detail: { editor },
+				});
+				window.dispatchEvent(event);
 			},
 		},
 

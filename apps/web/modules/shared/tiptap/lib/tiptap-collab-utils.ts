@@ -176,7 +176,6 @@ export const getAvatar = (name: string) => {
  */
 export const fetchCollabToken = async () => {
 	// Collaboration is disabled for now
-	console.log("Collaboration is disabled - returning null token");
 	return null;
 
 	/* COMMENTED OUT - Collaboration functionality

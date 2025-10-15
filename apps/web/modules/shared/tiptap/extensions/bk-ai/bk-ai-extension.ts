@@ -2,6 +2,19 @@ import { Extension } from "@tiptap/core";
 import { DOMSerializer } from "prosemirror-model";
 import { requestCompletion } from "./ai-utilities";
 
+interface SourceContext {
+	id: string;
+	name: string;
+	type: string;
+	content?: string;
+}
+
+interface SnippetContext {
+	id: string;
+	title: string;
+	content: string;
+}
+
 export interface AiTextOptions {
 	prompt: string;
 	command: string;
@@ -9,6 +22,8 @@ export interface AiTextOptions {
 	stream?: boolean;
 	tone?: string;
 	format?: string;
+	sources?: SourceContext[];
+	snippets?: SnippetContext[];
 }
 
 export interface BkAiStorage {
@@ -55,6 +70,8 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 						stream = true,
 						tone,
 						format = "rich-text",
+						sources,
+						snippets,
 					} = options;
 
 					// Determine insert position
@@ -135,6 +152,8 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 
 					requestCompletion({
 						prompt: question(),
+						sources,
+						snippets,
 						onLoading: () => {
 							(editor.storage as any).ai = {
 								status: "loading",

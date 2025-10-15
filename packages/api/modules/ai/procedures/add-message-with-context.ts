@@ -1,5 +1,4 @@
 import { ORPCError, streamToEventIterator } from "@orpc/client";
-import { type } from "@orpc/server";
 import {
 	convertToModelMessages,
 	streamText,
@@ -27,10 +26,19 @@ export const addMessageWithContext = protectedProcedure
 			includeSources: z.boolean().default(true),
 			documentId: z.string().optional(), // Current document context
 			selectedText: z.string().optional(), // Selected text from editor
+			mentions: z.array(z.object({
+				id: z.string(),
+				name: z.string(),
+				type: z.enum(["document", "folder", "source", "asset"]),
+				subtype: z.enum(["image", "pdf", "link"]).optional(),
+				url: z.string().optional(),
+				content: z.string().optional(),
+				category: z.string().optional(),
+			})).optional(), // Specific mentions (sources and snippets)
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { chatId, messages, includeDocuments, includeSources, documentId, selectedText } = input;
+		const { chatId, messages, includeDocuments, includeSources, documentId, selectedText, mentions } = input;
 		const user = context.user;
 
 		const chat = await getAiChatById(chatId);
@@ -119,11 +127,93 @@ export const addMessageWithContext = protectedProcedure
 				});
 
 				if (sources.length > 0) {
-					const sourceSummaries = sources.map(source => 
+					const sourceSummaries = sources.map(source =>
 						`- ${source.name} (${source.type})`
 					).join('\n');
-					
+
 					contextParts.push(`Available Sources:\n${sourceSummaries}`);
+				}
+			}
+
+			// Add specific mentions (sources and snippets) content
+			if (mentions && mentions.length > 0) {
+				const mentionContextParts: string[] = [];
+
+				// Process source mentions
+				const sourceMentions = mentions.filter(m => m.type === "source");
+				if (sourceMentions.length > 0) {
+					const sourceIds = sourceMentions
+						.map(m => m.id.replace('source-', ''))
+						.filter(id => id);
+
+					if (sourceIds.length > 0) {
+						const sourcesData = await db.source.findMany({
+							where: {
+								id: { in: sourceIds },
+								organizationId: chat.organizationId,
+							},
+							select: {
+								id: true,
+								name: true,
+								type: true,
+								url: true,
+								filePath: true,
+								extractedText: true,
+								metadata: true,
+							},
+						});
+
+						if (sourcesData.length > 0) {
+							const sourceDetails = sourcesData.map(source => {
+								const parts = [`**${source.name}** (${source.type})`];
+
+								if (source.url) {
+									parts.push(`URL: ${source.url}`);
+								}
+
+								if (source.extractedText) {
+									// Limit extracted text to avoid overwhelming the context
+									const textPreview = source.extractedText.slice(0, 1000);
+									parts.push(`Content: ${textPreview}${source.extractedText.length > 1000 ? '...' : ''}`);
+								}
+
+								if (source.metadata && typeof source.metadata === 'object') {
+									const metadata = source.metadata as Record<string, any>;
+									if (metadata.description) {
+										parts.push(`Description: ${metadata.description}`);
+									}
+								}
+
+								return parts.join('\n');
+							}).join('\n\n');
+
+							mentionContextParts.push(`Referenced Sources:\n${sourceDetails}`);
+						}
+					}
+				}
+
+				// Process snippet/asset mentions
+				const snippetMentions = mentions.filter(m => m.type === "asset");
+				if (snippetMentions.length > 0) {
+					const snippetDetails = snippetMentions.map(snippet => {
+						const parts = [`**${snippet.name}**`];
+
+						if (snippet.category) {
+							parts.push(`Category: ${snippet.category}`);
+						}
+
+						if (snippet.content) {
+							parts.push(`Content:\n${snippet.content}`);
+						}
+
+						return parts.join('\n');
+					}).join('\n\n');
+
+					mentionContextParts.push(`Referenced Snippets:\n${snippetDetails}`);
+				}
+
+				if (mentionContextParts.length > 0) {
+					contextParts.push(mentionContextParts.join('\n\n'));
 				}
 			}
 

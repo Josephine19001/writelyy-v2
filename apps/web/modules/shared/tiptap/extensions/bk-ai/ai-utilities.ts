@@ -1,7 +1,34 @@
 // AI utilities from BK editor
 
-export async function generateAiResponse({ prompt }: { prompt: string }) {
+interface SourceContext {
+	id: string;
+	name: string;
+	type: string;
+	content?: string;
+}
+
+interface SnippetContext {
+	id: string;
+	title: string;
+	content: string;
+}
+
+export async function generateAiResponse({
+	prompt,
+	sources,
+	snippets,
+}: {
+	prompt: string;
+	sources?: SourceContext[];
+	snippets?: SnippetContext[];
+}) {
 	console.log('🤖 [AI] Calling API with prompt:', `${prompt.substring(0, 100)}...`);
+	if (sources && sources.length > 0) {
+		console.log('🤖 [AI] Including', sources.length, 'sources');
+	}
+	if (snippets && snippets.length > 0) {
+		console.log('🤖 [AI] Including', snippets.length, 'snippets');
+	}
 
 	try {
 		// Call our API route instead of OpenAI directly
@@ -12,6 +39,8 @@ export async function generateAiResponse({ prompt }: { prompt: string }) {
 			},
 			body: JSON.stringify({
 				prompt,
+				sources,
+				snippets,
 			}),
 		});
 
@@ -41,6 +70,8 @@ export async function generateAiResponse({ prompt }: { prompt: string }) {
 
 export async function requestCompletion({
 	prompt,
+	sources,
+	snippets,
 	onLoading,
 	onChunk,
 	onSuccess,
@@ -48,6 +79,8 @@ export async function requestCompletion({
 	onComplete,
 }: {
 	prompt: string;
+	sources?: SourceContext[];
+	snippets?: SnippetContext[];
 	onLoading?: () => void;
 	onChunk?: (chunk: string) => void;
 	onSuccess?: (completion: string) => void;
@@ -59,7 +92,7 @@ export async function requestCompletion({
 		console.log('🤖 [AI] Calling onLoading callback');
 		onLoading?.();
 
-		const response = await generateAiResponse({ prompt });
+		const response = await generateAiResponse({ prompt, sources, snippets });
 
 		const reader = response.body?.getReader();
 		const decoder = new TextDecoder();

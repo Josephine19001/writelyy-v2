@@ -10,7 +10,8 @@ import { setRequestLocale } from "next-intl/server";
 
 export const metadata: Metadata = {
 	title: "Writely - AI-Powered Writing Assistant | Write at the Speed of AI",
-	description: "Transform your ideas into polished documents with Writely's AI-powered writing assistant. Features include AI content generation, smart snippets, source management, and collaborative editing. No more blank page syndrome.",
+	description:
+		"Transform your ideas into polished documents with Writely's AI-powered writing assistant. Features include AI content generation, smart snippets, source management, and collaborative editing. No more blank page syndrome.",
 	keywords: [
 		"AI writing assistant",
 		"AI content generator",
@@ -36,7 +37,9 @@ export const metadata: Metadata = {
 		address: false,
 		telephone: false,
 	},
-	metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://writely.ai"),
+	metadataBase: new URL(
+		process.env.NEXT_PUBLIC_APP_URL || "https://writely.ai",
+	),
 	alternates: {
 		canonical: "/",
 	},
@@ -45,7 +48,8 @@ export const metadata: Metadata = {
 		locale: "en_US",
 		url: "/",
 		title: "Writely - AI-Powered Writing Assistant",
-		description: "Transform your ideas into polished documents with AI-powered writing assistance. No more blank page syndrome.",
+		description:
+			"Transform your ideas into polished documents with AI-powered writing assistance. No more blank page syndrome.",
 		siteName: "Writely",
 		images: [
 			{
@@ -59,10 +63,11 @@ export const metadata: Metadata = {
 	twitter: {
 		card: "summary_large_image",
 		title: "Writely - AI-Powered Writing Assistant",
-		description: "Transform your ideas into polished documents with AI-powered writing assistance. No more blank page syndrome.",
+		description:
+			"Transform your ideas into polished documents with AI-powered writing assistance. No more blank page syndrome.",
 		images: ["/og-image.png"],
-		creator: "@loplyyai",
-		site: "@loplyyai",
+		creator: "@WritelyyEditor",
+		site: "@WritelyyEditor",
 	},
 	robots: {
 		index: true,

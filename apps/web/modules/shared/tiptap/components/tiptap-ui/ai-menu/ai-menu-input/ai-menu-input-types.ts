@@ -1,5 +1,5 @@
 export interface BaseAiMenuInputProps {
-  onInputSubmit: (value: string) => void
+  onInputSubmit: (value: string, options?: { snippets?: any[]; sources?: any[] }) => void
   onToneChange?: (tone: string) => void
   onClose?: () => void
   onInputFocus?: () => void

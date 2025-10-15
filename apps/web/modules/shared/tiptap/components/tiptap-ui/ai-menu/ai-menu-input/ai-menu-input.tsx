@@ -44,8 +44,8 @@ import "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input/ai-menu-input.
 
 // Hooks for snippets and sources
 import { useSnippetsQuery, useSourcesQuery } from "@saas/lib/api";
-import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import type { Source } from "@saas/shared/components/workspace/sources/types";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { File, FileImage, Image, Link } from "lucide-react";
 
 // Helper to get source icon component (not JSX element)
@@ -78,9 +78,16 @@ export function AiMenuInputPlaceholder({
 	onPlaceholderClick: () => void;
 }) {
 	return (
-		<div
+		<button
+			type="button"
 			className="tiptap-ai-prompt-input-placeholder"
 			onClick={onPlaceholderClick}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					onPlaceholderClick();
+				}
+			}}
+			tabIndex={0}
 		>
 			<div className="tiptap-ai-prompt-input-placeholder-content">
 				<AiSparklesIcon className="tiptap-ai-prompt-input-placeholder-icon" />
@@ -91,7 +98,7 @@ export function AiMenuInputPlaceholder({
 			<Button data-style="primary" disabled>
 				<ArrowUpIcon className="tiptap-button-icon" />
 			</Button>
-		</div>
+		</button>
 	);
 }
 
@@ -160,10 +167,9 @@ export function SnippetSelector({
 	onSnippetSelect: (snippet: Snippet) => void;
 }) {
 	const { activeWorkspace } = useActiveWorkspace();
-	const { data: snippetsData } = useSnippetsQuery(
-		activeWorkspace?.id || "",
-		{ enabled: !!activeWorkspace?.id }
-	);
+	const { data: snippetsData } = useSnippetsQuery(activeWorkspace?.id || "", {
+		enabled: !!activeWorkspace?.id,
+	});
 
 	const snippets = snippetsData?.snippets || [];
 
@@ -181,7 +187,7 @@ export function SnippetSelector({
 	}, [snippets]);
 
 	const isSelected = (snippet: Snippet) => {
-		return selectedSnippets.some(s => s.id === snippet.id);
+		return selectedSnippets.some((s) => s.id === snippet.id);
 	};
 
 	const buttonLabel = React.useMemo(() => {
@@ -196,19 +202,22 @@ export function SnippetSelector({
 				<Button
 					type="button"
 					data-style="ghost"
-					data-active-state={selectedSnippets.length > 0 ? "on" : "off"}
+					data-active-state={
+						selectedSnippets.length > 0 ? "on" : "off"
+					}
 					role="button"
 					tabIndex={-1}
 					aria-label="Insert snippet"
 				>
 					<SnippetIcon className="tiptap-button-icon" />
-					<span className="tiptap-button-text">
-						{buttonLabel}
-					</span>
+					<span className="tiptap-button-text">{buttonLabel}</span>
 				</Button>
 			</DropdownMenuTrigger>
 
-			<DropdownMenuContent align="start" className="max-h-96 overflow-y-auto">
+			<DropdownMenuContent
+				align="start"
+				className="max-h-96 overflow-y-auto"
+			>
 				<Card>
 					<CardBody>
 						{Object.keys(groupedSnippets).length === 0 ? (
@@ -217,45 +226,70 @@ export function SnippetSelector({
 							</div>
 						) : (
 							<ButtonGroup>
-								{Object.entries(groupedSnippets).map(([category, categorySnippets]) => (
-									<div key={category}>
-										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
-											{category}
+								{Object.entries(groupedSnippets).map(
+									([category, categorySnippets]) => (
+										<div key={category}>
+											<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
+												{category}
+											</div>
+											{categorySnippets.map(
+												(snippet: Snippet) => {
+													const selected =
+														isSelected(snippet);
+													return (
+														<DropdownMenuItem
+															key={snippet.id}
+															asChild
+															onSelect={(e) =>
+																e.preventDefault()
+															}
+														>
+															<Button
+																data-style="ghost"
+																data-active-state={
+																	selected
+																		? "on"
+																		: "off"
+																}
+																onClick={() =>
+																	onSnippetSelect(
+																		snippet,
+																	)
+																}
+																className="flex items-start gap-2 w-full text-left"
+															>
+																<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0 mt-1">
+																	{selected && (
+																		<div className="w-2 h-2 bg-primary rounded-sm" />
+																	)}
+																</div>
+																<div className="flex flex-col flex-1">
+																	<span className="tiptap-button-text font-medium text-left w-full">
+																		{
+																			snippet.title
+																		}
+																	</span>
+																	<span className="text-xs text-muted-foreground line-clamp-1 text-left w-full">
+																		{snippet.content.slice(
+																			0,
+																			50,
+																		)}
+																		{snippet
+																			.content
+																			.length >
+																		50
+																			? "..."
+																			: ""}
+																	</span>
+																</div>
+															</Button>
+														</DropdownMenuItem>
+													);
+												},
+											)}
 										</div>
-										{categorySnippets.map((snippet: Snippet) => {
-											const selected = isSelected(snippet);
-											return (
-												<DropdownMenuItem
-													key={snippet.id}
-													asChild
-													onSelect={(e) => e.preventDefault()}
-												>
-													<Button
-														data-style="ghost"
-														data-active-state={selected ? "on" : "off"}
-														onClick={() => onSnippetSelect(snippet)}
-														className="flex items-start gap-2 w-full text-left"
-													>
-														<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0 mt-1">
-															{selected && (
-																<div className="w-2 h-2 bg-primary rounded-sm" />
-															)}
-														</div>
-														<div className="flex flex-col flex-1">
-															<span className="tiptap-button-text font-medium text-left w-full">
-																{snippet.title}
-															</span>
-															<span className="text-xs text-muted-foreground line-clamp-1 text-left w-full">
-																{snippet.content.slice(0, 50)}
-																{snippet.content.length > 50 ? "..." : ""}
-															</span>
-														</div>
-													</Button>
-												</DropdownMenuItem>
-											);
-										})}
-									</div>
-								))}
+									),
+								)}
 							</ButtonGroup>
 						)}
 					</CardBody>
@@ -273,10 +307,9 @@ export function SourceSelector({
 	onSourceSelect: (source: Source) => void;
 }) {
 	const { activeWorkspace } = useActiveWorkspace();
-	const { data: sourcesData } = useSourcesQuery(
-		activeWorkspace?.id || "",
-		{ enabled: !!activeWorkspace?.id }
-	);
+	const { data: sourcesData } = useSourcesQuery(activeWorkspace?.id || "", {
+		enabled: !!activeWorkspace?.id,
+	});
 
 	const sources = sourcesData?.sources || [];
 
@@ -294,7 +327,7 @@ export function SourceSelector({
 	}, [sources]);
 
 	const isSelected = (source: Source) => {
-		return selectedSources.some(s => s.id === source.id);
+		return selectedSources.some((s) => s.id === source.id);
 	};
 
 	const buttonLabel = React.useMemo(() => {
@@ -319,19 +352,22 @@ export function SourceSelector({
 				<Button
 					type="button"
 					data-style="ghost"
-					data-active-state={selectedSources.length > 0 ? "on" : "off"}
+					data-active-state={
+						selectedSources.length > 0 ? "on" : "off"
+					}
 					role="button"
 					tabIndex={-1}
 					aria-label="Add source context"
 				>
 					<SourcesIcon className="tiptap-button-icon" />
-					<span className="tiptap-button-text">
-						{buttonLabel}
-					</span>
+					<span className="tiptap-button-text">{buttonLabel}</span>
 				</Button>
 			</DropdownMenuTrigger>
 
-			<DropdownMenuContent align="start" className="max-h-96 overflow-y-auto">
+			<DropdownMenuContent
+				align="start"
+				className="max-h-96 overflow-y-auto"
+			>
 				<Card>
 					<CardBody>
 						{Object.keys(groupedSources).length === 0 ? (
@@ -340,41 +376,61 @@ export function SourceSelector({
 							</div>
 						) : (
 							<ButtonGroup>
-								{Object.entries(groupedSources).map(([type, typeSources]) => (
-									<div key={type}>
-										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
-											{type}
+								{Object.entries(groupedSources).map(
+									([type, typeSources]) => (
+										<div key={type}>
+											<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
+												{type}
+											</div>
+											{typeSources.map(
+												(source: Source) => {
+													const SourceIconComponent =
+														getSourceIconComponent(
+															source.type,
+														);
+													const selected =
+														isSelected(source);
+													return (
+														<DropdownMenuItem
+															key={source.id}
+															asChild
+															onSelect={(e) =>
+																e.preventDefault()
+															}
+														>
+															<Button
+																data-style="ghost"
+																data-active-state={
+																	selected
+																		? "on"
+																		: "off"
+																}
+																onClick={() =>
+																	onSourceSelect(
+																		source,
+																	)
+																}
+																className="flex items-center gap-2 w-full text-left"
+															>
+																<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0">
+																	{selected && (
+																		<div className="w-2 h-2 bg-primary rounded-sm" />
+																	)}
+																</div>
+																<SourceIconComponent className="h-4 w-4 flex-shrink-0" />
+																<span className="tiptap-button-text font-medium text-left flex-1 truncate">
+																	{
+																		source.name
+																	}
+																</span>
+															</Button>
+														</DropdownMenuItem>
+													);
+												},
+											)}
 										</div>
-										{typeSources.map((source: Source) => {
-											const SourceIconComponent = getSourceIconComponent(source.type);
-											const selected = isSelected(source);
-											return (
-												<DropdownMenuItem
-													key={source.id}
-													asChild
-													onSelect={(e) => e.preventDefault()}
-												>
-													<Button
-														data-style="ghost"
-														data-active-state={selected ? "on" : "off"}
-														onClick={() => onSourceSelect(source)}
-														className="flex items-center gap-2 w-full text-left"
-													>
-														<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0">
-															{selected && (
-																<div className="w-2 h-2 bg-primary rounded-sm" />
-															)}
-														</div>
-														<SourceIconComponent className="h-4 w-4 flex-shrink-0" />
-														<span className="tiptap-button-text font-medium text-left flex-1 truncate">
-															{source.name}
-														</span>
-													</Button>
-												</DropdownMenuItem>
-											);
-										})}
-									</div>
-								))}
+									),
+								)}
 							</ButtonGroup>
 						)}
 					</CardBody>
@@ -393,14 +449,20 @@ export function AiPromptInputToolbar({
 	isEmpty = false,
 }: {
 	showPlaceholder?: boolean;
-	onInputSubmit: (prompt: string, snippets?: Snippet[], sources?: Source[]) => void;
+	onInputSubmit: (
+		prompt: string,
+		snippets?: Snippet[],
+		sources?: Source[],
+	) => void;
 	onToneChange?: (tone: string) => void;
 	onSnippetSelect?: (snippet: Snippet) => void;
 	onSourceSelect?: (source: Source) => void;
 	isEmpty?: boolean;
 }) {
 	const [tone, setTone] = React.useState<Tone | null>(null);
-	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>([]);
+	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>(
+		[],
+	);
 	const [selectedSources, setSelectedSources] = React.useState<Source[]>([]);
 	const [promptValue] = useComboboxValueState();
 
@@ -414,10 +476,10 @@ export function AiPromptInputToolbar({
 
 	const handleSnippetSelect = React.useCallback(
 		(snippet: Snippet) => {
-			setSelectedSnippets(prev => {
-				const isSelected = prev.some(s => s.id === snippet.id);
+			setSelectedSnippets((prev) => {
+				const isSelected = prev.some((s) => s.id === snippet.id);
 				if (isSelected) {
-					return prev.filter(s => s.id !== snippet.id);
+					return prev.filter((s) => s.id !== snippet.id);
 				}
 				return [...prev, snippet];
 			});
@@ -428,10 +490,10 @@ export function AiPromptInputToolbar({
 
 	const handleSourceSelect = React.useCallback(
 		(source: Source) => {
-			setSelectedSources(prev => {
-				const isSelected = prev.some(s => s.id === source.id);
+			setSelectedSources((prev) => {
+				const isSelected = prev.some((s) => s.id === source.id);
 				if (isSelected) {
-					return prev.filter(s => s.id !== source.id);
+					return prev.filter((s) => s.id !== source.id);
 				}
 				return [...prev, source];
 			});
@@ -444,7 +506,7 @@ export function AiPromptInputToolbar({
 		onInputSubmit(
 			promptValue,
 			selectedSnippets.length > 0 ? selectedSnippets : undefined,
-			selectedSources.length > 0 ? selectedSources : undefined
+			selectedSources.length > 0 ? selectedSources : undefined,
 		);
 		// Reset selected snippets and sources after submit
 		setSelectedSnippets([]);
@@ -500,70 +562,64 @@ export function AiMenuInputTextarea({
 }: AiMenuInputTextareaProps) {
 	const [promptValue, setPromptValue] = useComboboxValueState();
 	const [isFocused, setIsFocused] = React.useState(false);
-	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>([]);
+	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>(
+		[],
+	);
 	const [selectedSources, setSelectedSources] = React.useState<Source[]>([]);
 
 	const handleSnippetSelect = React.useCallback((snippet: Snippet) => {
-		setSelectedSnippets(prev => {
-			const isSelected = prev.some(s => s.id === snippet.id);
+		setSelectedSnippets((prev) => {
+			const isSelected = prev.some((s) => s.id === snippet.id);
 			if (isSelected) {
-				return prev.filter(s => s.id !== snippet.id);
+				return prev.filter((s) => s.id !== snippet.id);
 			}
 			return [...prev, snippet];
 		});
 	}, []);
 
 	const handleSourceSelect = React.useCallback((source: Source) => {
-		setSelectedSources(prev => {
-			const isSelected = prev.some(s => s.id === source.id);
+		setSelectedSources((prev) => {
+			const isSelected = prev.some((s) => s.id === source.id);
 			if (isSelected) {
-				return prev.filter(s => s.id !== source.id);
+				return prev.filter((s) => s.id !== source.id);
 			}
 			return [...prev, source];
 		});
 	}, []);
 
-	const handleSubmit = React.useCallback((prompt: string, snippets?: Snippet[], sources?: Source[]) => {
-		const cleanedPrompt = prompt?.trim();
-		if (cleanedPrompt) {
-			// Build final prompt with context
-			let finalPrompt = cleanedPrompt;
-			const snippetsToUse = snippets || selectedSnippets;
-			const sourcesToUse = sources || selectedSources;
+	const handleSubmit = React.useCallback(
+		(prompt: string, snippets?: Snippet[], sources?: Source[]) => {
+			const cleanedPrompt = prompt?.trim();
+			if (cleanedPrompt) {
+				const snippetsToUse = snippets || selectedSnippets;
+				const sourcesToUse = sources || selectedSources;
 
-			// Add snippet context if available (comma-separated)
-			if (snippetsToUse && snippetsToUse.length > 0) {
-				const snippetTitles = snippetsToUse.map(s => s.title).join(", ");
-				const snippetContents = snippetsToUse.map((s, idx) =>
-					`${idx + 1}. "${s.title}":\n${s.content}`
-				).join("\n\n");
-				finalPrompt = `${finalPrompt}\n\nContext from ${snippetsToUse.length} snippet(s) [${snippetTitles}]:\n\n${snippetContents}`;
+				// Pass the prompt and structured data separately (not concatenated)
+				// The backend will handle adding the context properly
+				onInputSubmit(cleanedPrompt, {
+					snippets:
+						snippetsToUse && snippetsToUse.length > 0
+							? snippetsToUse
+							: undefined,
+					sources:
+						sourcesToUse && sourcesToUse.length > 0
+							? sourcesToUse
+							: undefined,
+				});
+
+				setPromptValue("");
+				setSelectedSnippets([]);
+				setSelectedSources([]);
 			}
-
-			// Add source context if available (comma-separated)
-			if (sourcesToUse && sourcesToUse.length > 0) {
-				const sourceTitles = sourcesToUse.map(s => s.name).join(", ");
-				const sourceContents = sourcesToUse.map((s, idx) => {
-					const sourceContext = s.metadata?.extractedText ||
-						s.url ||
-						`Source: ${s.name} (${s.type})`;
-					return `${idx + 1}. "${s.name}":\n${sourceContext}`;
-				}).join("\n\n");
-				finalPrompt = `${finalPrompt}\n\nContext from ${sourcesToUse.length} source(s) [${sourceTitles}]:\n\n${sourceContents}`;
-			}
-
-			onInputSubmit(finalPrompt);
-			setPromptValue("");
-			setSelectedSnippets([]);
-			setSelectedSources([]);
-		}
-	}, [onInputSubmit, selectedSnippets, selectedSources, setPromptValue]);
+		},
+		[onInputSubmit, selectedSnippets, selectedSources, setPromptValue],
+	);
 
 	const handleSubmitWrapper = React.useCallback(() => {
 		handleSubmit(
 			promptValue,
 			selectedSnippets.length > 0 ? selectedSnippets : undefined,
-			selectedSources.length > 0 ? selectedSources : undefined
+			selectedSources.length > 0 ? selectedSources : undefined,
 		);
 	}, [handleSubmit, promptValue, selectedSnippets, selectedSources]);
 

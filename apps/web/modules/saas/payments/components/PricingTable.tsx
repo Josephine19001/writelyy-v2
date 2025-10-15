@@ -43,8 +43,6 @@ export function PricingTable({
 
 	const { planData } = usePlanData();
 
-	console.log("plan", planData);
-
 	const createCheckoutLinkMutation = useMutation(
 		orpc.payments.createCheckoutLink.mutationOptions(),
 	);
@@ -155,9 +153,12 @@ export function PricingTable({
 						return (
 							<div
 								key={planId}
-								className={cn("rounded-3xl border-2 border-border p-6", {
-									"!border-primary": recommended,
-								})}
+								className={cn(
+									"rounded-3xl border-2 border-border p-6",
+									{
+										"!border-primary": recommended,
+									},
+								)}
 								data-test="price-table-plan"
 							>
 								<div className="flex h-full flex-col justify-between gap-4">
@@ -273,7 +274,7 @@ export function PricingTable({
 													{t("pricing.contactSales")}
 												</LocaleLink>
 											</Button>
-										) : (userId || workspaceId) ? (
+										) : userId || workspaceId ? (
 											<Button
 												className="mt-4 w-full"
 												variant={

@@ -2,7 +2,16 @@
 
 import { EditorContext } from "@tiptap/react";
 import * as React from "react";
+import { AiMenuInputTextarea } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input";
+import { AiMenuActions } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions";
+import { AiMenuDiff } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-diff/ai-menu-diff";
+import { StopCircle2Icon } from "@shared/tiptap/components/tiptap-icons/stop-circle-2-icon";
+import { Button, ButtonGroup } from "@shared/tiptap/components/tiptap-ui-primitive/button";
+import { Card } from "@shared/tiptap/components/tiptap-ui-primitive/card/card";
+import { ComboboxProvider } from "@shared/tiptap/components/tiptap-ui-primitive/combobox";
+import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
 import "./editor-footer.scss";
+import "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu.scss";
 
 interface EditorFooterProps {
 	isSaving?: boolean;
@@ -88,6 +97,137 @@ export function EditorFooter({
 	const { editor } = React.useContext(EditorContext)!;
 	const wordCount = useWordCount(editor);
 	const { pageCount, currentPage } = usePageCount(editor);
+	const [showAiInput, setShowAiInput] = React.useState(false);
+
+	// Get AI state from editor
+	const {
+		aiGenerationIsLoading,
+		aiGenerationActive,
+		aiGenerationHasMessage,
+	} = useUiEditorState(editor);
+
+	// Get AI storage data for diff view
+	const [aiData, setAiData] = React.useState({
+		originalText: "",
+		newText: "",
+	});
+
+	React.useEffect(() => {
+		if (!editor || !aiGenerationHasMessage) {
+			setAiData({ originalText: "", newText: "" });
+			return;
+		}
+
+		const storage = (editor.storage as any).ai || {};
+		const originalText = storage.originalText || "";
+		const newText = storage.message || "";
+
+		setAiData({
+			originalText,
+			newText,
+		});
+	}, [editor, aiGenerationHasMessage]);
+
+	// Listen for the custom event to show AI input
+	React.useEffect(() => {
+		const handleShowAiInput = () => {
+			setShowAiInput(true);
+		};
+
+		window.addEventListener("tiptap-show-ai-input", handleShowAiInput);
+
+		return () => {
+			window.removeEventListener("tiptap-show-ai-input", handleShowAiInput);
+		};
+	}, []);
+
+	// Keep AI input visible while AI is active
+	React.useEffect(() => {
+		if (aiGenerationActive) {
+			setShowAiInput(true);
+		} else if (!aiGenerationActive && !aiGenerationHasMessage) {
+			setShowAiInput(false);
+		}
+	}, [aiGenerationActive, aiGenerationHasMessage]);
+
+	const handleSendMessage = React.useCallback((message: string, mentions?: any[]) => {
+		if (!editor) return;
+
+		// Separate sources and snippets from mentions
+		const sources = mentions?.filter(m => m.type === "source" || m.type === "doc" || m.type === "image" || m.type === "pdf" || m.type === "link");
+		const snippets = mentions?.filter(m => m.type === "asset" || m.type === "snippet");
+
+		// Insert the AI-generated content or trigger AI generation
+		if ((editor.commands as any).bkAiTextPrompt) {
+			(editor.commands as any).bkAiTextPrompt({
+				prompt: message,
+				command: "prompt",
+				insert: true,
+				stream: true,
+				tone: "auto",
+				format: "rich-text",
+				sources: sources?.map(s => ({
+					id: s.id,
+					name: s.name,
+					type: s.type,
+					content: s.content || s.extractedText || s.url,
+				})),
+				snippets: snippets?.map(s => ({
+					id: s.id,
+					title: s.name || s.title,
+					content: s.content,
+				})),
+			});
+		}
+
+		// Don't close the AI input - let it transition to loading state
+		// It will be closed when user accepts/rejects or cancels
+	}, [editor]);
+
+	const handleCancel = React.useCallback(() => {
+		if (!editor) return;
+
+		// If AI is loading, reject it
+		if (aiGenerationIsLoading) {
+			if ((editor.commands as any).aiReject) {
+				(editor.commands as any).aiReject({ type: "reset" });
+			}
+		}
+
+		setShowAiInput(false);
+		editor.commands.resetUiState();
+	}, [editor, aiGenerationIsLoading]);
+
+	const handleStop = React.useCallback(() => {
+		if (!editor) return;
+
+		if ((editor.commands as any).aiReject) {
+			(editor.commands as any).aiReject({ type: "reset" });
+		}
+		setShowAiInput(false);
+		editor.commands.resetUiState();
+	}, [editor]);
+
+	const handleAccept = React.useCallback(() => {
+		if (!editor) return;
+		if ((editor.commands as any).aiAccept) {
+			(editor.commands as any).aiAccept();
+		}
+		setShowAiInput(false);
+		editor.commands.resetUiState();
+	}, [editor]);
+
+	const handleReject = React.useCallback(() => {
+		if (!editor) return;
+		if ((editor.commands as any).aiReject) {
+			(editor.commands as any).aiReject();
+		}
+		setShowAiInput(false);
+		editor.commands.resetUiState();
+	}, [editor]);
+
+	// State for combobox value (needed for AI input)
+	const [comboboxValue, setComboboxValue] = React.useState("");
 
 	if (!editor) {
 		return null;
@@ -114,33 +254,106 @@ export function EditorFooter({
 	};
 
 	return (
-		<footer className="editor-footer">
-			{/* Left side: Page and word count */}
-			<div className="editor-footer-left">
-				{/* <span className="page-count">
-					Page {currentPage} of {pageCount}
-				</span>
-				<span className="separator">·</span> */}
-				<span className="text-sm">{wordCount} words</span>
-			</div>
+		<>
+			{/* AI Input - shown when triggered from slash menu */}
+			{showAiInput && (
+				<div className="editor-footer-ai-input">
+					{/* Loading state */}
+					{aiGenerationIsLoading && (
+						<Card>
+							<div className="tiptap-ai-menu-progress">
+								<div className="tiptap-spinner-alt">
+									<span>AI is writing</span>
+									<div className="dots-container">
+										<div className="dot" />
+										<div className="dot" />
+										<div className="dot" />
+									</div>
+								</div>
 
-			{/* Right side: Saving status */}
-			<div className="editor-footer-right">
-				{isSaving && (
-					<span className="saving-indicator">
-						<span className="saving-spinner" />
-						Saving...
+								<ButtonGroup>
+									<Button data-style="ghost" title="Stop" onClick={handleStop}>
+										<StopCircle2Icon className="tiptap-button-icon" />
+									</Button>
+								</ButtonGroup>
+							</div>
+						</Card>
+					)}
+
+					{/* Diff view with accept/reject actions */}
+					{aiGenerationHasMessage && !aiGenerationIsLoading && (
+						<Card>
+							{aiData.originalText && aiData.newText ? (
+								<AiMenuDiff
+									originalText={aiData.originalText}
+									newText={aiData.newText}
+									mode="inline"
+								/>
+							) : (
+								aiData.newText && (
+									<AiMenuDiff
+										originalText=""
+										newText={aiData.newText}
+										mode="inline"
+									/>
+								)
+							)}
+							<AiMenuActions
+								editor={editor}
+								options={{ tone: "auto", format: "rich-text" }}
+								onAccept={handleAccept}
+								onReject={handleReject}
+							/>
+						</Card>
+					)}
+
+					{/* Input state */}
+					{!aiGenerationIsLoading && !aiGenerationHasMessage && (
+						<ComboboxProvider value={comboboxValue} setValue={setComboboxValue}>
+							<AiMenuInputTextarea
+								onInputSubmit={(message, options) => {
+									handleSendMessage(message, [
+										...(options?.snippets || []),
+										...(options?.sources || []),
+									]);
+								}}
+								onClose={handleCancel}
+								placeholder="Ask AI to write anything..."
+								showPlaceholder={false}
+							/>
+						</ComboboxProvider>
+					)}
+				</div>
+			)}
+
+			<footer className="editor-footer">
+				{/* Left side: Page and word count */}
+				<div className="editor-footer-left">
+					{/* <span className="page-count">
+						Page {currentPage} of {pageCount}
 					</span>
-				)}
-				{!isSaving && hasUnsavedChanges && (
-					<span className="unsaved-indicator">● Unsaved changes</span>
-				)}
-				{!isSaving && !hasUnsavedChanges && lastSaved && (
-					<span className="last-saved">
-						✓ Saved {formatLastSaved(lastSaved)}
-					</span>
-				)}
-			</div>
-		</footer>
+					<span className="separator">·</span> */}
+					<span className="text-sm">{wordCount} words</span>
+				</div>
+
+				{/* Right side: Saving status */}
+				<div className="editor-footer-right">
+					{isSaving && (
+						<span className="saving-indicator">
+							<span className="saving-spinner" />
+							Saving...
+						</span>
+					)}
+					{!isSaving && hasUnsavedChanges && (
+						<span className="unsaved-indicator">● Unsaved changes</span>
+					)}
+					{!isSaving && !hasUnsavedChanges && lastSaved && (
+						<span className="last-saved">
+							✓ Saved {formatLastSaved(lastSaved)}
+						</span>
+					)}
+				</div>
+			</footer>
+		</>
 	);
 }

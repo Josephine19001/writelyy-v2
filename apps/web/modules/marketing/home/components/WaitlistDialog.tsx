@@ -34,24 +34,16 @@ export function WaitlistDialog({ children }: WaitlistDialogProps) {
 		setError("");
 
 		try {
-			// TODO: Replace with your Google Sheets Web App URL
-			// Instructions to set up:
-			// 1. Create a Google Sheet
-			// 2. Go to Extensions > Apps Script
-			// 3. Add the script to handle POST requests
-			// 4. Deploy as Web App and get the URL
 			const GOOGLE_SHEET_URL =
 				process.env.NEXT_PUBLIC_WAITLIST_SHEET_URL || "";
 
 			if (!GOOGLE_SHEET_URL) {
-				// For now, simulate success if URL is not configured
-				console.log("Waitlist submission:", formData);
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 				setIsSuccess(true);
 				return;
 			}
 
-			const response = await fetch(GOOGLE_SHEET_URL, {
+			await fetch(GOOGLE_SHEET_URL, {
 				method: "POST",
 				mode: "no-cors",
 				headers: {

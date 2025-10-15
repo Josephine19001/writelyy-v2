@@ -80,7 +80,7 @@ export function Footer() {
 						</h4>
 						<div className="flex gap-3 items-center">
 							<a
-								href="https://x.com/loplyyai"
+								href="https://x.com/WritelyyEditor"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="group"

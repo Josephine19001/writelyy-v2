@@ -70,6 +70,7 @@ export function ChatInterface({ editorContext }: ChatInterfaceProps) {
 				includeDocuments: mentions?.some(m => m.type === "document") || false,
 				includeSources: mentions?.some(m => m.type === "source") || false,
 				selectedText: editorCtx?.selectedText,
+				mentions: mentions, // Pass the specific mentions (sources and snippets)
 			});
 
 			// Handle streaming response - for now just get the final content

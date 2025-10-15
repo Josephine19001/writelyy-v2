@@ -105,6 +105,7 @@ export const useSendAiMessageWithContextMutation = () => {
 			includeSources = true,
 			documentId,
 			selectedText,
+			mentions,
 		}: {
 			chatId: string;
 			messages: any[];
@@ -112,6 +113,15 @@ export const useSendAiMessageWithContextMutation = () => {
 			includeSources?: boolean;
 			documentId?: string;
 			selectedText?: string;
+			mentions?: Array<{
+				id: string;
+				name: string;
+				type: "document" | "folder" | "source" | "asset";
+				subtype?: "image" | "pdf" | "link";
+				url?: string;
+				content?: string;
+				category?: string;
+			}>;
 		}) => {
 			// Use our enhanced API that includes workspace context
 			return await orpcClient.ai.chats.messages.addWithContext({
@@ -121,6 +131,7 @@ export const useSendAiMessageWithContextMutation = () => {
 				includeSources,
 				documentId,
 				selectedText,
+				mentions,
 			});
 		},
 	});
