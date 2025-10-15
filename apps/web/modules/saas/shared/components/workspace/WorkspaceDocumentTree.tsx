@@ -12,8 +12,10 @@ import {
 	FileText,
 	Folder,
 	FolderPlus,
+	Loader2,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
+import { useTabManager } from "../../hooks/use-tab-manager";
 import { useEditorContext } from "../NewAppWrapper";
 import { useTabContext } from "../providers/TabProvider";
 import { CreateItemDialog } from "./dialogs/CreateItemDialog";
@@ -36,6 +38,7 @@ export function WorkspaceDocumentTree({
 	const { setSelectedFolderId, registerInlineCreateHandler } =
 		useEditorContext();
 	const { tabs } = useTabContext();
+	const { updateTabTitle } = useTabManager();
 	const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
 		new Set(),
 	);
@@ -50,6 +53,7 @@ export function WorkspaceDocumentTree({
 		currentName: string;
 		level: number;
 	} | null>(null);
+	const [savingItems, setSavingItems] = useState<Record<string, string>>({});
 
 	// Get folder tree and all documents in one optimized call
 	const { data: folderTree, isLoading: foldersLoading } = useFolderTreeQuery(
@@ -233,7 +237,21 @@ export function WorkspaceDocumentTree({
 						currentName={folder.name}
 						level={level}
 						onCancel={() => setInlineRename(null)}
-						onSuccess={() => setInlineRename(null)}
+						onSuccess={(newName) => {
+							setInlineRename(null);
+							setSavingItems((prev) => ({
+								...prev,
+								[folder.id]: newName,
+							}));
+							// Clear saving state after a short delay (mutation should complete)
+							setTimeout(() => {
+								setSavingItems((prev) => {
+									const newState = { ...prev };
+									delete newState[folder.id];
+									return newState;
+								});
+							}, 2000);
+						}}
 					/>
 				) : (
 					<div className="group flex items-center justify-between hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent rounded-xl transition-all duration-300 relative hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5">
@@ -290,8 +308,11 @@ export function WorkspaceDocumentTree({
 									))}
 								<Folder className="h-3 w-3 text-muted-foreground flex-shrink-0" />
 								<span className="truncate text-foreground">
-									{folder.name}
+									{savingItems[folder.id] || folder.name}
 								</span>
+								{savingItems[folder.id] && (
+									<Loader2 className="h-3 w-3 text-muted-foreground animate-spin flex-shrink-0" />
+								)}
 							</div>
 						</Button>
 						<div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -371,6 +392,25 @@ export function WorkspaceDocumentTree({
 									level: itemLevel,
 								});
 							}}
+							onClearRename={() => setInlineRename(null)}
+							savingItems={savingItems}
+							onRenameSuccess={(itemId, newName) => {
+								setSavingItems((prev) => ({
+									...prev,
+									[itemId]: newName,
+								}));
+								// Update tab title immediately if document is open
+								const tabId = `doc-${itemId}`;
+								updateTabTitle(tabId, newName);
+								// Clear saving state after a short delay
+								setTimeout(() => {
+									setSavingItems((prev) => {
+										const newState = { ...prev };
+										delete newState[itemId];
+										return newState;
+									});
+								}, 2000);
+							}}
 						/>
 						{/* Inline creation within this folder */}
 						{inlineCreate &&
@@ -411,13 +451,31 @@ export function WorkspaceDocumentTree({
 						currentName={document.title}
 						level={level}
 						onCancel={() => setInlineRename(null)}
-						onSuccess={() => setInlineRename(null)}
+						onSuccess={(newName) => {
+							setInlineRename(null);
+							setSavingItems((prev) => ({
+								...prev,
+								[document.id]: newName,
+							}));
+							// Update tab title immediately if document is open
+							const tabId = `doc-${document.id}`;
+							updateTabTitle(tabId, newName);
+							// Clear saving state after a short delay (mutation should complete)
+							setTimeout(() => {
+								setSavingItems((prev) => {
+									const newState = { ...prev };
+									delete newState[document.id];
+									return newState;
+								});
+							}, 2000);
+						}}
 					/>
 				) : (
 					<div
 						className={cn(
 							"group flex items-center justify-between hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent rounded-xl transition-all duration-300 relative hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5",
-							isSelected && "bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 shadow-sm shadow-primary/20",
+							isSelected &&
+								"bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 shadow-sm shadow-primary/20",
 						)}
 					>
 						{/* Tree lines for documents */}
@@ -467,8 +525,11 @@ export function WorkspaceDocumentTree({
 							<div className="flex items-center gap-1.5">
 								<File className="h-3 w-3 text-muted-foreground flex-shrink-0" />
 								<span className="truncate text-foreground">
-									{document.title}
+									{savingItems[document.id] || document.title}
 								</span>
+								{savingItems[document.id] && (
+									<Loader2 className="h-3 w-3 text-muted-foreground animate-spin flex-shrink-0" />
+								)}
 							</div>
 						</Button>
 						<div className="opacity-0 group-hover:opacity-100 transition-opacity">

@@ -48,7 +48,7 @@ function usePageCount(editor: any) {
 			try {
 				const pages = editor.storage?.pages?.pages || [];
 				setPageCount(Math.max(1, pages.length));
-				
+
 				// Get current page based on cursor position
 				const { from } = editor.state.selection;
 				let page = 1;
@@ -80,7 +80,11 @@ function usePageCount(editor: any) {
 	return { pageCount, currentPage };
 }
 
-export function EditorFooter({ isSaving, lastSaved, hasUnsavedChanges }: EditorFooterProps) {
+export function EditorFooter({
+	isSaving,
+	lastSaved,
+	hasUnsavedChanges,
+}: EditorFooterProps) {
 	const { editor } = React.useContext(EditorContext)!;
 	const wordCount = useWordCount(editor);
 	const { pageCount, currentPage } = usePageCount(editor);
@@ -91,32 +95,33 @@ export function EditorFooter({ isSaving, lastSaved, hasUnsavedChanges }: EditorF
 
 	const formatLastSaved = (date: Date) => {
 		const now = new Date();
-		const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-		
+		const diffInSeconds = Math.floor(
+			(now.getTime() - date.getTime()) / 1000,
+		);
+
 		if (diffInSeconds < 60) {
 			return "just now";
-		} else if (diffInSeconds < 3600) {
+		}
+		if (diffInSeconds < 3600) {
 			const minutes = Math.floor(diffInSeconds / 60);
 			return `${minutes}m ago`;
-		} else if (diffInSeconds < 86400) {
+		}
+		if (diffInSeconds < 86400) {
 			const hours = Math.floor(diffInSeconds / 3600);
 			return `${hours}h ago`;
-		} else {
-			return date.toLocaleDateString();
 		}
+		return date.toLocaleDateString();
 	};
 
 	return (
 		<footer className="editor-footer">
 			{/* Left side: Page and word count */}
 			<div className="editor-footer-left">
-				<span className="page-count">
+				{/* <span className="page-count">
 					Page {currentPage} of {pageCount}
 				</span>
-				<span className="separator">·</span>
-				<span className="word-count">
-					{wordCount} words
-				</span>
+				<span className="separator">·</span> */}
+				<span className="text-sm">{wordCount} words</span>
 			</div>
 
 			{/* Right side: Saving status */}
@@ -128,9 +133,7 @@ export function EditorFooter({ isSaving, lastSaved, hasUnsavedChanges }: EditorF
 					</span>
 				)}
 				{!isSaving && hasUnsavedChanges && (
-					<span className="unsaved-indicator">
-						● Unsaved changes
-					</span>
+					<span className="unsaved-indicator">● Unsaved changes</span>
 				)}
 				{!isSaving && !hasUnsavedChanges && lastSaved && (
 					<span className="last-saved">
