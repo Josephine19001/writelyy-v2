@@ -111,6 +111,7 @@
 		"cropperjs": "1.6.2",
 		"date-fns": "^4.1.0",
 		"deepmerge": "^4.3.1",
+		"diff-match-patch": "^1.0.5",
 		"es-toolkit": "^1.39.10",
 		"fabric": "^6.7.1",
 		"framer-motion": "^12.23.24",

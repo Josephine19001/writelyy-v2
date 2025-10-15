@@ -3,7 +3,6 @@
 // -- Icons --
 import { StopCircle2Icon } from "@shared/tiptap/components/tiptap-icons/stop-circle-2-icon";
 import { AiMenuActions } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions";
-// -- Tiptap UI --
 import { AiMenuInputTextarea } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input/ai-menu-input";
 import { AiMenuItems } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-items/ai-menu-items";
 import {
@@ -69,6 +68,28 @@ export function AiMenuContent({
 		aiGenerationHasMessage,
 	} = useUiEditorState(editor);
 	const tiptapAiPromptInputRef = React.useRef<HTMLDivElement | null>(null);
+
+	// Get AI storage data for diff view
+	const [aiData, setAiData] = React.useState({
+		originalText: "",
+		newText: "",
+	});
+
+	React.useEffect(() => {
+		if (!editor || !aiGenerationHasMessage) {
+			setAiData({ originalText: "", newText: "" });
+			return;
+		}
+
+		const storage = (editor.storage as any).ai || {};
+		const originalText = storage.originalText || "";
+		const newText = storage.message || "";
+
+		setAiData({
+			originalText,
+			newText,
+		});
+	}, [editor, aiGenerationHasMessage]);
 
 	const closeAiMenu = React.useCallback(() => {
 		if (!editor) return;
@@ -147,8 +168,8 @@ export function AiMenuContent({
 			}
 		} else {
 			if ((editor.commands as any).aiAccept) {
-			(editor.commands as any).aiAccept();
-		}
+				(editor.commands as any).aiAccept();
+			}
 		}
 		closeAiMenu();
 	}, [aiGenerationIsLoading, closeAiMenu, editor]);
@@ -159,8 +180,8 @@ export function AiMenuContent({
 
 			if (!editor) return;
 			if ((editor.commands as any).aiAccept) {
-			(editor.commands as any).aiAccept();
-		}
+				(editor.commands as any).aiAccept();
+			}
 		}
 	}, [aiGenerationIsLoading, closeAiMenu, editor]);
 
@@ -192,6 +213,18 @@ export function AiMenuContent({
 		}
 	}, [aiGenerationActive, state.isOpen, closeAiMenu]);
 
+	// Position menu at selection when AI generation first becomes active
+	React.useEffect(() => {
+		if (!editor || !aiGenerationActive) return;
+
+		const selectedElement = getSelectedDOMElement(editor);
+		if (selectedElement) {
+			const rect = selectedElement.getBoundingClientRect();
+			setFallbackAnchor(selectedElement, rect);
+			show(selectedElement);
+		}
+	}, [editor, aiGenerationActive, setFallbackAnchor, show]);
+
 	const smoothFocusAndScroll = (element: HTMLElement | null) => {
 		element?.focus();
 		element?.scrollIntoView({
@@ -211,6 +244,7 @@ export function AiMenuContent({
 			state.shouldShowInput &&
 			state.inputIsFocused);
 
+	// Show menu when AI generation is active
 	if (!editor || !state.isOpen || !aiGenerationActive) {
 		return null;
 	}
@@ -221,46 +255,47 @@ export function AiMenuContent({
 				onClickOutside={handleClickOutside}
 				className="tiptap-ai-menu"
 				flip={false}
+				gutter={2}
 			>
-				<Card>
-					{aiGenerationIsLoading && (
+				{aiGenerationIsLoading && (
+					<Card>
 						<AiMenuProgress editor={editor} />
-					)}
+					</Card>
+				)}
 
-					{!aiGenerationIsLoading && (
-						<AiMenuInputTextarea
-							ref={tiptapAiPromptInputRef}
-							showPlaceholder={
-								!aiGenerationIsLoading &&
-								aiGenerationHasMessage &&
-								!state.shouldShowInput
-							}
-							onInputFocus={() =>
-								updateState({ inputIsFocused: true })
-							}
-							onInputBlur={() =>
-								updateState({ inputIsFocused: false })
-							}
-							onClose={handleInputOnClose}
-							onPlaceholderClick={() =>
-								updateState({ shouldShowInput: true })
-							}
-							onInputSubmit={(value) => handlePromptSubmit(value)}
-							onToneChange={(tone) => updateState({ tone })}
-						/>
-					)}
-
-					{aiGenerationHasMessage && !aiGenerationIsLoading && (
+				{aiGenerationHasMessage && !aiGenerationIsLoading && (
+					<Card>
 						<AiMenuActions
 							editor={editor}
 							options={{ tone: state.tone, format: "rich-text" }}
 							onAccept={handleOnAccept}
 							onReject={handleOnReject}
 						/>
-					)}
-				</Card>
+					</Card>
+				)}
 
-				{!aiGenerationIsLoading && (
+				{!aiGenerationIsLoading && !aiGenerationHasMessage && (
+					<Card>
+						<AiMenuInputTextarea
+							onInputSubmit={handlePromptSubmit}
+							onToneChange={(tone) => updateState({ tone })}
+							onClose={handleInputOnClose}
+							onInputFocus={() =>
+								updateState({ inputIsFocused: true })
+							}
+							onInputBlur={() =>
+								updateState({ inputIsFocused: false })
+							}
+							onEmptyBlur={closeAiMenu}
+							onPlaceholderClick={() =>
+								updateState({ shouldShowInput: true })
+							}
+							showPlaceholder={!state.shouldShowInput}
+						/>
+					</Card>
+				)}
+
+				{!aiGenerationIsLoading && state.shouldShowInput && (
 					<ComboboxPopover
 						flip={false}
 						unmountOnHide

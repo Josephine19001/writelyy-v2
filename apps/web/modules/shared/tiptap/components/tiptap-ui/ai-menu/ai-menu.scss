@@ -10,6 +10,12 @@
   --tiptap-ai-loading-background-color: var(--tt-gray-dark-a-200);
 }
 
+.tiptap-ai-menu {
+  min-width: 600px;
+  max-width: 800px;
+  width: 600px;
+}
+
 .tiptap-ai-menu-progress {
   display: flex;
   align-items: center;

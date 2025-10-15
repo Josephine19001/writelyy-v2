@@ -269,9 +269,7 @@ export function EditorProvider(props: EditorProviderProps) {
 				BkAiPlaceholder,
 				BkAiWriter,
 				BkAi.configure({
-					onLoading: () => {
-						console.log("🤖 AI is generating...");
-					},
+					onLoading: () => {},
 					onError: (error) => {
 						console.error("AI generation failed:", error);
 						toast.error("AI generation failed. Please try again.");

@@ -153,10 +153,10 @@ export function ToneSelector({
 }
 
 export function SnippetSelector({
-	selectedSnippet,
+	selectedSnippets,
 	onSnippetSelect,
 }: {
-	selectedSnippet: Snippet | null;
+	selectedSnippets: Snippet[];
 	onSnippetSelect: (snippet: Snippet) => void;
 }) {
 	const { activeWorkspace } = useActiveWorkspace();
@@ -180,20 +180,30 @@ export function SnippetSelector({
 		return groups;
 	}, [snippets]);
 
+	const isSelected = (snippet: Snippet) => {
+		return selectedSnippets.some(s => s.id === snippet.id);
+	};
+
+	const buttonLabel = React.useMemo(() => {
+		if (selectedSnippets.length === 0) return "Snippet";
+		if (selectedSnippets.length === 1) return selectedSnippets[0].title;
+		return `${selectedSnippets.length} snippets`;
+	}, [selectedSnippets]);
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button
 					type="button"
 					data-style="ghost"
-					data-active-state={selectedSnippet ? "on" : "off"}
+					data-active-state={selectedSnippets.length > 0 ? "on" : "off"}
 					role="button"
 					tabIndex={-1}
 					aria-label="Insert snippet"
 				>
 					<SnippetIcon className="tiptap-button-icon" />
 					<span className="tiptap-button-text">
-						{selectedSnippet ? selectedSnippet.title : "Snippet"}
+						{buttonLabel}
 					</span>
 				</Button>
 			</DropdownMenuTrigger>
@@ -212,31 +222,38 @@ export function SnippetSelector({
 										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
 											{category}
 										</div>
-										{categorySnippets.map((snippet: Snippet) => (
-											<DropdownMenuItem
-												key={snippet.id}
-												asChild
-											>
-												<Button
-													data-style="ghost"
-													data-active-state={
-														selectedSnippet?.id === snippet.id
-															? "on"
-															: "off"
-													}
-													onClick={() => onSnippetSelect(snippet)}
-													className="flex flex-col items-start w-full text-left"
+										{categorySnippets.map((snippet: Snippet) => {
+											const selected = isSelected(snippet);
+											return (
+												<DropdownMenuItem
+													key={snippet.id}
+													asChild
+													onSelect={(e) => e.preventDefault()}
 												>
-													<span className="tiptap-button-text font-medium text-left w-full">
-														{snippet.title}
-													</span>
-													<span className="text-xs text-muted-foreground line-clamp-1 text-left w-full">
-														{snippet.content.slice(0, 50)}
-														{snippet.content.length > 50 ? "..." : ""}
-													</span>
-												</Button>
-											</DropdownMenuItem>
-										))}
+													<Button
+														data-style="ghost"
+														data-active-state={selected ? "on" : "off"}
+														onClick={() => onSnippetSelect(snippet)}
+														className="flex items-start gap-2 w-full text-left"
+													>
+														<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0 mt-1">
+															{selected && (
+																<div className="w-2 h-2 bg-primary rounded-sm" />
+															)}
+														</div>
+														<div className="flex flex-col flex-1">
+															<span className="tiptap-button-text font-medium text-left w-full">
+																{snippet.title}
+															</span>
+															<span className="text-xs text-muted-foreground line-clamp-1 text-left w-full">
+																{snippet.content.slice(0, 50)}
+																{snippet.content.length > 50 ? "..." : ""}
+															</span>
+														</div>
+													</Button>
+												</DropdownMenuItem>
+											);
+										})}
 									</div>
 								))}
 							</ButtonGroup>
@@ -249,10 +266,10 @@ export function SnippetSelector({
 }
 
 export function SourceSelector({
-	selectedSource,
+	selectedSources,
 	onSourceSelect,
 }: {
-	selectedSource: Source | null;
+	selectedSources: Source[];
 	onSourceSelect: (source: Source) => void;
 }) {
 	const { activeWorkspace } = useActiveWorkspace();
@@ -276,6 +293,16 @@ export function SourceSelector({
 		return groups;
 	}, [sources]);
 
+	const isSelected = (source: Source) => {
+		return selectedSources.some(s => s.id === source.id);
+	};
+
+	const buttonLabel = React.useMemo(() => {
+		if (selectedSources.length === 0) return "Source";
+		if (selectedSources.length === 1) return selectedSources[0].name;
+		return `${selectedSources.length} sources`;
+	}, [selectedSources]);
+
 	const getSourcePreview = (source: Source) => {
 		if (source.type === "url") {
 			return source.url || "No URL";
@@ -292,14 +319,14 @@ export function SourceSelector({
 				<Button
 					type="button"
 					data-style="ghost"
-					data-active-state={selectedSource ? "on" : "off"}
+					data-active-state={selectedSources.length > 0 ? "on" : "off"}
 					role="button"
 					tabIndex={-1}
 					aria-label="Add source context"
 				>
 					<SourcesIcon className="tiptap-button-icon" />
 					<span className="tiptap-button-text">
-						{selectedSource ? selectedSource.name : "Source"}
+						{buttonLabel}
 					</span>
 				</Button>
 			</DropdownMenuTrigger>
@@ -320,29 +347,27 @@ export function SourceSelector({
 										</div>
 										{typeSources.map((source: Source) => {
 											const SourceIconComponent = getSourceIconComponent(source.type);
+											const selected = isSelected(source);
 											return (
 												<DropdownMenuItem
 													key={source.id}
 													asChild
+													onSelect={(e) => e.preventDefault()}
 												>
 													<Button
 														data-style="ghost"
-														data-active-state={
-															selectedSource?.id === source.id
-																? "on"
-																: "off"
-														}
+														data-active-state={selected ? "on" : "off"}
 														onClick={() => onSourceSelect(source)}
-														className="flex flex-col items-start w-full text-left"
+														className="flex items-center gap-2 w-full text-left"
 													>
-														<div className="flex items-center gap-2 w-full">
-															<SourceIconComponent className="h-4 w-4 flex-shrink-0" />
-															<span className="tiptap-button-text font-medium text-left flex-1">
-																{source.name}
-															</span>
+														<div className="flex items-center justify-center w-4 h-4 border rounded flex-shrink-0">
+															{selected && (
+																<div className="w-2 h-2 bg-primary rounded-sm" />
+															)}
 														</div>
-														<span className="text-xs text-muted-foreground line-clamp-1 text-left w-full pl-6">
-															{getSourcePreview(source)}
+														<SourceIconComponent className="h-4 w-4 flex-shrink-0" />
+														<span className="tiptap-button-text font-medium text-left flex-1 truncate">
+															{source.name}
 														</span>
 													</Button>
 												</DropdownMenuItem>
@@ -368,15 +393,15 @@ export function AiPromptInputToolbar({
 	isEmpty = false,
 }: {
 	showPlaceholder?: boolean;
-	onInputSubmit: (prompt: string, snippet?: Snippet, source?: Source) => void;
+	onInputSubmit: (prompt: string, snippets?: Snippet[], sources?: Source[]) => void;
 	onToneChange?: (tone: string) => void;
 	onSnippetSelect?: (snippet: Snippet) => void;
 	onSourceSelect?: (source: Source) => void;
 	isEmpty?: boolean;
 }) {
 	const [tone, setTone] = React.useState<Tone | null>(null);
-	const [selectedSnippet, setSelectedSnippet] = React.useState<Snippet | null>(null);
-	const [selectedSource, setSelectedSource] = React.useState<Source | null>(null);
+	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>([]);
+	const [selectedSources, setSelectedSources] = React.useState<Source[]>([]);
 	const [promptValue] = useComboboxValueState();
 
 	const handleToneChange = React.useCallback(
@@ -389,7 +414,13 @@ export function AiPromptInputToolbar({
 
 	const handleSnippetSelect = React.useCallback(
 		(snippet: Snippet) => {
-			setSelectedSnippet(snippet);
+			setSelectedSnippets(prev => {
+				const isSelected = prev.some(s => s.id === snippet.id);
+				if (isSelected) {
+					return prev.filter(s => s.id !== snippet.id);
+				}
+				return [...prev, snippet];
+			});
 			onSnippetSelect?.(snippet);
 		},
 		[onSnippetSelect],
@@ -397,18 +428,28 @@ export function AiPromptInputToolbar({
 
 	const handleSourceSelect = React.useCallback(
 		(source: Source) => {
-			setSelectedSource(source);
+			setSelectedSources(prev => {
+				const isSelected = prev.some(s => s.id === source.id);
+				if (isSelected) {
+					return prev.filter(s => s.id !== source.id);
+				}
+				return [...prev, source];
+			});
 			onSourceSelect?.(source);
 		},
 		[onSourceSelect],
 	);
 
 	const handleSubmit = React.useCallback(() => {
-		onInputSubmit(promptValue, selectedSnippet || undefined, selectedSource || undefined);
-		// Reset selected snippet and source after submit
-		setSelectedSnippet(null);
-		setSelectedSource(null);
-	}, [onInputSubmit, promptValue, selectedSnippet, selectedSource]);
+		onInputSubmit(
+			promptValue,
+			selectedSnippets.length > 0 ? selectedSnippets : undefined,
+			selectedSources.length > 0 ? selectedSources : undefined
+		);
+		// Reset selected snippets and sources after submit
+		setSelectedSnippets([]);
+		setSelectedSources([]);
+	}, [onInputSubmit, promptValue, selectedSnippets, selectedSources]);
 
 	return (
 		<Toolbar
@@ -420,11 +461,11 @@ export function AiPromptInputToolbar({
 			<ToolbarGroup>
 				<ToneSelector tone={tone} onToneChange={handleToneChange} />
 				<SnippetSelector
-					selectedSnippet={selectedSnippet}
+					selectedSnippets={selectedSnippets}
 					onSnippetSelect={handleSnippetSelect}
 				/>
 				<SourceSelector
-					selectedSource={selectedSource}
+					selectedSources={selectedSources}
 					onSourceSelect={handleSourceSelect}
 				/>
 			</ToolbarGroup>
@@ -459,48 +500,72 @@ export function AiMenuInputTextarea({
 }: AiMenuInputTextareaProps) {
 	const [promptValue, setPromptValue] = useComboboxValueState();
 	const [isFocused, setIsFocused] = React.useState(false);
-	const [selectedSnippet, setSelectedSnippet] = React.useState<Snippet | null>(null);
-	const [selectedSource, setSelectedSource] = React.useState<Source | null>(null);
+	const [selectedSnippets, setSelectedSnippets] = React.useState<Snippet[]>([]);
+	const [selectedSources, setSelectedSources] = React.useState<Source[]>([]);
 
 	const handleSnippetSelect = React.useCallback((snippet: Snippet) => {
-		setSelectedSnippet(snippet);
+		setSelectedSnippets(prev => {
+			const isSelected = prev.some(s => s.id === snippet.id);
+			if (isSelected) {
+				return prev.filter(s => s.id !== snippet.id);
+			}
+			return [...prev, snippet];
+		});
 	}, []);
 
 	const handleSourceSelect = React.useCallback((source: Source) => {
-		setSelectedSource(source);
+		setSelectedSources(prev => {
+			const isSelected = prev.some(s => s.id === source.id);
+			if (isSelected) {
+				return prev.filter(s => s.id !== source.id);
+			}
+			return [...prev, source];
+		});
 	}, []);
 
-	const handleSubmit = React.useCallback((prompt: string, snippet?: Snippet, source?: Source) => {
+	const handleSubmit = React.useCallback((prompt: string, snippets?: Snippet[], sources?: Source[]) => {
 		const cleanedPrompt = prompt?.trim();
 		if (cleanedPrompt) {
 			// Build final prompt with context
 			let finalPrompt = cleanedPrompt;
-			const snippetToUse = snippet || selectedSnippet;
-			const sourceToUse = source || selectedSource;
+			const snippetsToUse = snippets || selectedSnippets;
+			const sourcesToUse = sources || selectedSources;
 
-			// Add snippet context if available
-			if (snippetToUse) {
-				finalPrompt = `${finalPrompt}\n\nContext from snippet "${snippetToUse.title}":\n${snippetToUse.content}`;
+			// Add snippet context if available (comma-separated)
+			if (snippetsToUse && snippetsToUse.length > 0) {
+				const snippetTitles = snippetsToUse.map(s => s.title).join(", ");
+				const snippetContents = snippetsToUse.map((s, idx) =>
+					`${idx + 1}. "${s.title}":\n${s.content}`
+				).join("\n\n");
+				finalPrompt = `${finalPrompt}\n\nContext from ${snippetsToUse.length} snippet(s) [${snippetTitles}]:\n\n${snippetContents}`;
 			}
 
-			// Add source context if available
-			if (sourceToUse) {
-				const sourceContext = sourceToUse.metadata?.extractedText ||
-					sourceToUse.url ||
-					`Source: ${sourceToUse.name} (${sourceToUse.type})`;
-				finalPrompt = `${finalPrompt}\n\nContext from source "${sourceToUse.name}":\n${sourceContext}`;
+			// Add source context if available (comma-separated)
+			if (sourcesToUse && sourcesToUse.length > 0) {
+				const sourceTitles = sourcesToUse.map(s => s.name).join(", ");
+				const sourceContents = sourcesToUse.map((s, idx) => {
+					const sourceContext = s.metadata?.extractedText ||
+						s.url ||
+						`Source: ${s.name} (${s.type})`;
+					return `${idx + 1}. "${s.name}":\n${sourceContext}`;
+				}).join("\n\n");
+				finalPrompt = `${finalPrompt}\n\nContext from ${sourcesToUse.length} source(s) [${sourceTitles}]:\n\n${sourceContents}`;
 			}
 
 			onInputSubmit(finalPrompt);
 			setPromptValue("");
-			setSelectedSnippet(null);
-			setSelectedSource(null);
+			setSelectedSnippets([]);
+			setSelectedSources([]);
 		}
-	}, [onInputSubmit, selectedSnippet, selectedSource, setPromptValue]);
+	}, [onInputSubmit, selectedSnippets, selectedSources, setPromptValue]);
 
 	const handleSubmitWrapper = React.useCallback(() => {
-		handleSubmit(promptValue, selectedSnippet || undefined, selectedSource || undefined);
-	}, [handleSubmit, promptValue, selectedSnippet, selectedSource]);
+		handleSubmit(
+			promptValue,
+			selectedSnippets.length > 0 ? selectedSnippets : undefined,
+			selectedSources.length > 0 ? selectedSources : undefined
+		);
+	}, [handleSubmit, promptValue, selectedSnippets, selectedSources]);
 
 	const handleKeyDown = useKeyboardHandlers(
 		promptValue,

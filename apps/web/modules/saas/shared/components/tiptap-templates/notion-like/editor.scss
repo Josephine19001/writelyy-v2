@@ -451,7 +451,7 @@ body,
 
 // First Page Header - Reduce spacing
 .tiptap-first-page-header {
-  height: 20px !important;
+  height: 10px !important;
   margin-top: 0 !important;
   margin-bottom: 0.5rem !important;
 }
@@ -459,16 +459,16 @@ body,
 // Override PageKit's inline styles for header and footer
 .tiptap-page-header,
 .tiptap-page-footer {
-  padding: 0 2rem !important;
+  padding: 2rem 2rem !important;
   height: 3rem !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.6rem;
   color: hsl(var(--muted-foreground));
 
   @media screen and (max-width: 768px) {
-    padding: 0 1rem !important;
+    padding: 1rem 1rem !important;
     height: 2rem !important;
     font-size: 0.75rem;
   }

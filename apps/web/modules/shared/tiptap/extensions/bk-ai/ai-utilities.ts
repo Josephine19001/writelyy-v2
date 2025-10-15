@@ -1,108 +1,126 @@
 // AI utilities from BK editor
 
 export async function generateAiResponse({ prompt }: { prompt: string }) {
-  const apiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+	console.log('🤖 [AI] Calling API with prompt:', `${prompt.substring(0, 100)}...`);
 
-  if (!apiKey) {
-    throw new Error("OpenAI API key not found. Please add NEXT_PUBLIC_OPENAI_API_KEY to your .env.local file");
-  }
+	try {
+		// Call our API route instead of OpenAI directly
+		const response = await fetch("/api/ai/generate", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				prompt,
+			}),
+		});
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful writing assistant. Provide concise, well-formatted responses using markdown.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      stream: true,
-    }),
-  });
+		console.log('🤖 [AI] Response status:', response.status, response.statusText);
 
-  if (!response.ok) {
-    throw new Error(`AI generation failed: ${response.statusText}`);
-  }
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error('🤖 [AI] Error response:', errorText);
 
-  return response;
+			let error: { error?: string };
+			try {
+				error = JSON.parse(errorText);
+			} catch {
+				error = { error: errorText || response.statusText };
+			}
+
+			throw new Error(error.error || `AI generation failed: ${response.statusText}`);
+		}
+
+		console.log('🤖 [AI] Response received successfully, starting stream...');
+		return response;
+	} catch (error) {
+		console.error('🤖 [AI] Fetch error:', error);
+		throw error;
+	}
 }
 
 export async function requestCompletion({
-  prompt,
-  onLoading,
-  onChunk,
-  onSuccess,
-  onError,
-  onComplete,
+	prompt,
+	onLoading,
+	onChunk,
+	onSuccess,
+	onError,
+	onComplete,
 }: {
-  prompt: string;
-  onLoading?: () => void;
-  onChunk?: (chunk: string) => void;
-  onSuccess?: (completion: string) => void;
-  onError?: (error: Error) => void;
-  onComplete?: () => void;
+	prompt: string;
+	onLoading?: () => void;
+	onChunk?: (chunk: string) => void;
+	onSuccess?: (completion: string) => void;
+	onError?: (error: Error) => void;
+	onComplete?: () => void;
 }) {
-  try {
-    onLoading?.();
-    const response = await generateAiResponse({ prompt });
+	console.log('🤖 [AI] requestCompletion started');
+	try {
+		console.log('🤖 [AI] Calling onLoading callback');
+		onLoading?.();
 
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
+		const response = await generateAiResponse({ prompt });
 
-    if (!reader) {
-      throw new Error("No response body");
-    }
+		const reader = response.body?.getReader();
+		const decoder = new TextDecoder();
 
-    let result = "";
+		if (!reader) {
+			throw new Error("No response body");
+		}
 
-    while (true) {
-      const { done, value } = await reader.read();
+		console.log('🤖 [AI] Starting to read stream...');
+		let result = "";
+		let chunkCount = 0;
 
-      if (done) {
-        onSuccess?.(result);
-        onComplete?.();
-        return;
-      }
+		while (true) {
+			const { done, value } = await reader.read();
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n");
+			if (done) {
+				console.log(`🤖 [AI] Stream complete. Total chunks: ${chunkCount}, Result length: ${result.length}`);
+				onSuccess?.(result);
+				onComplete?.();
+				return;
+			}
 
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6);
+			const chunk = decoder.decode(value);
+			const lines = chunk.split("\n");
 
-          if (data === "[DONE]") {
-            continue;
-          }
+			for (const line of lines) {
+				if (line.startsWith("data: ")) {
+					const data = line.slice(6);
 
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed.choices[0]?.delta?.content;
+					if (data === "[DONE]") {
+						console.log('🤖 [AI] Received [DONE] marker');
+						continue;
+					}
 
-            if (content) {
-              result += content;
-              onChunk?.(result);
-            }
-          } catch {
-            // Skip invalid JSON
-          }
-        }
-      }
+					try {
+						const parsed = JSON.parse(data);
+						const content = parsed.choices[0]?.delta?.content;
 
-      // Small delay for smooth streaming
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    }
-  } catch (error) {
-    onError?.(error as Error);
-    onComplete?.();
-  }
+						if (content) {
+							result += content;
+							chunkCount++;
+							onChunk?.(result);
+
+							// Log every 10 chunks
+							if (chunkCount % 10 === 0) {
+								console.log(`🤖 [AI] Chunk ${chunkCount}: ${result.length} chars`);
+							}
+						}
+					} catch {
+						// Skip invalid JSON
+						console.warn('🤖 [AI] Failed to parse chunk:', data.substring(0, 50));
+					}
+				}
+			}
+
+			// Small delay for smooth streaming
+			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+	} catch (error) {
+		console.error('🤖 [AI] requestCompletion error:', error);
+		onError?.(error as Error);
+		onComplete?.();
+	}
 }
