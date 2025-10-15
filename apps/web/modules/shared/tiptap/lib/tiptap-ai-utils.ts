@@ -66,7 +66,7 @@ export const executeAiCommand = (
         return (editor.commands as any).aiTranslate?.(language, commandOptions) ?? false;
 
       case "custom":
-        return (editor.commands as any).aiTextPrompt?.(commandOptions) ?? false;
+        return (editor.commands as any).bkAiTextPrompt?.(commandOptions) ?? false;
 
       default:
         console.warn(`Unknown AI command: ${command}`);

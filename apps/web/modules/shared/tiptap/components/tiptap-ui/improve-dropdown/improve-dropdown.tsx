@@ -230,7 +230,7 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			setTimeout(() => {
 				try {
-					// Use BkAi extension's aiTextPrompt command with appropriate prompts
+					// Use BkAi extension's bkAiTextPrompt command with appropriate prompts
 					let commandText = "";
 					switch (command) {
 						case "fixSpellingAndGrammar":
@@ -256,8 +256,8 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 							break;
 					}
 
-					if ((editor.commands as any).aiTextPrompt) {
-						(editor.commands as any).aiTextPrompt({
+					if ((editor.commands as any).bkAiTextPrompt) {
+						(editor.commands as any).bkAiTextPrompt({
 							prompt: selectedText,
 							command: commandText,
 							insert: true,
@@ -265,7 +265,7 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 							format: defaultOptions.format,
 						});
 					} else {
-						console.error('aiTextPrompt command not available');
+						console.error('bkAiTextPrompt command not available');
 					}
 				} catch (error) {
 					console.error('Error executing AI command:', error);
@@ -292,8 +292,8 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			setTimeout(() => {
 				try {
-					if ((editor.commands as any).aiTextPrompt) {
-						(editor.commands as any).aiTextPrompt({
+					if ((editor.commands as any).bkAiTextPrompt) {
+						(editor.commands as any).bkAiTextPrompt({
 							prompt: selectedText,
 							command: `rewrite in a ${tone} tone`,
 							insert: true,
@@ -302,7 +302,7 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 							format: defaultOptions.format,
 						});
 					} else {
-						console.error('aiTextPrompt command not available');
+						console.error('bkAiTextPrompt command not available');
 					}
 				} catch (error) {
 					console.error('Error adjusting tone:', error);
@@ -329,8 +329,8 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			setTimeout(() => {
 				try {
-					if ((editor.commands as any).aiTextPrompt) {
-						(editor.commands as any).aiTextPrompt({
+					if ((editor.commands as any).bkAiTextPrompt) {
+						(editor.commands as any).bkAiTextPrompt({
 							prompt: selectedText,
 							command: `translate to ${language}`,
 							insert: true,
@@ -338,7 +338,7 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 							format: defaultOptions.format,
 						});
 					} else {
-						console.error('aiTextPrompt command not available');
+						console.error('bkAiTextPrompt command not available');
 					}
 				} catch (error) {
 					console.error('Error translating:', error);

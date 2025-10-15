@@ -96,7 +96,7 @@ function AiWriterView({ editor, node, getPos }: NodeViewProps) {
               return;
             }
 
-            (editor.commands as any).aiTextPrompt?.({
+            (editor.commands as any).bkAiTextPrompt?.({
               prompt: prompt,
               command: "prompt",
               insert: false,

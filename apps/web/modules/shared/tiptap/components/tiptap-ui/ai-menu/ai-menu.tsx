@@ -3,6 +3,7 @@
 // -- Icons --
 import { StopCircle2Icon } from "@shared/tiptap/components/tiptap-icons/stop-circle-2-icon";
 import { AiMenuActions } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions";
+import { AiMenuDiff } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-diff/ai-menu-diff";
 import { AiMenuInputTextarea } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input/ai-menu-input";
 import { AiMenuItems } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-items/ai-menu-items";
 import {
@@ -117,8 +118,8 @@ export function AiMenuContent({
 				}
 			}
 
-			if ((editor.commands as any).aiTextPrompt) {
-				(editor.commands as any).aiTextPrompt({
+			if ((editor.commands as any).bkAiTextPrompt) {
+				(editor.commands as any).bkAiTextPrompt({
 					text: promptWithContext,
 					insert: true,
 					stream: true,
@@ -265,6 +266,13 @@ export function AiMenuContent({
 
 				{aiGenerationHasMessage && !aiGenerationIsLoading && (
 					<Card>
+						{aiData.originalText && aiData.newText && (
+							<AiMenuDiff
+								originalText={aiData.originalText}
+								newText={aiData.newText}
+								mode="inline"
+							/>
+						)}
 						<AiMenuActions
 							editor={editor}
 							options={{ tone: state.tone, format: "rich-text" }}

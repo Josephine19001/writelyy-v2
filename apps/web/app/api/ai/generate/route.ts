@@ -43,7 +43,14 @@ export async function POST(request: NextRequest) {
 						{
 							role: "system",
 							content:
-								"You are a helpful writing assistant. Provide concise, well-formatted responses using HTML tags. Use <p> for paragraphs, <strong> for bold, <em> for italic, <h1>-<h6> for headings, <ul>/<ol>/<li> for lists, etc. Do NOT use markdown syntax.",
+								"You are a helpful writing assistant. Follow these rules strictly:\n" +
+								"1. When editing existing content, PRESERVE the exact HTML structure and heading levels\n" +
+								"2. If the original has <h1>, use <h1> in your response - do NOT change to <h3> or other levels\n" +
+								"3. Maintain list structure (<ul>/<ol>/<li>) exactly as in the original\n" +
+								"4. Do NOT add extra blank lines, line breaks, or spacing between HTML elements\n" +
+								"5. Use <p> for paragraphs, <strong> for bold, <em> for italic\n" +
+								"6. Return ONLY HTML content without markdown syntax, explanations, or extra text\n" +
+								"7. Keep content compact - no unnecessary whitespace between tags",
 						},
 						{
 							role: "user",

@@ -250,8 +250,8 @@ const getItemImplementations = () => {
 						? `Context: ${snippet}\n\nContinue writing from where the text above ends. Write ONLY ONE SENTENCE. DONT REPEAT THE TEXT.`
 						: "Start writing a new paragraph. Write ONLY ONE SENTENCE.";
 
-					if ((editor.commands as any).aiTextPrompt) {
-						(editor.commands as any).aiTextPrompt({
+					if ((editor.commands as any).bkAiTextPrompt) {
+						(editor.commands as any).bkAiTextPrompt({
 							stream: true,
 							format: "rich-text",
 							text: prompt,
