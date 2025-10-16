@@ -10,6 +10,7 @@ import { Button, ButtonGroup } from "@shared/tiptap/components/tiptap-ui-primiti
 import { Card } from "@shared/tiptap/components/tiptap-ui-primitive/card/card";
 import { ComboboxProvider } from "@shared/tiptap/components/tiptap-ui-primitive/combobox";
 import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
+import { useAiChatHistory } from "@saas/shared/hooks/use-ai-chat-history";
 import "./editor-footer.scss";
 import "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu.scss";
 
@@ -17,6 +18,7 @@ interface EditorFooterProps {
 	isSaving?: boolean;
 	lastSaved?: Date | null;
 	hasUnsavedChanges?: boolean;
+	documentId?: string;
 }
 
 // Word count hook
@@ -93,11 +95,14 @@ export function EditorFooter({
 	isSaving,
 	lastSaved,
 	hasUnsavedChanges,
+	documentId,
 }: EditorFooterProps) {
 	const { editor } = React.useContext(EditorContext)!;
 	const wordCount = useWordCount(editor);
 	const { pageCount, currentPage } = usePageCount(editor);
 	const [showAiInput, setShowAiInput] = React.useState(false);
+	const [currentPrompt, setCurrentPrompt] = React.useState<string>("");
+	const [currentMentions, setCurrentMentions] = React.useState<any[]>([]);
 
 	// Get AI state from editor
 	const {
@@ -105,6 +110,9 @@ export function EditorFooter({
 		aiGenerationActive,
 		aiGenerationHasMessage,
 	} = useUiEditorState(editor);
+
+	// Chat history hook
+	const { saveConversation } = useAiChatHistory(documentId);
 
 	// Get AI storage data for diff view
 	const [aiData, setAiData] = React.useState({
@@ -152,6 +160,10 @@ export function EditorFooter({
 
 	const handleSendMessage = React.useCallback((message: string, mentions?: any[]) => {
 		if (!editor) return;
+
+		// Save prompt and mentions for chat history
+		setCurrentPrompt(message);
+		setCurrentMentions(mentions || []);
 
 		// Separate sources and snippets from mentions
 		const sources = mentions?.filter(m => m.type === "source" || m.type === "doc" || m.type === "image" || m.type === "pdf" || m.type === "link");
@@ -208,14 +220,32 @@ export function EditorFooter({
 		editor.commands.resetUiState();
 	}, [editor]);
 
-	const handleAccept = React.useCallback(() => {
+	const handleAccept = React.useCallback(async () => {
 		if (!editor) return;
+
+		// Save conversation to chat history before accepting
+		if (currentPrompt && aiData.newText && documentId) {
+			const sources = currentMentions.filter(m => m.type === "source" || m.type === "doc" || m.type === "image" || m.type === "pdf" || m.type === "link");
+			const snippets = currentMentions.filter(m => m.type === "asset" || m.type === "snippet");
+
+			await saveConversation(
+				currentPrompt,
+				aiData.newText,
+				{
+					sources: sources.length > 0 ? sources : undefined,
+					snippets: snippets.length > 0 ? snippets : undefined,
+				}
+			);
+		}
+
 		if ((editor.commands as any).aiAccept) {
 			(editor.commands as any).aiAccept();
 		}
 		setShowAiInput(false);
+		setCurrentPrompt("");
+		setCurrentMentions([]);
 		editor.commands.resetUiState();
-	}, [editor]);
+	}, [editor, currentPrompt, currentMentions, aiData.newText, documentId, saveConversation]);
 
 	const handleReject = React.useCallback(() => {
 		if (!editor) return;

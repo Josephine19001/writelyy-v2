@@ -11,10 +11,10 @@ import { debounce } from "lodash";
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useOptimizedDocumentMutations } from "../hooks/use-optimized-mutations";
+import { createDocumentBackup } from "../utils/document-backup";
 import { useEditorContext } from "./NewAppWrapper";
 import { useTabContext } from "./providers/TabProvider";
 import { useWorkspaceCacheContext } from "./providers/WorkspaceCacheProvider";
-import { createDocumentBackup } from "../utils/document-backup";
 
 export function WorkspaceEditor() {
 	const {
@@ -85,18 +85,24 @@ export function WorkspaceEditor() {
 
 			try {
 				// Validate content before saving to prevent clearing documents
-				const isValidContent = content && (
-					typeof content === 'object' && 
-					content.type === 'doc' &&
-					content.content && 
-					Array.isArray(content.content)
-				);
-				
+				const isValidContent =
+					content &&
+					typeof content === "object" &&
+					content.type === "doc" &&
+					content.content &&
+					Array.isArray(content.content);
+
 				if (!isValidContent) {
-					console.error("Attempted to save invalid content for document:", documentId, content);
-					throw new Error("Invalid content - preventing save to avoid data loss");
+					console.error(
+						"Attempted to save invalid content for document:",
+						documentId,
+						content,
+					);
+					throw new Error(
+						"Invalid content - preventing save to avoid data loss",
+					);
 				}
-				
+
 				const savedDocument = await updateDocument.mutateAsync({
 					id: documentId,
 					content,
@@ -131,12 +137,19 @@ export function WorkspaceEditor() {
 						const draft = JSON.parse(storedDraft);
 						// Only remove if the saved content matches what we had in localStorage
 						// This prevents clearing drafts that might have newer changes
-						if (draft.content && JSON.stringify(draft.content) === JSON.stringify(content)) {
+						if (
+							draft.content &&
+							JSON.stringify(draft.content) ===
+								JSON.stringify(content)
+						) {
 							localStorage.removeItem(localKey);
 						}
 					}
 				} catch (error) {
-					console.warn("Failed to validate localStorage draft before clearing:", error);
+					console.warn(
+						"Failed to validate localStorage draft before clearing:",
+						error,
+					);
 					// Don't clear localStorage if we can't validate it
 				}
 			} catch (error) {
@@ -178,27 +191,11 @@ export function WorkspaceEditor() {
 				content = cachedDocument.content;
 			}
 
-			// Handle different content states properly:
-			// - undefined: Document not loaded yet (don't render editor)
-			// - null: Document is legitimately empty (render editor with null)
-			// - "": Empty string (treat as null for safety)
-			// - object: Document has content (render editor with content)
-			
-			console.log(`📄 Document ${document.id} content:`, {
-				originalContent: content,
-				hasContent: !!content,
-				contentType: typeof content,
-				contentLength: typeof content === 'string' ? content.length : 'N/A',
-				isObject: typeof content === 'object',
-				willPassToEditor: content === '' ? null : content
-			});
-			
 			// Convert empty string to null (empty doc) to avoid confusion
-			if (content === '') {
-				console.log(`📄 Converting empty string to null for document ${document.id}`);
+			if (content === "") {
 				content = null;
 			}
-			
+
 			// Only set to undefined if we truly don't have the data loaded
 			// For now, assume we always have the data (even if null/empty)
 
@@ -282,17 +279,23 @@ export function WorkspaceEditor() {
 								// Trigger save after a delay with content validation
 								setTimeout(() => {
 									// Double-check content is still valid before auto-saving
-									const isValidContent = draft.content && (
-										typeof draft.content === 'object' && 
-										draft.content.type === 'doc' &&
-										draft.content.content && 
-										Array.isArray(draft.content.content)
-									);
-									
+									const isValidContent =
+										draft.content &&
+										typeof draft.content === "object" &&
+										draft.content.type === "doc" &&
+										draft.content.content &&
+										Array.isArray(draft.content.content);
+
 									if (isValidContent) {
-										debouncedSave(documentId, draft.content);
+										debouncedSave(
+											documentId,
+											draft.content,
+										);
 									} else {
-										console.warn("Skipping auto-save of invalid draft content for document:", documentId);
+										console.warn(
+											"Skipping auto-save of invalid draft content for document:",
+											documentId,
+										);
 									}
 								}, 2000);
 							}
@@ -310,31 +313,48 @@ export function WorkspaceEditor() {
 		(documentId: string, content: any) => {
 			// CRITICAL: Emergency validation to prevent data loss
 			if (!content) {
-				console.error("CRITICAL: Attempted to save null/undefined content for document:", documentId);
+				console.error(
+					"CRITICAL: Attempted to save null/undefined content for document:",
+					documentId,
+				);
 				return;
 			}
-			
+
 			// Validate Tiptap content structure
-			if (typeof content === 'object' && 
-				(!content.type || !content.content || !Array.isArray(content.content))) {
-				console.error("CRITICAL: Invalid Tiptap content structure for document:", documentId, content);
-				
+			if (
+				typeof content === "object" &&
+				(!content.type ||
+					!content.content ||
+					!Array.isArray(content.content))
+			) {
+				console.error(
+					"CRITICAL: Invalid Tiptap content structure for document:",
+					documentId,
+					content,
+				);
+
 				// Create emergency backup of invalid content for debugging
 				const emergencyKey = `invalid-content-${documentId}-${Date.now()}`;
 				try {
-					localStorage.setItem(emergencyKey, JSON.stringify({
-						content,
-						timestamp: new Date().toISOString(),
-						reason: "invalid_tiptap_structure",
-						documentId
-					}));
-					console.error("Invalid content backed up to:", emergencyKey);
+					localStorage.setItem(
+						emergencyKey,
+						JSON.stringify({
+							content,
+							timestamp: new Date().toISOString(),
+							reason: "invalid_tiptap_structure",
+							documentId,
+						}),
+					);
+					console.error(
+						"Invalid content backed up to:",
+						emergencyKey,
+					);
 				} catch (error) {
 					console.error("Failed to backup invalid content:", error);
 				}
 				return;
 			}
-			
+
 			const tab = tabs.find(
 				(t) =>
 					t.type === "document" &&
@@ -356,17 +376,20 @@ export function WorkspaceEditor() {
 
 				// Update local storage with content validation
 				const localKey = `doc-draft-${documentId}`;
-				
+
 				// Only save to localStorage if content is not empty/null
-				const hasValidContent = content && (
-					typeof content === 'string' ? content.trim().length > 0 : 
-					typeof content === 'object' ? (
-						// Check for valid Tiptap JSON structure
-						content.type === 'doc' && content.content && Array.isArray(content.content) ||
-						// Fallback for other object types
-						Object.keys(content).length > 0
-					) : false
-				);
+				const hasValidContent =
+					content &&
+					(typeof content === "string"
+						? content.trim().length > 0
+						: typeof content === "object"
+							? // Check for valid Tiptap JSON structure
+								(content.type === "doc" &&
+									content.content &&
+									Array.isArray(content.content)) ||
+								// Fallback for other object types
+								Object.keys(content).length > 0
+							: false);
 
 				if (hasValidContent) {
 					const draft = {
@@ -378,25 +401,36 @@ export function WorkspaceEditor() {
 
 					try {
 						localStorage.setItem(localKey, JSON.stringify(draft));
-						
+
 						// Create backup every few changes (not on every keystroke)
 						const shouldBackup = Math.random() < 0.1; // 10% chance
 						if (shouldBackup) {
-							createDocumentBackup(documentId, content, documentTab.document.title);
+							createDocumentBackup(
+								documentId,
+								content,
+								documentTab.document.title,
+							);
 						}
 					} catch (error) {
 						console.error("Failed to save to localStorage:", error);
 					}
 				} else {
 					// Don't overwrite existing drafts with empty content
-					console.warn("Skipping localStorage save - empty content detected for document:", documentId, {
-						content,
-						contentType: typeof content,
-						hasContent: !!content,
-						isString: typeof content === 'string',
-						isObject: typeof content === 'object',
-						objectKeys: typeof content === 'object' ? Object.keys(content || {}) : 'N/A'
-					});
+					console.warn(
+						"Skipping localStorage save - empty content detected for document:",
+						documentId,
+						{
+							content,
+							contentType: typeof content,
+							hasContent: !!content,
+							isString: typeof content === "string",
+							isObject: typeof content === "object",
+							objectKeys:
+								typeof content === "object"
+									? Object.keys(content || {})
+									: "N/A",
+						},
+					);
 				}
 
 				// Mark as having unsaved changes
@@ -447,20 +481,14 @@ export function WorkspaceEditor() {
 	// Handle direct source insertion from sidebar
 	const handleInsertSource = useCallback((source: any) => {
 		// Trigger the same custom event that the slash command uses
-		const event = new CustomEvent('tiptap-insert-source-direct', {
-			detail: { source }
+		const event = new CustomEvent("tiptap-insert-source-direct", {
+			detail: { source },
 		});
 		window.dispatchEvent(event);
 	}, []);
 
-	// Handle AI context usage from sidebar  
-	const handleUseAsAIContext = useCallback((source: any) => {
-		// TODO: Implement AI context functionality
-		// This could open AI panel with source context or add source to AI conversation
-		console.log('🤖 Using source as AI context:', source);
-		// For now, we could trigger AI panel to open and pre-fill with source context
-		// This might involve adding source data to AI conversation context
-	}, []);
+	// Handle AI context usage from sidebar
+	const handleUseAsAIContext = useCallback((source: any) => {}, []);
 
 	// Update selected document ID when active tab changes
 	useEffect(() => {

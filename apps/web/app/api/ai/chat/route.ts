@@ -1,147 +1,111 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface SourceContext {
+  id: string;
+  name: string;
+  type: string;
+  content?: string;
+}
+
+interface SnippetContext {
+  id: string;
+  title: string;
+  content: string;
+}
+
 interface ChatRequest {
-  message: string;
-  selectedText?: string;
-  provider: 'gemini-free' | 'openai-gpt4';
-  history: Array<{ role: 'user' | 'assistant'; content: string }>;
-}
-
-async function callOpenAI(messages: Array<{ role: string; content: string }>, model: string) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OpenAI API key not configured');
-  }
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      max_tokens: 1000,
-      temperature: 0.7,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0]?.message?.content || 'No response generated.';
-}
-
-async function callClaude(messages: Array<{ role: string; content: string }>) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error('Anthropic API key not configured');
-  }
-
-  // Convert messages format for Claude
-  const systemMessage = "You are a helpful writing assistant integrated into a document editor. Help users improve their writing, generate content, and answer questions about their text.";
-  const claudeMessages = messages.filter(m => m.role !== 'system').map(m => ({
-    role: m.role === 'assistant' ? 'assistant' : 'user',
-    content: m.content
-  }));
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'Content-Type': 'application/json',
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022', // Latest Claude 3.5 Sonnet
-      max_tokens: 1000,
-      system: systemMessage,
-      messages: claudeMessages,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Claude API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.content[0]?.text || 'No response generated.';
-}
-
-async function callGemini(messages: Array<{ role: string; content: string }>) {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) {
-    throw new Error('Google AI API key not configured');
-  }
-
-  // Convert messages for Gemini format
-  const contents = messages.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
-
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents,
-      generationConfig: {
-        maxOutputTokens: 1000,
-        temperature: 0.7,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data.candidates[0]?.content?.parts[0]?.text || 'No response generated.';
+  prompt: string;
+  sources?: SourceContext[];
+  snippets?: SnippetContext[];
+  documentId?: string;
+  documentContext?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequest = await request.json();
-    const { message, selectedText, provider, history } = body;
+    const { prompt, sources, snippets, documentContext } = body;
 
-    // Build conversation context
-    const messages = [
-      {
-        role: 'system',
-        content: 'You are a helpful writing assistant integrated into a document editor. Help users improve their writing, generate content, and answer questions about their text. Be concise and practical.'
-      },
-      ...history,
-      {
-        role: 'user',
-        content: selectedText ? `Selected text: "${selectedText}"\n\nRequest: ${message}` : message
-      }
-    ];
+    // Build enhanced prompt with context
+    let enhancedPrompt = prompt;
+    const contextParts: string[] = [];
 
-    let content: string;
-
-    switch (provider) {
-      case 'openai-gpt4':
-        content = await callOpenAI(messages, 'gpt-4o');
-        break;
-      case 'gemini-free':
-        content = await callGemini(messages);
-        break;
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
+    // Add document context if available
+    if (documentContext && documentContext.trim()) {
+      const docPreview = documentContext.slice(0, 2000);
+      contextParts.push(`Current Document:\n${docPreview}${documentContext.length > 2000 ? '...' : ''}`);
     }
 
-    return NextResponse.json({ content });
+    // Add snippet context
+    if (snippets && snippets.length > 0) {
+      const snippetDetails = snippets.map((snippet, idx) =>
+        `${idx + 1}. "${snippet.title}":\n${snippet.content}`
+      ).join('\n\n');
+      contextParts.push(`Snippets:\n${snippetDetails}`);
+    }
+
+    // Add source context
+    if (sources && sources.length > 0) {
+      const sourceDetails = sources.map((source, idx) => {
+        const parts = [`${idx + 1}. "${source.name}" (${source.type})`];
+        if (source.content) {
+          const contentPreview = source.content.slice(0, 1000);
+          parts.push(`Content: ${contentPreview}${source.content.length > 1000 ? '...' : ''}`);
+        }
+        return parts.join('\n');
+      }).join('\n\n');
+      contextParts.push(`Sources:\n${sourceDetails}`);
+    }
+
+    // Build final prompt with context
+    if (contextParts.length > 0) {
+      enhancedPrompt = `${prompt}\n\n--- Context ---\n${contextParts.join('\n\n')}\n--- End Context ---`;
+    }
+
+    // Call OpenAI API
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful AI assistant integrated into a document editor. Help users with their writing, answer questions, provide suggestions, and assist with content creation. Be conversational, helpful, and concise. If given context from sources or snippets, use that information to provide better answers.'
+          },
+          {
+            role: 'user',
+            content: enhancedPrompt
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', response.status, error);
+      throw new Error(`AI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0]?.message?.content || 'I apologize, but I could not generate a response. Please try again.';
+
+    return NextResponse.json({ response: aiResponse });
 
   } catch (error) {
     console.error('AI chat error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: error instanceof Error ? error.message : 'Unknown error occurred' },
       { status: 500 }
     );
   }

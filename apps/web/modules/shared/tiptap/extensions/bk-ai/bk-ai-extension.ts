@@ -150,10 +150,14 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 
 					const { onLoading, onError } = this.options;
 
+					// Get full document context for AI awareness
+					const documentContext = editor.getText();
+
 					requestCompletion({
 						prompt: question(),
 						sources,
 						snippets,
+						documentContext,
 						onLoading: () => {
 							(editor.storage as any).ai = {
 								status: "loading",

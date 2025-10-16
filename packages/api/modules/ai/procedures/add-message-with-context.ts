@@ -158,8 +158,7 @@ export const addMessageWithContext = protectedProcedure
 								type: true,
 								url: true,
 								filePath: true,
-								extractedText: true,
-								metadata: true,
+									metadata: true,
 							},
 						});
 
@@ -169,12 +168,6 @@ export const addMessageWithContext = protectedProcedure
 
 								if (source.url) {
 									parts.push(`URL: ${source.url}`);
-								}
-
-								if (source.extractedText) {
-									// Limit extracted text to avoid overwhelming the context
-									const textPreview = source.extractedText.slice(0, 1000);
-									parts.push(`Content: ${textPreview}${source.extractedText.length > 1000 ? '...' : ''}`);
 								}
 
 								if (source.metadata && typeof source.metadata === 'object') {

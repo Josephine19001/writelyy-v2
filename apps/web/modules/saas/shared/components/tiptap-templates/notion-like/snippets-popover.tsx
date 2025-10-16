@@ -49,8 +49,11 @@ export function SnippetsPopover({
 }: SnippetsPopoverProps) {
 	const { activeWorkspace } = useActiveWorkspace();
 	const [searchQuery, setSearchQuery] = React.useState("");
-	const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
-	const [viewingSnippet, setViewingSnippet] = React.useState<Snippet | null>(null);
+	const [selectedCategory, setSelectedCategory] =
+		React.useState<string>("all");
+	const [viewingSnippet, setViewingSnippet] = React.useState<Snippet | null>(
+		null,
+	);
 
 	const { data: snippetsData, isLoading } = useSnippetsQuery(
 		activeWorkspace?.id || "",
@@ -58,7 +61,7 @@ export function SnippetsPopover({
 			enabled: !!activeWorkspace?.id,
 			search: searchQuery || undefined,
 			category: selectedCategory === "all" ? undefined : selectedCategory,
-		}
+		},
 	);
 
 	const snippets = snippetsData?.snippets || [];
@@ -79,14 +82,8 @@ export function SnippetsPopover({
 			onSnippetSelect?.(snippet);
 			setViewingSnippet(snippet);
 		},
-		[onSnippetSelect]
+		[onSnippetSelect],
 	);
-
-	React.useEffect(() => {
-		console.log("Snippets popover - Active workspace:", activeWorkspace?.id);
-		console.log("Snippets popover - Data:", snippetsData);
-		console.log("Snippets popover - Loading:", isLoading);
-	}, [activeWorkspace, snippetsData, isLoading]);
 
 	return (
 		<>
@@ -103,7 +100,9 @@ export function SnippetsPopover({
 						<div className="flex items-center justify-between pb-2 border-b">
 							<div className="flex items-center gap-2">
 								<FileText className="h-4 w-4" />
-								<h3 className="font-semibold text-sm">Snippets</h3>
+								<h3 className="font-semibold text-sm">
+									Snippets
+								</h3>
 							</div>
 							<AddSnippetModal />
 						</div>
@@ -132,7 +131,10 @@ export function SnippetsPopover({
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="all" className="text-xs">
+											<SelectItem
+												value="all"
+												className="text-xs"
+											>
 												<div className="flex items-center gap-2">
 													<FileText className="h-3 w-3" />
 													All Snippets
@@ -159,7 +161,9 @@ export function SnippetsPopover({
 											placeholder="Search..."
 											className="text-xs pl-8 h-8 bg-background hover:bg-muted/30 border border-border/50 rounded-lg transition-colors focus-visible:ring-1 shadow-sm"
 											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
+											onChange={(e) =>
+												setSearchQuery(e.target.value)
+											}
 										/>
 									</div>
 								</div>
@@ -174,12 +178,26 @@ export function SnippetsPopover({
 								) : (
 									<div className="space-y-0.5 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent pr-1">
 										{snippets.map((snippet: Snippet) => (
-											<div
+											<button
+												type="button"
 												key={snippet.id}
 												className={cn(
-													"group flex items-center gap-2.5 p-2 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent cursor-pointer transition-all duration-300 hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5"
+													"group flex items-center gap-2.5 p-2 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent cursor-pointer transition-all duration-300 hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
 												)}
-												onClick={() => handleSnippetClick(snippet)}
+												onClick={() =>
+													handleSnippetClick(snippet)
+												}
+												onKeyDown={(e) => {
+													if (
+														e.key === "Enter" ||
+														e.key === " "
+													) {
+														e.preventDefault();
+														handleSnippetClick(
+															snippet,
+														);
+													}
+												}}
 											>
 												<div className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md bg-muted/40">
 													<FileText className="h-3.5 w-3.5 text-muted-foreground" />
@@ -191,11 +209,15 @@ export function SnippetsPopover({
 													</div>
 													{snippet.category && (
 														<div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-															<span>{snippet.category}</span>
+															<span>
+																{
+																	snippet.category
+																}
+															</span>
 														</div>
 													)}
 												</div>
-											</div>
+											</button>
 										))}
 									</div>
 								)}

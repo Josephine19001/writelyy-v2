@@ -23,16 +23,25 @@ interface GenerateRequest {
 	prompt: string;
 	sources?: SourceContext[];
 	snippets?: SnippetContext[];
+	documentContext?: string; // Current document content for context awareness
 }
 
 export async function POST(request: NextRequest) {
 	try {
+		console.log('🔵 [Generate API] Request received');
 		const body: GenerateRequest = await request.json();
-		const { prompt, sources, snippets } = body;
+		const { prompt, sources, snippets, documentContext } = body;
+		console.log('🔵 [Generate API] Prompt:', prompt?.substring(0, 50));
 
-		// Build enhanced prompt with context from sources and snippets
+		// Build enhanced prompt with context from sources, snippets, and document
 		let enhancedPrompt = prompt;
 		const contextParts: string[] = [];
+
+		// Add document context if available (current document content)
+		if (documentContext && documentContext.trim()) {
+			const docPreview = documentContext.slice(0, 3000); // Limit to avoid token limits
+			contextParts.push(`Current Document Content:\n${docPreview}${documentContext.length > 3000 ? '...' : ''}`);
+		}
 
 		// Add snippet context if available
 		if (snippets && snippets.length > 0) {
@@ -64,7 +73,8 @@ export async function POST(request: NextRequest) {
 		const apiKey = process.env.OPENAI_API_KEY;
 
 		if (!apiKey) {
-			console.error("🔵 [API] OpenAI API key not configured");
+			console.error("🔴 [Generate API] OpenAI API key not configured");
+			console.error("🔴 [Generate API] Available env vars:", Object.keys(process.env).filter(k => k.includes('OPENAI')));
 			return new Response(
 				JSON.stringify({ error: "OpenAI API key not configured" }),
 				{
@@ -73,6 +83,8 @@ export async function POST(request: NextRequest) {
 				},
 			);
 		}
+
+		console.log('✅ [Generate API] API key found, calling OpenAI...');
 
 		// Make the OpenAI request with optimized settings
 		const response = await fetch(

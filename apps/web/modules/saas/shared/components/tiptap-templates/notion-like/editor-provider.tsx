@@ -68,6 +68,7 @@ export interface EditorProviderProps {
 		lastSaved: Date | null;
 		hasUnsavedChanges: boolean;
 	};
+	documentId?: string;
 }
 
 /**
@@ -82,6 +83,7 @@ export function EditorProvider(props: EditorProviderProps) {
 		onChange,
 		initialContent,
 		savingState,
+		documentId,
 	} = props;
 
 	const { user } = useUser();
@@ -298,7 +300,7 @@ export function EditorProvider(props: EditorProviderProps) {
 	}
 
 	const handleSnippetSelect = (snippet: any) => {
-		console.log("Snippet selected:", snippet);
+		// console.log("Snippet selected:", snippet);
 	};
 
 	const handleInsertSnippet = (snippet: any) => {
@@ -514,6 +516,7 @@ export function EditorProvider(props: EditorProviderProps) {
 						isSaving={savingState?.isSaving}
 						lastSaved={savingState?.lastSaved}
 						hasUnsavedChanges={savingState?.hasUnsavedChanges}
+						documentId={documentId}
 					/>
 					{/* <PageNavigator /> */}
 					<EditorActionBar
@@ -525,6 +528,7 @@ export function EditorProvider(props: EditorProviderProps) {
 						onUseAsAIContext={handleUseAsAIContext}
 						onInsertSnippet={handleInsertSnippet}
 						onExport={handleExport}
+						documentId={documentId}
 					/>
 				</CustomEditorProvider>
 			</EditorContext.Provider>

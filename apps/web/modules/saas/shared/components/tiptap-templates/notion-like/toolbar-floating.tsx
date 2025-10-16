@@ -5,6 +5,7 @@ import { DrawingBlockNodeFloating } from "@shared/tiptap/components/tiptap-node/
 // --- Node ---
 import { ImageNodeFloating } from "@shared/tiptap/components/tiptap-node/image-node/image-node-floating";
 import { AiMenu } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu";
+import { MessageSquare } from "lucide-react";
 // --- UI ---
 import { ColorTextPopover } from "@shared/tiptap/components/tiptap-ui/color-text-popover";
 import { ImproveDropdown } from "@shared/tiptap/components/tiptap-ui/improve-dropdown";

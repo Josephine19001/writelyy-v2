@@ -7,8 +7,9 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@ui/components/tooltip";
-import { Download, FileText, Image, Redo, Undo } from "lucide-react";
+import { Download, FileText, Image, Redo, Sparkles, Undo } from "lucide-react";
 import * as React from "react";
+import { AiChatHistoryPopover } from "./ai-chat-history-popover";
 import { ExportPopover } from "./export-popover";
 import { SnippetsPopover } from "./snippets-popover";
 import { SourcesPopover } from "./sources-popover";
@@ -22,6 +23,7 @@ interface EditorActionBarProps {
 	onUseAsAIContext?: (source: any) => void;
 	onInsertSnippet?: (snippet: any) => void;
 	onExport?: (format: string) => void;
+	documentId?: string;
 }
 
 export function EditorActionBar({
@@ -33,11 +35,43 @@ export function EditorActionBar({
 	onUseAsAIContext,
 	onInsertSnippet,
 	onExport,
+	documentId,
 }: EditorActionBarProps) {
+	// Debug: Check if documentId is being passed
+	React.useEffect(() => {
+		console.log("EditorActionBar documentId:", documentId);
+	}, [documentId]);
+
 	return (
 		<div className="fixed right-4 top-1/2 -translate-y-1/2 z-50">
 			<div className="flex flex-col items-center py-3 px-2 space-y-2 bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-lg">
 				<TooltipProvider delayDuration={300}>
+					{/* AI Assistant Button */}
+					{documentId && (
+						<>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<div>
+										<AiChatHistoryPopover documentId={documentId}>
+											<IconButton
+												variant="ghost"
+												size="sm"
+												icon={<Sparkles className="h-4 w-4" />}
+												className="relative hover:scale-110 transition-all duration-200 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 text-white hover:shadow-lg hover:shadow-purple-500/50"
+											/>
+										</AiChatHistoryPopover>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent side="left">
+									<p>AI assistant</p>
+								</TooltipContent>
+							</Tooltip>
+
+							{/* Divider */}
+							<div className="w-full h-px bg-border my-1" />
+						</>
+					)}
+
 					{/* Undo Button */}
 					<Tooltip>
 						<TooltipTrigger asChild>

@@ -54,6 +54,7 @@ function renderTabContent(
 								: undefined
 						}
 						savingState={savingState}
+						documentId={documentTab.documentId}
 					/>
 				</div>
 			</div>

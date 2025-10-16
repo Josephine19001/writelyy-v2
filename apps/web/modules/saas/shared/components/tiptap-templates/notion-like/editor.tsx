@@ -31,6 +31,7 @@ export function Editor({
 	onChange,
 	initialContent,
 	savingState,
+	documentId,
 }: NotionEditorProps) {
 	return (
 		<UserProvider>
@@ -41,6 +42,7 @@ export function Editor({
 						onChange={onChange}
 						initialContent={initialContent}
 						savingState={savingState}
+						documentId={documentId}
 					/>
 				</AiProvider>
 			</AppProvider>

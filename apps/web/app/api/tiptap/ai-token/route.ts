@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
 
 export async function GET() {
 	try {
@@ -7,7 +7,7 @@ export async function GET() {
 		const aiAppId = process.env.TIPTAP_AI_APP_ID;
 
 		if (!aiSecret || !aiAppId) {
-			console.error('🤖 Missing AI configuration');
+			console.error("🤖 Missing AI configuration");
 			return NextResponse.json(
 				{ error: "Missing AI configuration" },
 				{ status: 500 },
@@ -25,21 +25,14 @@ export async function GET() {
 			aud: aiAppId,
 		};
 
-		console.log('🤖 JWT payload:', payload);
-
 		// Use the secret exactly as provided by Tiptap
 		const token = jwt.sign(payload, aiSecret, { algorithm: "HS256" });
 
 		// Verify the token can be decoded properly
 		try {
-			const decoded = jwt.verify(token, aiSecret) as any;
-			console.log('🤖 JWT verified successfully:', { 
-				aud: decoded.aud, 
-				iss: decoded.iss, 
-				tokenLength: token.length 
-			});
+			jwt.verify(token, aiSecret) as any;
 		} catch (verifyError) {
-			console.error('🤖 JWT verification failed:', verifyError);
+			console.error("🤖 JWT verification failed:", verifyError);
 			return NextResponse.json(
 				{ error: "Token verification failed" },
 				{ status: 500 },

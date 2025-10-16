@@ -17,19 +17,13 @@ export async function generateAiResponse({
 	prompt,
 	sources,
 	snippets,
+	documentContext,
 }: {
 	prompt: string;
 	sources?: SourceContext[];
 	snippets?: SnippetContext[];
+	documentContext?: string;
 }) {
-	console.log('🤖 [AI] Calling API with prompt:', `${prompt.substring(0, 100)}...`);
-	if (sources && sources.length > 0) {
-		console.log('🤖 [AI] Including', sources.length, 'sources');
-	}
-	if (snippets && snippets.length > 0) {
-		console.log('🤖 [AI] Including', snippets.length, 'snippets');
-	}
-
 	try {
 		// Call our API route instead of OpenAI directly
 		const response = await fetch("/api/ai/generate", {
@@ -41,14 +35,13 @@ export async function generateAiResponse({
 				prompt,
 				sources,
 				snippets,
+				documentContext,
 			}),
 		});
 
-		console.log('🤖 [AI] Response status:', response.status, response.statusText);
-
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error('🤖 [AI] Error response:', errorText);
+			console.error("🤖 [AI] Error response:", errorText);
 
 			let error: { error?: string };
 			try {
@@ -57,13 +50,14 @@ export async function generateAiResponse({
 				error = { error: errorText || response.statusText };
 			}
 
-			throw new Error(error.error || `AI generation failed: ${response.statusText}`);
+			throw new Error(
+				error.error || `AI generation failed: ${response.statusText}`,
+			);
 		}
 
-		console.log('🤖 [AI] Response received successfully, starting stream...');
 		return response;
 	} catch (error) {
-		console.error('🤖 [AI] Fetch error:', error);
+		console.error("🤖 [AI] Fetch error:", error);
 		throw error;
 	}
 }
@@ -72,6 +66,7 @@ export async function requestCompletion({
 	prompt,
 	sources,
 	snippets,
+	documentContext,
 	onLoading,
 	onChunk,
 	onSuccess,
@@ -81,18 +76,22 @@ export async function requestCompletion({
 	prompt: string;
 	sources?: SourceContext[];
 	snippets?: SnippetContext[];
+	documentContext?: string;
 	onLoading?: () => void;
 	onChunk?: (chunk: string) => void;
 	onSuccess?: (completion: string) => void;
 	onError?: (error: Error) => void;
 	onComplete?: () => void;
 }) {
-	console.log('🤖 [AI] requestCompletion started');
 	try {
-		console.log('🤖 [AI] Calling onLoading callback');
 		onLoading?.();
 
-		const response = await generateAiResponse({ prompt, sources, snippets });
+		const response = await generateAiResponse({
+			prompt,
+			sources,
+			snippets,
+			documentContext,
+		});
 
 		const reader = response.body?.getReader();
 		const decoder = new TextDecoder();
@@ -101,7 +100,6 @@ export async function requestCompletion({
 			throw new Error("No response body");
 		}
 
-		console.log('🤖 [AI] Starting to read stream...');
 		let result = "";
 		let chunkCount = 0;
 
@@ -109,7 +107,6 @@ export async function requestCompletion({
 			const { done, value } = await reader.read();
 
 			if (done) {
-				console.log(`🤖 [AI] Stream complete. Total chunks: ${chunkCount}, Result length: ${result.length}`);
 				onSuccess?.(result);
 				onComplete?.();
 				return;
@@ -123,7 +120,6 @@ export async function requestCompletion({
 					const data = line.slice(6);
 
 					if (data === "[DONE]") {
-						console.log('🤖 [AI] Received [DONE] marker');
 						continue;
 					}
 
@@ -135,15 +131,13 @@ export async function requestCompletion({
 							result += content;
 							chunkCount++;
 							onChunk?.(result);
-
-							// Log every 10 chunks
-							if (chunkCount % 10 === 0) {
-								console.log(`🤖 [AI] Chunk ${chunkCount}: ${result.length} chars`);
-							}
 						}
 					} catch {
 						// Skip invalid JSON
-						console.warn('🤖 [AI] Failed to parse chunk:', data.substring(0, 50));
+						console.warn(
+							"🤖 [AI] Failed to parse chunk:",
+							data.substring(0, 50),
+						);
 					}
 				}
 			}
@@ -152,7 +146,7 @@ export async function requestCompletion({
 			await new Promise((resolve) => setTimeout(resolve, 25));
 		}
 	} catch (error) {
-		console.error('🤖 [AI] requestCompletion error:', error);
+		console.error("🤖 [AI] requestCompletion error:", error);
 		onError?.(error as Error);
 		onComplete?.();
 	}

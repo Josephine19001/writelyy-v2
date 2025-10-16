@@ -10,6 +10,7 @@ export interface NotionEditorProps {
 		lastSaved: Date | null;
 		hasUnsavedChanges: boolean;
 	};
+	documentId?: string;
 }
 
 export interface EditorProviderProps {
@@ -24,4 +25,5 @@ export interface EditorProviderProps {
 		lastSaved: Date | null;
 		hasUnsavedChanges: boolean;
 	};
+	documentId?: string;
 }
