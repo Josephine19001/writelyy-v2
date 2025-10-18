@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeleteSourceMutation, useSourcesQuery } from "@saas/lib/api";
+import { useSourcesQuery } from "@saas/lib/api";
 import { AddSourceModal } from "@saas/shared/components/workspace/sources/dialogs/AddSourceModal";
 import { SourceContextMenu } from "@saas/shared/components/workspace/sources/menus/SourceContextMenu";
 import type { Source } from "@saas/shared/components/workspace/sources/types";
@@ -59,7 +59,7 @@ export function SourcesPopover({
 		activeWorkspace?.id || "",
 		{
 			enabled: !!activeWorkspace?.id,
-		}
+		},
 	);
 	const [activeFilter, setActiveFilter] = React.useState("all");
 	const [searchQuery, setSearchQuery] = React.useState("");
@@ -91,12 +91,6 @@ export function SourcesPopover({
 		}
 		return source.url || null;
 	};
-
-	React.useEffect(() => {
-		console.log("Sources popover - Active workspace:", activeWorkspace?.id);
-		console.log("Sources popover - Data:", sourcesData);
-		console.log("Sources popover - Loading:", isLoading);
-	}, [activeWorkspace, sourcesData, isLoading]);
 
 	return (
 		<Popover>
@@ -133,7 +127,10 @@ export function SourcesPopover({
 						<>
 							{/* Filter and Search on same line */}
 							<div className="flex items-center gap-2">
-								<Select value={activeFilter} onValueChange={setActiveFilter}>
+								<Select
+									value={activeFilter}
+									onValueChange={setActiveFilter}
+								>
 									<SelectTrigger className="h-8 text-xs bg-background hover:bg-muted/30 border border-border/50 rounded-lg px-2.5 w-32 transition-colors shadow-sm">
 										<SelectValue />
 									</SelectTrigger>
@@ -159,7 +156,9 @@ export function SourcesPopover({
 										placeholder="Search..."
 										className="text-xs pl-8 h-8 bg-background hover:bg-muted/30 border border-border/50 rounded-lg transition-colors focus-visible:ring-1 shadow-sm"
 										value={searchQuery}
-										onChange={(e) => setSearchQuery(e.target.value)}
+										onChange={(e) =>
+											setSearchQuery(e.target.value)
+										}
 									/>
 								</div>
 							</div>
@@ -174,15 +173,34 @@ export function SourcesPopover({
 							) : (
 								<div className="space-y-0.5 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent pr-1">
 									{filteredSources.map((source: Source) => {
-										const imageUrl = source.type === "image" ? getImageUrl(source) : null;
+										const imageUrl =
+											source.type === "image"
+												? getImageUrl(source)
+												: null;
 
 										return (
-											<div
+											<button
 												key={source.id}
+												type="button"
 												className={cn(
-													"group flex items-center gap-2.5 p-2 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent cursor-pointer transition-all duration-300 hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5"
+													"group flex items-center gap-2.5 p-2 rounded-xl hover:bg-gradient-to-r hover:from-primary/10 hover:via-primary/5 hover:to-transparent cursor-pointer transition-all duration-300 hover:shadow-sm hover:shadow-primary/10 hover:translate-x-0.5",
 												)}
-												onClick={() => onSourceSelect?.(source)}
+												onClick={() =>
+													onSourceSelect?.(source)
+												}
+												onKeyDown={(e) => {
+													if (
+														e.key === "Enter" ||
+														e.key === " "
+													) {
+														e.preventDefault();
+														onSourceSelect?.(
+															source,
+														);
+													}
+												}}
+												tabIndex={0}
+												aria-label={`Select source ${source.name}`}
 											>
 												{/* Image Preview or Icon */}
 												{imageUrl ? (
@@ -196,7 +214,10 @@ export function SourcesPopover({
 													</div>
 												) : (
 													<div className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-md bg-muted/40">
-														{getSourceIcon(source.type, "h-3.5 w-3.5")}
+														{getSourceIcon(
+															source.type,
+															"h-3.5 w-3.5",
+														)}
 													</div>
 												)}
 
@@ -205,12 +226,23 @@ export function SourcesPopover({
 														{source.name}
 													</div>
 													<div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-														<span>{getSourceTypeLabel(source.type)}</span>
-														{source.metadata?.size && (
+														<span>
+															{getSourceTypeLabel(
+																source.type,
+															)}
+														</span>
+														{source.metadata
+															?.size && (
 															<>
-																<span className="text-[8px]">•</span>
+																<span className="text-[8px]">
+																	•
+																</span>
 																<span>
-																	{formatFileSize(source.metadata.size)}
+																	{formatFileSize(
+																		source
+																			.metadata
+																			.size,
+																	)}
 																</span>
 															</>
 														)}
@@ -222,11 +254,15 @@ export function SourcesPopover({
 													<SourceContextMenu
 														sourceId={source.id}
 														source={source}
-														onInsertSource={onInsertSource}
-														onUseAsAIContext={onUseAsAIContext}
+														onInsertSource={
+															onInsertSource
+														}
+														onUseAsAIContext={
+															onUseAsAIContext
+														}
 													/>
 												</div>
-											</div>
+											</button>
 										);
 									})}
 								</div>

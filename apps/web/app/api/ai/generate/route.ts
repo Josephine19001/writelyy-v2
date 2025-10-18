@@ -31,17 +31,18 @@ export async function POST(request: NextRequest) {
 		console.log('🔵 [Generate API] Request received');
 		const body: GenerateRequest = await request.json();
 		const { prompt, sources, snippets, documentContext } = body;
-		console.log('🔵 [Generate API] Prompt:', prompt?.substring(0, 50));
+		console.log('🔵 [Generate API] Request details:', {
+			promptLength: prompt?.length,
+			promptPreview: prompt?.substring(0, 100) + '...',
+			hasDocumentContext: !!documentContext,
+			documentContextLength: documentContext?.length,
+			sourcesCount: sources?.length || 0,
+			snippetsCount: snippets?.length || 0,
+		});
 
 		// Build enhanced prompt with context from sources, snippets, and document
 		let enhancedPrompt = prompt;
 		const contextParts: string[] = [];
-
-		// Add document context if available (current document content)
-		if (documentContext && documentContext.trim()) {
-			const docPreview = documentContext.slice(0, 3000); // Limit to avoid token limits
-			contextParts.push(`Current Document Content:\n${docPreview}${documentContext.length > 3000 ? '...' : ''}`);
-		}
 
 		// Add snippet context if available
 		if (snippets && snippets.length > 0) {
@@ -65,9 +66,31 @@ export async function POST(request: NextRequest) {
 			contextParts.push(`Referenced Sources:\n${sourceDetails}`);
 		}
 
+		// Add document context if available (current document content) - for context awareness only
+		if (documentContext && documentContext.trim()) {
+			const docPreview = documentContext.slice(0, 3000); // Limit to avoid token limits
+			contextParts.push(`DOCUMENT CONTEXT (for reference only, DO NOT modify or return this):\n${docPreview}${documentContext.length > 3000 ? '...' : ''}`);
+		}
+
 		// Append context to prompt if available
 		if (contextParts.length > 0) {
-			enhancedPrompt = `${prompt}\n\n--- Additional Context ---\n${contextParts.join('\n\n')}\n--- End Context ---\n\nPlease use this additional context to help with the task.`;
+			enhancedPrompt = `${prompt}
+
+═══════════════════════════════════════════════════════════
+BACKGROUND CONTEXT (FOR AWARENESS ONLY - DO NOT MODIFY OR RETURN)
+═══════════════════════════════════════════════════════════
+
+${contextParts.join('\n\n───────────────────────────────────────────────────────────────\n\n')}
+
+═══════════════════════════════════════════════════════════
+END OF BACKGROUND CONTEXT
+═══════════════════════════════════════════════════════════
+
+CRITICAL INSTRUCTIONS:
+1. The content above this line is BACKGROUND CONTEXT ONLY
+2. DO NOT include, modify, or return ANY of the background context
+3. ONLY process and return the specific content mentioned in the main instruction at the top
+4. Return ONLY the modified version of the targeted content, nothing else`;
 		}
 
 		const apiKey = process.env.OPENAI_API_KEY;
@@ -85,6 +108,10 @@ export async function POST(request: NextRequest) {
 		}
 
 		console.log('✅ [Generate API] API key found, calling OpenAI...');
+		console.log('📤 [Generate API] Sending to OpenAI:', {
+			fullPrompt: enhancedPrompt,
+			promptLength: enhancedPrompt.length,
+		});
 
 		// Make the OpenAI request with optimized settings
 		const response = await fetch(
@@ -101,14 +128,28 @@ export async function POST(request: NextRequest) {
 						{
 							role: "system",
 							content:
-								"You are a helpful writing assistant. Follow these rules strictly:\n" +
-								"1. When editing existing content, PRESERVE the exact HTML structure and heading levels\n" +
-								"2. If the original has <h1>, use <h1> in your response - do NOT change to <h3> or other levels\n" +
+								"You are a precise writing assistant that edits ONLY the specific content requested. Follow these rules:\n\n" +
+								"HTML STRUCTURE:\n" +
+								"1. PRESERVE the exact HTML structure and heading levels from the input\n" +
+								"2. If input has <h1>, output must have <h1> (never change heading levels)\n" +
 								"3. Maintain list structure (<ul>/<ol>/<li>) exactly as in the original\n" +
-								"4. Do NOT add extra blank lines, line breaks, or spacing between HTML elements\n" +
-								"5. Use <p> for paragraphs, <strong> for bold, <em> for italic\n" +
-								"6. Return ONLY HTML content without markdown syntax, explanations, or extra text\n" +
-								"7. Keep content compact - no unnecessary whitespace between tags",
+								"4. Use <p> for paragraphs, <strong> for bold, <em> for italic\n" +
+								"5. Do NOT add extra blank lines, line breaks, or spacing between HTML elements\n" +
+								"6. Keep content compact - no unnecessary whitespace between tags\n\n" +
+								"OUTPUT FORMAT:\n" +
+								"7. Return ONLY HTML content without markdown syntax, explanations, or extra text\n" +
+								"8. Do NOT wrap output in additional tags\n" +
+								"9. Do NOT add comments or explanations\n\n" +
+								"CONTEXT HANDLING (MOST IMPORTANT):\n" +
+								"10. The user request contains the TARGET CONTENT at the top\n" +
+								"11. Any 'BACKGROUND CONTEXT' section is for awareness only\n" +
+								"12. DO NOT modify, include, or return any background context\n" +
+								"13. DO NOT return the entire document\n" +
+								"14. ONLY return the modified version of the TARGET CONTENT specified in the main instruction\n" +
+								"15. If you see document context or additional context, completely ignore it in your output\n\n" +
+								"SCOPE:\n" +
+								"16. Process ONLY the specific content mentioned in the main instruction\n" +
+								"17. Return ONLY that processed content, nothing more, nothing less",
 						},
 						{
 							role: "user",

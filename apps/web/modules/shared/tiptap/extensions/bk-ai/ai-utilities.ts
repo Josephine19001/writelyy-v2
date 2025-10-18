@@ -107,6 +107,11 @@ export async function requestCompletion({
 			const { done, value } = await reader.read();
 
 			if (done) {
+				console.log('📥 [AI Utilities] Complete AI response received:', {
+					fullResponse: result,
+					responseLength: result.length,
+					chunkCount: chunkCount,
+				});
 				onSuccess?.(result);
 				onComplete?.();
 				return;

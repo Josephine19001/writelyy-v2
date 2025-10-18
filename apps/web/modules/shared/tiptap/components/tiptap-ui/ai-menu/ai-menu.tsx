@@ -141,13 +141,15 @@ export function AiMenuContent({
 
 			if ((editor.commands as any).bkAiTextPrompt) {
 				(editor.commands as any).bkAiTextPrompt({
-					text: promptWithContext,
+					prompt: promptWithContext,
+					command: "prompt", // User-provided prompt
 					insert: true,
 					stream: true,
 					tone: state.tone,
 					format: "rich-text",
 					sources: sourcesWithContent,
 					snippets: snippetsWithContent,
+					includeDocumentContext: true, // Include document context for user prompts
 				});
 			}
 		},
@@ -403,7 +405,7 @@ export function AiMenuProgress({ editor }: { editor: Editor }) {
 	return (
 		<div className="tiptap-ai-menu-progress">
 			<div className="tiptap-spinner-alt">
-				<span>AI is writing</span>
+				{/* <span>AI is writing</span> */}
 				<div className="dots-container">
 					<div className="dot" />
 					<div className="dot" />

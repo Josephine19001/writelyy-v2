@@ -1,16 +1,16 @@
 "use client";
 
+import { useAiChatHistory } from "@saas/shared/hooks/use-ai-chat-history";
+// import { AiMenuInputTextarea } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input";
+// import { AiMenuActions } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions";
+// import { AiMenuDiff } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-diff/ai-menu-diff";
+// import { StopCircle2Icon } from "@shared/tiptap/components/tiptap-icons/stop-circle-2-icon";
+// import { Button, ButtonGroup } from "@shared/tiptap/components/tiptap-ui-primitive/button";
+// import { Card } from "@shared/tiptap/components/tiptap-ui-primitive/card/card";
+// import { ComboboxProvider } from "@shared/tiptap/components/tiptap-ui-primitive/combobox";
+import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
 import { EditorContext } from "@tiptap/react";
 import * as React from "react";
-import { AiMenuInputTextarea } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-input";
-import { AiMenuActions } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-actions/ai-menu-actions";
-import { AiMenuDiff } from "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu-diff/ai-menu-diff";
-import { StopCircle2Icon } from "@shared/tiptap/components/tiptap-icons/stop-circle-2-icon";
-import { Button, ButtonGroup } from "@shared/tiptap/components/tiptap-ui-primitive/button";
-import { Card } from "@shared/tiptap/components/tiptap-ui-primitive/card/card";
-import { ComboboxProvider } from "@shared/tiptap/components/tiptap-ui-primitive/combobox";
-import { useUiEditorState } from "@shared/tiptap/hooks/use-ui-editor-state";
-import { useAiChatHistory } from "@saas/shared/hooks/use-ai-chat-history";
 import "./editor-footer.scss";
 import "@shared/tiptap/components/tiptap-ui/ai-menu/ai-menu.scss";
 
@@ -145,7 +145,10 @@ export function EditorFooter({
 		window.addEventListener("tiptap-show-ai-input", handleShowAiInput);
 
 		return () => {
-			window.removeEventListener("tiptap-show-ai-input", handleShowAiInput);
+			window.removeEventListener(
+				"tiptap-show-ai-input",
+				handleShowAiInput,
+			);
 		};
 	}, []);
 
@@ -158,43 +161,55 @@ export function EditorFooter({
 		}
 	}, [aiGenerationActive, aiGenerationHasMessage]);
 
-	const handleSendMessage = React.useCallback((message: string, mentions?: any[]) => {
-		if (!editor) return;
+	const handleSendMessage = React.useCallback(
+		(message: string, mentions?: any[]) => {
+			if (!editor) return;
 
-		// Save prompt and mentions for chat history
-		setCurrentPrompt(message);
-		setCurrentMentions(mentions || []);
+			// Save prompt and mentions for chat history
+			setCurrentPrompt(message);
+			setCurrentMentions(mentions || []);
 
-		// Separate sources and snippets from mentions
-		const sources = mentions?.filter(m => m.type === "source" || m.type === "doc" || m.type === "image" || m.type === "pdf" || m.type === "link");
-		const snippets = mentions?.filter(m => m.type === "asset" || m.type === "snippet");
+			// Separate sources and snippets from mentions
+			const sources = mentions?.filter(
+				(m) =>
+					m.type === "source" ||
+					m.type === "doc" ||
+					m.type === "image" ||
+					m.type === "pdf" ||
+					m.type === "link",
+			);
+			const snippets = mentions?.filter(
+				(m) => m.type === "asset" || m.type === "snippet",
+			);
 
-		// Insert the AI-generated content or trigger AI generation
-		if ((editor.commands as any).bkAiTextPrompt) {
-			(editor.commands as any).bkAiTextPrompt({
-				prompt: message,
-				command: "prompt",
-				insert: true,
-				stream: true,
-				tone: "auto",
-				format: "rich-text",
-				sources: sources?.map(s => ({
-					id: s.id,
-					name: s.name,
-					type: s.type,
-					content: s.content || s.extractedText || s.url,
-				})),
-				snippets: snippets?.map(s => ({
-					id: s.id,
-					title: s.name || s.title,
-					content: s.content,
-				})),
-			});
-		}
+			// Insert the AI-generated content or trigger AI generation
+			if ((editor.commands as any).bkAiTextPrompt) {
+				(editor.commands as any).bkAiTextPrompt({
+					prompt: message,
+					command: "prompt",
+					insert: true,
+					stream: true,
+					tone: "auto",
+					format: "rich-text",
+					sources: sources?.map((s) => ({
+						id: s.id,
+						name: s.name,
+						type: s.type,
+						content: s.content || s.extractedText || s.url,
+					})),
+					snippets: snippets?.map((s) => ({
+						id: s.id,
+						title: s.name || s.title,
+						content: s.content,
+					})),
+				});
+			}
 
-		// Don't close the AI input - let it transition to loading state
-		// It will be closed when user accepts/rejects or cancels
-	}, [editor]);
+			// Don't close the AI input - let it transition to loading state
+			// It will be closed when user accepts/rejects or cancels
+		},
+		[editor],
+	);
 
 	const handleCancel = React.useCallback(() => {
 		if (!editor) return;
@@ -225,17 +240,22 @@ export function EditorFooter({
 
 		// Save conversation to chat history before accepting
 		if (currentPrompt && aiData.newText && documentId) {
-			const sources = currentMentions.filter(m => m.type === "source" || m.type === "doc" || m.type === "image" || m.type === "pdf" || m.type === "link");
-			const snippets = currentMentions.filter(m => m.type === "asset" || m.type === "snippet");
-
-			await saveConversation(
-				currentPrompt,
-				aiData.newText,
-				{
-					sources: sources.length > 0 ? sources : undefined,
-					snippets: snippets.length > 0 ? snippets : undefined,
-				}
+			const sources = currentMentions.filter(
+				(m) =>
+					m.type === "source" ||
+					m.type === "doc" ||
+					m.type === "image" ||
+					m.type === "pdf" ||
+					m.type === "link",
 			);
+			const snippets = currentMentions.filter(
+				(m) => m.type === "asset" || m.type === "snippet",
+			);
+
+			await saveConversation(currentPrompt, aiData.newText, {
+				sources: sources.length > 0 ? sources : undefined,
+				snippets: snippets.length > 0 ? snippets : undefined,
+			});
 		}
 
 		if ((editor.commands as any).aiAccept) {
@@ -245,7 +265,14 @@ export function EditorFooter({
 		setCurrentPrompt("");
 		setCurrentMentions([]);
 		editor.commands.resetUiState();
-	}, [editor, currentPrompt, currentMentions, aiData.newText, documentId, saveConversation]);
+	}, [
+		editor,
+		currentPrompt,
+		currentMentions,
+		aiData.newText,
+		documentId,
+		saveConversation,
+	]);
 
 	const handleReject = React.useCallback(() => {
 		if (!editor) return;
@@ -286,9 +313,8 @@ export function EditorFooter({
 	return (
 		<>
 			{/* AI Input - shown when triggered from slash menu */}
-			{showAiInput && (
+			{/* {showAiInput && (
 				<div className="editor-footer-ai-input">
-					{/* Loading state */}
 					{aiGenerationIsLoading && (
 						<Card>
 							<div className="tiptap-ai-menu-progress">
@@ -309,8 +335,6 @@ export function EditorFooter({
 							</div>
 						</Card>
 					)}
-
-					{/* Diff view with accept/reject actions */}
 					{aiGenerationHasMessage && !aiGenerationIsLoading && (
 						<Card>
 							{aiData.originalText && aiData.newText ? (
@@ -337,7 +361,6 @@ export function EditorFooter({
 						</Card>
 					)}
 
-					{/* Input state */}
 					{!aiGenerationIsLoading && !aiGenerationHasMessage && (
 						<ComboboxProvider value={comboboxValue} setValue={setComboboxValue}>
 							<AiMenuInputTextarea
@@ -354,7 +377,7 @@ export function EditorFooter({
 						</ComboboxProvider>
 					)}
 				</div>
-			)}
+			)} */}
 
 			<footer className="editor-footer">
 				{/* Left side: Page and word count */}
@@ -375,7 +398,9 @@ export function EditorFooter({
 						</span>
 					)}
 					{!isSaving && hasUnsavedChanges && (
-						<span className="unsaved-indicator">● Unsaved changes</span>
+						<span className="unsaved-indicator">
+							● Unsaved changes
+						</span>
 					)}
 					{!isSaving && !hasUnsavedChanges && lastSaved && (
 						<span className="last-saved">

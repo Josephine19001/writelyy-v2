@@ -1,5 +1,8 @@
 "use client";
 
+import { useSourcesQuery } from "@saas/lib/api";
+import { useSnippetsQuery } from "@saas/snippets/lib/api";
+import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { AiMenu } from "@shared/tiptap/components/tiptap-ui/ai-menu";
 import { useScrollToHash } from "@shared/tiptap/components/tiptap-ui/copy-anchor-link-button/use-scroll-to-hash";
 import { DragContextMenu } from "@shared/tiptap/components/tiptap-ui/drag-context-menu";
@@ -14,12 +17,9 @@ import {
 } from "@tiptap/react";
 import * as React from "react";
 import { createPortal } from "react-dom";
+import type { Source } from "../../workspace/sources/types";
 import { MobileToolbar } from "./toolbar";
 import { NotionToolbarFloating } from "./toolbar-floating";
-import type { Source } from "../../workspace/sources/types";
-import { useSourcesQuery } from "@saas/lib/api";
-import { useSnippetsQuery } from "@saas/snippets/lib/api";
-import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 
 // Helper function to get proper image URL (same as SourcePreview)
 const getImageUrl = (source: Source) => {
@@ -43,18 +43,15 @@ export function EditorContentArea() {
 		aiGenerationHasMessage,
 		isDragging,
 	} = useUiEditorState(editor);
-	
+
 	// Get sources and snippets data for slash menu
 	const { activeWorkspace } = useActiveWorkspace();
-	const { data: sourcesData } = useSourcesQuery(
-		activeWorkspace?.id || "",
-		{ enabled: !!activeWorkspace?.id }
-	);
-	const { data: snippetsData } = useSnippetsQuery(
-		activeWorkspace?.id || "",
-		{ enabled: !!activeWorkspace?.id }
-	);
-
+	const { data: sourcesData } = useSourcesQuery(activeWorkspace?.id || "", {
+		enabled: !!activeWorkspace?.id,
+	});
+	const { data: snippetsData } = useSnippetsQuery(activeWorkspace?.id || "", {
+		enabled: !!activeWorkspace?.id,
+	});
 
 	// Selection based effect to handle AI generation acceptance
 	React.useEffect(() => {
@@ -66,7 +63,7 @@ export function EditorContentArea() {
 			aiGenerationHasMessage
 		) {
 			// TODO: Check if aiAccept command exists in current Tiptap AI extension version
-		// editor.chain().focus().aiAccept().run();
+			// editor.chain().focus().aiAccept().run();
 			editor.commands.resetUiState();
 		}
 	}, [
@@ -229,11 +226,7 @@ export function EditorContentArea() {
 		} catch (error) {
 			console.error("Failed to insert snippet:", error);
 			// Fallback: Insert as plain text
-			editor
-				.chain()
-				.focus()
-				.insertContent(snippet.content)
-				.run();
+			editor.chain().focus().insertContent(snippet.content).run();
 		}
 	};
 
@@ -259,7 +252,6 @@ export function EditorContentArea() {
 			<NotionToolbarFloating />
 
 			{createPortal(<MobileToolbar />, document.body)}
-
 		</TiptapEditorContent>
 	);
 }

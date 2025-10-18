@@ -1,35 +1,35 @@
 "use client";
 
 import { useAiChatHistory } from "@saas/shared/hooks/use-ai-chat-history";
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@ui/components/popover";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@ui/components/dropdown-menu";
-import {
-	Sparkles,
-	Plus,
-	ChevronDown,
-	Search,
-	Trash2,
-	Loader2,
-	Send,
-} from "lucide-react";
-import * as React from "react";
 import { Button } from "@shared/tiptap/components/tiptap-ui-primitive/button";
 import {
 	Card,
 	CardBody,
 } from "@shared/tiptap/components/tiptap-ui-primitive/card";
 import { EditorContext } from "@tiptap/react";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@ui/components/dropdown-menu";
 import { Input } from "@ui/components/input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@ui/components/popover";
 import { Textarea } from "@ui/components/textarea";
+import {
+	ChevronDown,
+	Loader2,
+	Plus,
+	Search,
+	Send,
+	Sparkles,
+	Trash2,
+} from "lucide-react";
+import * as React from "react";
 
 interface AiChatHistoryPopoverProps {
 	children: React.ReactNode;
@@ -43,6 +43,8 @@ interface ChatMessage {
 	sources?: any[];
 	snippets?: any[];
 	isTyping?: boolean;
+	hasDocumentChange?: boolean;
+	changeContent?: string;
 }
 
 // Typing effect hook
@@ -74,8 +76,28 @@ function useTypingEffect(text: string, speed = 20) {
 // AI Avatar component
 function AiAvatar() {
 	return (
-		<div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex-shrink-0">
+		<div className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0" style={{ background: 'linear-gradient(to bottom right, var(--tt-brand-color-400), var(--tt-brand-color-600))' }}>
 			<Sparkles className="h-4 w-4 text-white" />
+		</div>
+	);
+}
+
+// Thinking dots animation component
+function ThinkingBubble() {
+	return (
+		<div className="flex gap-1 items-center justify-center py-1">
+			<div
+				className="w-2 h-2 rounded-full animate-bounce"
+				style={{ backgroundColor: 'var(--tt-brand-color-400)', animationDelay: "0ms", animationDuration: "1s" }}
+			/>
+			<div
+				className="w-2 h-2 rounded-full animate-bounce"
+				style={{ backgroundColor: 'var(--tt-brand-color-500)', animationDelay: "150ms", animationDuration: "1s" }}
+			/>
+			<div
+				className="w-2 h-2 rounded-full animate-bounce"
+				style={{ backgroundColor: 'var(--tt-brand-color-600)', animationDelay: "300ms", animationDuration: "1s" }}
+			/>
 		</div>
 	);
 }
@@ -83,19 +105,74 @@ function AiAvatar() {
 // User Avatar component
 function UserAvatar() {
 	return (
-		<div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 flex-shrink-0">
-			<span className="text-white text-xs font-semibold">You</span>
+		<div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 dark:from-slate-500 dark:to-slate-600 flex-shrink-0 shadow-sm">
+			<svg
+				className="w-4 h-4 text-white"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<title>User avatar icon</title>
+				<path
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					strokeWidth={2}
+					d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+				/>
+			</svg>
 		</div>
 	);
+}
+
+// Parse document changes from AI response
+function parseDocumentChange(content: string): {
+	hasChange: boolean;
+	displayContent: string;
+	changeContent: string;
+	actionType: "insert" | "replace";
+} {
+	const changeMatch = content.match(
+		/<document-change(?:\s+action="(insert|replace)")?>([\s\S]*?)<\/document-change>/,
+	);
+
+	if (changeMatch) {
+		const actionType = (changeMatch[1] as "insert" | "replace") || "insert";
+		const changeBlock = changeMatch[2];
+		const contentMatch = changeBlock.match(
+			/<change-content>([\s\S]*?)<\/change-content>/,
+		);
+		const displayContent = changeBlock
+			.replace(/<change-content>[\s\S]*?<\/change-content>/, "")
+			.trim();
+
+		return {
+			hasChange: true,
+			displayContent: displayContent || "I can make this change:",
+			changeContent: contentMatch ? contentMatch[1].trim() : "",
+			actionType,
+		};
+	}
+
+	return {
+		hasChange: false,
+		displayContent: content,
+		changeContent: "",
+		actionType: "insert",
+	};
 }
 
 // Message component with typing effect
 function ChatMessageComponent({
 	message,
 	index,
+	onAcceptChange,
 }: {
 	message: ChatMessage;
 	index: number;
+	onAcceptChange?: (
+		content: string,
+		actionType: "insert" | "replace",
+	) => void;
 }) {
 	const { displayedText } = useTypingEffect(
 		message.content,
@@ -103,6 +180,20 @@ function ChatMessageComponent({
 	);
 
 	const textToShow = message.isTyping ? displayedText : message.content;
+
+	// Parse for document changes (only for assistant messages)
+	const parsed = React.useMemo(
+		() =>
+			message.role === "assistant"
+				? parseDocumentChange(textToShow)
+				: {
+						hasChange: false,
+						displayContent: textToShow,
+						changeContent: "",
+						actionType: "insert" as const,
+					},
+		[textToShow, message.role],
+	);
 
 	return (
 		<div
@@ -117,19 +208,79 @@ function ChatMessageComponent({
 				<Card
 					className={`${
 						message.role === "user"
-							? "bg-blue-500 text-white border-blue-500"
-							: "bg-background border-border"
-					}`}
+							? "!bg-slate-700 dark:!bg-slate-600 !border-slate-700 dark:!border-slate-600 !shadow-md"
+							: "bg-background border-border !shadow-sm"
+					} transition-all hover:!shadow-lg`}
 				>
-					<CardBody className="p-3">
-						<div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-							{textToShow}
-							{message.isTyping &&
-								displayedText.length <
-									message.content.length && (
-									<span className="animate-pulse">▌</span>
-								)}
-						</div>
+					<CardBody className="p-4">
+						{message.role === "user" ? (
+							// User messages: plain text
+							<div className="text-sm leading-relaxed whitespace-pre-wrap break-words !text-white">
+								{textToShow}
+								{message.isTyping &&
+									displayedText.length <
+										message.content.length && (
+										<span className="animate-pulse">▌</span>
+									)}
+							</div>
+						) : (
+							// Assistant messages: rendered HTML
+							<>
+								<div
+									className="text-sm leading-relaxed break-words prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:mt-4 prose-headings:mb-2"
+									// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+									dangerouslySetInnerHTML={{
+										__html: parsed.displayContent,
+									}}
+								/>
+
+								{message.isTyping &&
+									displayedText.length <
+										message.content.length && (
+										<span className="animate-pulse">▌</span>
+									)}
+							</>
+						)}
+
+						{/* Document change preview */}
+						{parsed.hasChange && parsed.changeContent && (
+							<div className="mt-3 pt-3 border-t border-current/20">
+								<div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-3 space-y-2">
+									<div className="text-xs font-semibold text-muted-foreground mb-2">
+										PROPOSED CHANGE
+									</div>
+									<div
+										className="text-sm prose prose-sm dark:prose-invert max-w-none"
+										// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+										dangerouslySetInnerHTML={{
+											__html: parsed.changeContent,
+										}}
+									/>
+									<div className="flex gap-2 mt-3">
+										<Button
+											data-style="default"
+											onClick={() =>
+												onAcceptChange?.(
+													parsed.changeContent,
+													parsed.actionType,
+												)
+											}
+											className="h-7 px-3 text-xs !bg-green-600 hover:!bg-green-700 !text-white !border-green-600 hover:!border-green-700"
+										>
+											{parsed.actionType === "replace"
+												? "Accept & Replace"
+												: "Accept & Insert"}
+										</Button>
+										<Button
+											data-style="ghost"
+											className="h-7 px-3 text-xs !text-red-600 hover:!text-red-700 hover:!bg-red-50 dark:hover:!bg-red-950/20"
+										>
+											Decline
+										</Button>
+									</div>
+								</div>
+							</div>
+						)}
 
 						{(message.sources && message.sources.length > 0) ||
 						(message.snippets && message.snippets.length > 0) ? (
@@ -177,15 +328,20 @@ export function AiChatHistoryPopover({
 	const { editor } = React.useContext(EditorContext)!;
 	const {
 		chatHistory,
+		allChats,
 		isLoading: isLoadingHistory,
+		isLoadingChats,
 		clearHistory,
 		saveConversation,
+		fetchAllChats,
+		loadChatByDocumentId,
 	} = useAiChatHistory(documentId);
 	const [inputValue, setInputValue] = React.useState("");
 	const [searchQuery, setSearchQuery] = React.useState("");
 	const [localMessages, setLocalMessages] = React.useState<ChatMessage[]>([]);
 	const [isAiResponding, setIsAiResponding] = React.useState(false);
 	const [chatTitle, setChatTitle] = React.useState("New Chat");
+	const [isOpen, setIsOpen] = React.useState(false);
 	const messagesEndRef = React.useRef<HTMLDivElement>(null);
 	const messagesContainerRef = React.useRef<HTMLDivElement>(null);
 	const inputRef = React.useRef<HTMLTextAreaElement>(null);
@@ -200,23 +356,42 @@ export function AiChatHistoryPopover({
 		}
 	}, [chatHistory?.messages, chatHistory?.title]);
 
+	// Fetch all chats on mount
+	React.useEffect(() => {
+		fetchAllChats();
+	}, [fetchAllChats]);
+
 	// Auto-scroll to bottom when new messages arrive
-	const scrollToBottom = React.useCallback(() => {
-		if (messagesEndRef.current) {
-			messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-		}
-	}, []);
+	const scrollToBottom = React.useCallback(
+		(behavior: ScrollBehavior = "smooth") => {
+			if (messagesEndRef.current) {
+				messagesEndRef.current.scrollIntoView({ behavior });
+			}
+		},
+		[],
+	);
 
 	// Scroll to bottom when messages change
 	React.useEffect(() => {
 		scrollToBottom();
 	}, [localMessages, isAiResponding, scrollToBottom]);
 
+	// Scroll to bottom when chat opens (instant scroll)
+	React.useEffect(() => {
+		if (isOpen && localMessages.length > 0) {
+			// Use setTimeout to ensure DOM is ready
+			setTimeout(() => {
+				scrollToBottom("instant");
+			}, 100);
+		}
+	}, [isOpen, scrollToBottom, localMessages.length]);
+
 	const handleClearHistory = () => {
 		if (confirm("Are you sure you want to clear all chat history?")) {
 			clearHistory();
 			setLocalMessages([]);
 			setChatTitle("New Chat");
+			fetchAllChats(true); // Refresh chat list
 		}
 	};
 
@@ -227,6 +402,32 @@ export function AiChatHistoryPopover({
 		setChatTitle("New Chat");
 	};
 
+	// Handle loading a previous chat
+	const handleLoadChat = React.useCallback(
+		async (chat: {
+			id: string;
+			documentId: string | null;
+			title: string;
+		}) => {
+			if (!chat.documentId) {
+				console.warn("Chat has no documentId");
+				return;
+			}
+
+			try {
+				const loadedChat = await loadChatByDocumentId(chat.documentId);
+
+				// Update the UI with the loaded chat
+				if (loadedChat?.title) {
+					setChatTitle(loadedChat.title);
+				}
+			} catch (error) {
+				console.error("❌ Error loading chat:", error);
+			}
+		},
+		[loadChatByDocumentId],
+	);
+
 	// Generate chat title from first message
 	const generateChatTitle = React.useCallback((firstMessage: string) => {
 		const words = firstMessage.split(" ").slice(0, 6).join(" ");
@@ -235,9 +436,17 @@ export function AiChatHistoryPopover({
 
 	const handleSendMessage = React.useCallback(async () => {
 		const prompt = inputValue.trim();
-		if (!prompt) return;
+		if (!prompt) {
+			return;
+		}
 
-		console.log("🔵 Sending message:", prompt);
+		// Auto-rename chat if this is the first message
+		const isFirstMessage = localMessages.length === 0;
+		let newChatTitle = chatTitle;
+		if (isFirstMessage) {
+			newChatTitle = generateChatTitle(prompt);
+			setChatTitle(newChatTitle);
+		}
 
 		// 1. Add user message immediately
 		const userMessage: ChatMessage = {
@@ -247,19 +456,10 @@ export function AiChatHistoryPopover({
 		};
 
 		setLocalMessages((prev) => {
-			console.log("🔵 Adding user message to localMessages");
 			return [...prev, userMessage];
 		});
 
 		setInputValue(""); // Clear input immediately
-
-		// Auto-rename chat if this is the first message
-		const isFirstMessage = localMessages.length === 0;
-		let newChatTitle = chatTitle;
-		if (isFirstMessage) {
-			newChatTitle = generateChatTitle(prompt);
-			setChatTitle(newChatTitle);
-		}
 
 		// 2. Show AI loading state
 		setIsAiResponding(true);
@@ -293,8 +493,6 @@ export function AiChatHistoryPopover({
 			const data = await response.json();
 			const aiResponse = data.response;
 
-			console.log("✅ Got AI response:", aiResponse?.substring(0, 100));
-
 			// 4. Add AI response with typing effect
 			const aiMessage: ChatMessage = {
 				role: "assistant",
@@ -310,6 +508,8 @@ export function AiChatHistoryPopover({
 				await saveConversation(prompt, aiResponse, {
 					title: isFirstMessage ? newChatTitle : undefined,
 				});
+				// Refresh chat list to show new/updated chat
+				fetchAllChats(true);
 			}
 		} catch (error) {
 			console.error("Error getting AI response:", error);
@@ -327,6 +527,7 @@ export function AiChatHistoryPopover({
 	}, [
 		inputValue,
 		localMessages.length,
+		chatTitle,
 		editor,
 		documentId,
 		saveConversation,
@@ -348,15 +549,39 @@ export function AiChatHistoryPopover({
 
 	// Filter messages based on search
 	const filteredMessages = React.useMemo(() => {
-		if (!searchQuery.trim()) return localMessages;
+		if (!searchQuery.trim()) {
+			return localMessages;
+		}
 
 		return localMessages.filter((msg) =>
 			msg.content.toLowerCase().includes(searchQuery.toLowerCase()),
 		);
 	}, [localMessages, searchQuery]);
 
+	// Handle accepting a document change
+	const handleAcceptChange = React.useCallback(
+		(htmlContent: string, actionType: "insert" | "replace") => {
+			if (!editor) {
+				return;
+			}
+
+			try {
+				if (actionType === "replace") {
+					// Replace entire document content
+					editor.chain().focus().setContent(htmlContent).run();
+				} else {
+					// Insert at current cursor position
+					editor.chain().focus().insertContent(htmlContent).run();
+				}
+			} catch (error) {
+				console.error("❌ Error applying document change:", error);
+			}
+		},
+		[editor],
+	);
+
 	return (
-		<Popover>
+		<Popover onOpenChange={setIsOpen} open={isOpen}>
 			<PopoverTrigger asChild>{children}</PopoverTrigger>
 			<PopoverContent
 				className="w-[520px] h-[85vh] p-0 flex flex-col"
@@ -365,9 +590,9 @@ export function AiChatHistoryPopover({
 				sideOffset={10}
 			>
 				{/* Header with Chat History Dropdown */}
-				<div className="flex items-center justify-between p-3 border-b bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-orange-950/20 flex-shrink-0">
+				<div className="flex items-center justify-between p-3 border-b flex-shrink-0" style={{ background: 'linear-gradient(to right, var(--tt-brand-color-50), var(--tt-brand-color-100))' }}>
 					<div className="flex items-center gap-2 flex-1">
-						<Sparkles className="h-5 w-5 text-purple-500 flex-shrink-0" />
+						<Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'var(--tt-brand-color-500)' }} />
 
 						{/* Chat History Dropdown */}
 						<DropdownMenu>
@@ -420,22 +645,52 @@ export function AiChatHistoryPopover({
 									<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
 										RECENT
 									</div>
-									{hasHistory ? (
-										<DropdownMenuItem className="text-sm">
-											<div className="flex flex-col gap-1 flex-1">
-												<span className="font-medium truncate">
-													{chatHistory?.title ||
-														"Current conversation"}
-												</span>
-												<span className="text-xs text-muted-foreground">
-													{localMessages.length}{" "}
-													message
-													{localMessages.length !== 1
-														? "s"
-														: ""}
-												</span>
-											</div>
-										</DropdownMenuItem>
+									{isLoadingChats ? (
+										<div className="px-2 py-4 text-xs text-muted-foreground text-center">
+											<Loader2 className="h-4 w-4 animate-spin mx-auto" />
+										</div>
+									) : allChats.length > 0 ? (
+										<div className="max-h-[200px] overflow-y-auto">
+											{allChats
+												.filter((chat) =>
+													searchQuery.trim()
+														? chat.title
+																.toLowerCase()
+																.includes(
+																	searchQuery.toLowerCase(),
+																)
+														: true,
+												)
+												.map((chat) => (
+													<DropdownMenuItem
+														key={chat.id}
+														className="text-sm cursor-pointer"
+														onClick={() =>
+															handleLoadChat(chat)
+														}
+													>
+														<div className="flex flex-col gap-1 flex-1">
+															<span className="font-medium truncate">
+																{chat.title}
+															</span>
+															<span className="text-xs text-muted-foreground">
+																{
+																	chat.messageCount
+																}{" "}
+																message
+																{chat.messageCount !==
+																1
+																	? "s"
+																	: ""}{" "}
+																•{" "}
+																{new Date(
+																	chat.updatedAt,
+																).toLocaleDateString()}
+															</span>
+														</div>
+													</DropdownMenuItem>
+												))}
+										</div>
 									) : (
 										<div className="px-2 py-4 text-xs text-muted-foreground text-center">
 											No conversations yet
@@ -471,7 +726,7 @@ export function AiChatHistoryPopover({
 						</div>
 					) : !hasHistory && !isAiResponding ? (
 						<div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-							<div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center mb-4 opacity-80">
+							<div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 opacity-80" style={{ background: 'linear-gradient(to bottom right, var(--tt-brand-color-400), var(--tt-brand-color-600))' }}>
 								<Sparkles className="h-8 w-8 text-white" />
 							</div>
 							<h3 className="font-medium text-base mb-2">
@@ -490,6 +745,7 @@ export function AiChatHistoryPopover({
 									key={index}
 									message={message}
 									index={index}
+									onAcceptChange={handleAcceptChange}
 								/>
 							))}
 
@@ -499,14 +755,9 @@ export function AiChatHistoryPopover({
 									<AiAvatar />
 
 									<div className="flex flex-col gap-1 items-start">
-										<Card className="bg-background border-border">
-											<CardBody className="p-3">
-												<div className="flex items-center gap-2 text-sm text-muted-foreground">
-													<Loader2 className="h-4 w-4 animate-spin" />
-													<span>
-														AI is thinking...
-													</span>
-												</div>
+										<Card className="bg-background border-border !shadow-sm">
+											<CardBody className="px-4 py-3">
+												<ThinkingBubble />
 											</CardBody>
 										</Card>
 									</div>
@@ -534,7 +785,8 @@ export function AiChatHistoryPopover({
 							onClick={handleSendMessage}
 							disabled={!inputValue.trim() || isAiResponding}
 							data-style="primary"
-							className="h-[44px] px-4 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 hover:opacity-90 disabled:opacity-50"
+							className="h-[44px] px-4 hover:opacity-90 disabled:opacity-50"
+							style={{ background: 'linear-gradient(to bottom right, var(--tt-brand-color-400), var(--tt-brand-color-600))' }}
 						>
 							<Send className="h-4 w-4" />
 						</Button>

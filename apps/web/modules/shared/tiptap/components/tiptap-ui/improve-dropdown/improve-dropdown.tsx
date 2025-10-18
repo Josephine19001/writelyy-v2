@@ -167,7 +167,9 @@ export function useImproveDropdownState(
 
 	const handleOpenChange = React.useCallback(
 		(open: boolean, callback?: (isOpen: boolean) => void) => {
-			if (!editor || isDisabled) return;
+			// Allow closing the dropdown even when disabled
+			// Only prevent opening when disabled
+			if (open && (!editor || isDisabled)) return;
 			setIsOpen(open);
 			callback?.(open);
 		},
@@ -215,7 +217,9 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 	const executeAICommand = React.useCallback(
 		(command: AICommand) => {
-			if (!editor) return;
+			if (!editor) {
+				return;
+			}
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
@@ -226,58 +230,68 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 				return;
 			}
 
-			editor.chain().focus().aiGenerationShow().run();
+			// Use BkAi extension's bkAiTextPrompt command with appropriate prompts
+			let commandText = "";
+			switch (command) {
+				case "fixSpellingAndGrammar":
+					commandText = "fix spelling and grammar in";
+					break;
+				case "extend":
+					commandText = "extend";
+					break;
+				case "shorten":
+					commandText = "shorten";
+					break;
+				case "simplify":
+					commandText = "simplify";
+					break;
+				case "emojify":
+					commandText = "add relevant emojis to";
+					break;
+				case "complete":
+					commandText = "complete";
+					break;
+				case "summarize":
+					commandText = "summarize";
+					break;
+			}
 
-			setTimeout(() => {
-				try {
-					// Use BkAi extension's bkAiTextPrompt command with appropriate prompts
-					let commandText = "";
-					switch (command) {
-						case "fixSpellingAndGrammar":
-							commandText = "fix spelling and grammar in";
-							break;
-						case "extend":
-							commandText = "extend";
-							break;
-						case "shorten":
-							commandText = "shorten";
-							break;
-						case "simplify":
-							commandText = "simplify";
-							break;
-						case "emojify":
-							commandText = "add relevant emojis to";
-							break;
-						case "complete":
-							commandText = "complete";
-							break;
-						case "summarize":
-							commandText = "summarize";
-							break;
-					}
+			try {
+				editor.chain().focus().aiGenerationShow().run();
 
-					if ((editor.commands as any).bkAiTextPrompt) {
-						(editor.commands as any).bkAiTextPrompt({
-							prompt: selectedText,
-							command: commandText,
-							insert: true,
-							stream: defaultOptions.stream,
-							format: defaultOptions.format,
-						});
-					} else {
-						console.error('bkAiTextPrompt command not available');
-					}
-				} catch (error) {
-					console.error('Error executing AI command:', error);
+				const commandOptions = {
+					prompt: selectedText,
+					command: commandText,
+					insert: true,
+					stream: defaultOptions.stream,
+					format: defaultOptions.format,
+					includeDocumentContext: false, // Don't include document context for targeted edits
+				};
+
+				console.log('🎯 [Improve Dropdown] Calling bkAiTextPrompt with:', {
+					command: commandText,
+					selectedTextLength: selectedText.length,
+					selectedTextPreview: selectedText.slice(0, 100),
+					includeDocumentContext: false,
+				});
+
+				if ((editor.commands as any).bkAiTextPrompt) {
+					(editor.commands as any).bkAiTextPrompt(commandOptions);
+				} else {
+					console.error('bkAiTextPrompt command not available');
 				}
-			}, 0);
+			} catch (error) {
+				console.error('Error executing AI command:', error);
+			}
 		},
 		[editor, defaultOptions],
 	);
 
 	const adjustTone = React.useCallback(
 		(tone: Tone) => {
-			if (!editor) return;
+			if (!editor) {
+				return;
+			}
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
@@ -288,33 +302,34 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 				return;
 			}
 
-			editor.chain().focus().aiGenerationShow().run();
+			try {
+				editor.chain().focus().aiGenerationShow().run();
 
-			setTimeout(() => {
-				try {
-					if ((editor.commands as any).bkAiTextPrompt) {
-						(editor.commands as any).bkAiTextPrompt({
-							prompt: selectedText,
-							command: `rewrite in a ${tone} tone`,
-							insert: true,
-							stream: defaultOptions.stream,
-							tone: tone,
-							format: defaultOptions.format,
-						});
-					} else {
-						console.error('bkAiTextPrompt command not available');
-					}
-				} catch (error) {
-					console.error('Error adjusting tone:', error);
+				if ((editor.commands as any).bkAiTextPrompt) {
+					(editor.commands as any).bkAiTextPrompt({
+						prompt: selectedText,
+						command: `rewrite in a ${tone} tone`,
+						insert: true,
+						stream: defaultOptions.stream,
+						tone: tone,
+						format: defaultOptions.format,
+						includeDocumentContext: false, // Don't include document context for targeted edits
+					});
+				} else {
+					console.error('bkAiTextPrompt command not available');
 				}
-			}, 0);
+			} catch (error) {
+				console.error('Error adjusting tone:', error);
+			}
 		},
 		[editor, defaultOptions],
 	);
 
 	const translate = React.useCallback(
 		(language: Language) => {
-			if (!editor) return;
+			if (!editor) {
+				return;
+			}
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
@@ -325,25 +340,24 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 				return;
 			}
 
-			editor.chain().focus().aiGenerationShow().run();
+			try {
+				editor.chain().focus().aiGenerationShow().run();
 
-			setTimeout(() => {
-				try {
-					if ((editor.commands as any).bkAiTextPrompt) {
-						(editor.commands as any).bkAiTextPrompt({
-							prompt: selectedText,
-							command: `translate to ${language}`,
-							insert: true,
-							stream: defaultOptions.stream,
-							format: defaultOptions.format,
-						});
-					} else {
-						console.error('bkAiTextPrompt command not available');
-					}
-				} catch (error) {
-					console.error('Error translating:', error);
+				if ((editor.commands as any).bkAiTextPrompt) {
+					(editor.commands as any).bkAiTextPrompt({
+						prompt: selectedText,
+						command: `translate to ${language}`,
+						insert: true,
+						stream: defaultOptions.stream,
+						format: defaultOptions.format,
+						includeDocumentContext: false, // Don't include document context for targeted edits
+					});
+				} else {
+					console.error('bkAiTextPrompt command not available');
 				}
-			}, 0);
+			} catch (error) {
+				console.error('Error translating:', error);
+			}
 		},
 		[editor, defaultOptions],
 	);

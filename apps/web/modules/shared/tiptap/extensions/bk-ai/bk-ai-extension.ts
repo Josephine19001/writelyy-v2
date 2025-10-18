@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { DOMSerializer } from "prosemirror-model";
+import { DOMSerializer, DOMParser } from "prosemirror-model";
 import { requestCompletion } from "./ai-utilities";
 
 interface SourceContext {
@@ -24,6 +24,7 @@ export interface AiTextOptions {
 	format?: string;
 	sources?: SourceContext[];
 	snippets?: SnippetContext[];
+	includeDocumentContext?: boolean; // Whether to include full document for context awareness
 }
 
 export interface BkAiStorage {
@@ -32,6 +33,7 @@ export interface BkAiStorage {
 	error?: Error;
 	insertPosition?: { from: number; to: number } | false;
 	originalText?: string;
+	insertedContentEndPos?: number; // Track where inserted content ends
 }
 
 export interface BkAiOptions {
@@ -72,6 +74,7 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 						format = "rich-text",
 						sources,
 						snippets,
+						includeDocumentContext = false, // Default to false for targeted edits
 					} = options;
 
 					// Determine insert position
@@ -88,7 +91,6 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 					}
 
 					const question = () => {
-						let basePrompt = "";
 						let htmlContent = prompt;
 
 						// Get the HTML structure of the selected content
@@ -125,36 +127,52 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 							}
 						}
 
+						// Build the prompt with clear separation
+						let basePrompt = "";
+
 						if (command === "prompt") {
-							basePrompt = `Please generate content for this prompt: "${htmlContent}".`;
+							basePrompt = `Generate content for this prompt: "${htmlContent}"`;
 						} else {
-							basePrompt = `Please ${command} the following HTML content. Return the result in the EXACT same HTML structure and format:\n\n${htmlContent}`;
+							basePrompt = `TASK: ${command} the following content
+
+TARGET CONTENT TO MODIFY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${htmlContent}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+INSTRUCTIONS:
+- Process ONLY the content shown above between the lines
+- Preserve the exact HTML structure (same tags, same nesting)
+- Return the modified version in the same HTML format
+- Do NOT include any other content from the document`;
 						}
 
 						// Add tone if specified
 						if (tone && tone !== "auto") {
-							basePrompt += `\n\nUse a ${tone} tone.`;
+							basePrompt += `\n- Use a ${tone} tone`;
 						}
-
-						// Add specific formatting instructions
-						basePrompt += `\n\nCRITICAL FORMATTING RULES:
-- Return HTML in the EXACT same format as provided (same tags, same structure)
-- If input has <h1>, output must have <h1> (not <h2>, <h3>, etc.)
-- If input has <ul><li>, output must have <ul><li> (same list type)
-- Do NOT add extra blank lines, whitespace, or line breaks between tags
-- Do NOT wrap the output in additional tags
-- Return ONLY the processed HTML content, nothing else`;
 
 						return basePrompt;
 					};
 
 					const { onLoading, onError } = this.options;
 
-					// Get full document context for AI awareness
-					const documentContext = editor.getText();
+					// Get full document context for AI awareness (only if requested)
+					const documentContext = includeDocumentContext ? editor.getText() : undefined;
+
+					const finalPrompt = question();
+
+					console.log('🚀 [AI Extension] Sending to AI:', {
+						prompt: finalPrompt,
+						includeDocumentContext,
+						documentContextLength: documentContext?.length || 0,
+						documentContextPreview: documentContext ? documentContext.slice(0, 200) + '...' : 'N/A',
+						sources: sources?.length || 0,
+						snippets: snippets?.length || 0,
+					});
 
 					requestCompletion({
-						prompt: question(),
+						prompt: finalPrompt,
 						sources,
 						snippets,
 						documentContext,
@@ -177,6 +195,11 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 							});
 						},
 						onSuccess: (completion) => {
+							console.log('✅ [AI Extension] Received from AI:', {
+								rawCompletion: completion,
+								completionLength: completion.length,
+							});
+
 							// Clean up the completion text to remove extra whitespace and line breaks
 							const cleanedCompletion = completion
 								// Remove multiple consecutive line breaks
@@ -193,6 +216,11 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 								.replace(/<\/h([1-6])>\s*<p>/g, "</h$1><p>")
 								.replace(/<\/p>\s*<h([1-6])>/g, "</p><h$1>")
 								.trim();
+
+							console.log('🧹 [AI Extension] After cleaning:', {
+								cleanedCompletion: cleanedCompletion,
+								cleanedLength: cleanedCompletion.length,
+							});
 
 							// Store the original text before any modifications
 							const originalText = insertPosition
@@ -220,14 +248,37 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 							) {
 								const { from, to } = insertPosition;
 
-								// Replace the selected text with the AI-generated content
-								// This shows the "after" state inline in the editor
-								editor
-									.chain()
-									.focus()
-									.deleteRange({ from, to })
-									.insertContentAt(from, cleanedCompletion)
-									.run();
+								// Use a transaction to track the insertion properly
+								const { state, view } = editor;
+								const { tr } = state;
+
+								// Delete the old content
+								tr.delete(from, to);
+
+								// Parse the HTML content to insert
+								const parser = view.domParser || DOMParser.fromSchema(editor.schema);
+								const tempDiv = document.createElement('div');
+								tempDiv.innerHTML = cleanedCompletion;
+								const slice = parser.parseSlice(tempDiv);
+
+								// Insert the new content
+								tr.insert(from, slice.content);
+
+								// Calculate the end position
+								// The end position is the start position + the size of the inserted content
+								const insertedSize = slice.content.size;
+								const endPos = from + insertedSize;
+
+								// Apply the transaction
+								view.dispatch(tr);
+
+								// Store the end position
+								editor.commands.command(() => {
+									const storage = (editor.storage as any).ai;
+									storage.insertedContentEndPos = endPos;
+									console.log('📍 Stored positions:', { from, endPos, insertedSize, originalText });
+									return true;
+								});
 							}
 
 							// Set UI state flags for completion
@@ -321,28 +372,40 @@ export const BkAi = Extension.create<BkAiOptions, BkAiStorage>({
 
 			aiReject:
 				(options) =>
-				({ editor, commands }) => {
+				({ editor, commands, state }) => {
 					const storage = (editor.storage as any).ai;
-					const { originalText, insertPosition, message } =
-						storage || {};
+					const { originalText, insertPosition, insertedContentEndPos } = storage || {};
+
+					console.log('🔄 aiReject called:', { originalText, insertPosition, insertedContentEndPos, options });
 
 					// If we have original text and insert position, restore it
 					if (
-						originalText !== undefined &&
 						insertPosition &&
 						insertPosition.from !== undefined &&
-						message
+						insertedContentEndPos !== undefined
 					) {
 						const { from } = insertPosition;
-						const currentTo = from + message.length;
+						const to = insertedContentEndPos;
 
-						// Delete the AI-generated content and restore original text
-						editor
-							.chain()
-							.focus()
-							.deleteRange({ from, to: currentTo })
-							.insertContentAt(from, originalText)
-							.run();
+						console.log('📍 Deleting range and restoring:', { from, to, originalText });
+
+						try {
+							// Delete the AI content and restore original text in one transaction
+							const chain = editor.chain().focus().deleteRange({ from, to });
+
+							// If there was original text, insert it back
+							if (originalText) {
+								chain.insertContentAt(from, originalText);
+							}
+
+							const result = chain.run();
+							console.log('✅ Restore result:', result);
+						} catch (error) {
+							console.error("❌ Error restoring original text:", error);
+							// Fallback: just reset without restoration
+						}
+					} else {
+						console.warn('⚠️ Missing required data for restoration');
 					}
 
 					if (options?.type === "reset") {

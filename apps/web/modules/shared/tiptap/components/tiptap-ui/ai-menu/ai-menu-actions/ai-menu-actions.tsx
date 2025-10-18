@@ -31,25 +31,24 @@ export function AiMenuActions({
 }: AiMenuActionsProps) {
 	const { aiGenerationIsLoading } = useUiEditorState(editor);
 
-	const handleRegenerate = React.useCallback(() => {
+	const handleRegenerate = React.useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
 		if (!editor) return;
-		// TODO: Implement regenerate functionality when AI commands are available
-		// The specific AI command API needs to be verified
-		console.warn('Regenerate functionality not yet implemented');
 		onRegenerate?.();
 	}, [editor, onRegenerate]);
 
-	const handleDiscard = React.useCallback(() => {
+	const handleDiscard = React.useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
 		if (!editor) return;
-		// TODO: Implement discard functionality when AI commands are available
-		console.warn('Discard functionality not yet implemented');
 		onReject?.();
 	}, [editor, onReject]);
 
-	const handleApply = React.useCallback(() => {
+	const handleApply = React.useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
 		if (!editor) return;
-		// TODO: Implement apply functionality when AI commands are available
-		console.warn('Apply functionality not yet implemented');
 		onAccept?.();
 	}, [editor, onAccept]);
 
