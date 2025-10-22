@@ -256,7 +256,7 @@ INSTRUCTIONS:
 								tr.delete(from, to);
 
 								// Parse the HTML content to insert
-								const parser = view.domParser || DOMParser.fromSchema(editor.schema);
+								const parser = DOMParser.fromSchema(editor.schema);
 								const tempDiv = document.createElement('div');
 								tempDiv.innerHTML = cleanedCompletion;
 								const slice = parser.parseSlice(tempDiv);

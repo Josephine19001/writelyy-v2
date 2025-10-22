@@ -23,7 +23,10 @@ interface ChatListItem {
 }
 
 // Cache for chat history to prevent re-fetching
-const chatHistoryCache = new Map<string, { data: ChatHistory; timestamp: number }>();
+const chatHistoryCache = new Map<
+	string,
+	{ data: ChatHistory; timestamp: number }
+>();
 let chatListCache: { data: ChatListItem[]; timestamp: number } | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -37,7 +40,11 @@ export function useAiChatHistory(documentId?: string) {
 	// Fetch all chats for the user
 	const fetchAllChats = useCallback(async (force = false) => {
 		// Check cache first
-		if (!force && chatListCache && Date.now() - chatListCache.timestamp < CACHE_DURATION) {
+		if (
+			!force &&
+			chatListCache &&
+			Date.now() - chatListCache.timestamp < CACHE_DURATION
+		) {
 			setAllChats(chatListCache.data);
 			return;
 		}
@@ -45,10 +52,10 @@ export function useAiChatHistory(documentId?: string) {
 		setIsLoadingChats(true);
 
 		try {
-			const response = await fetch('/api/ai/chats?limit=50');
+			const response = await fetch("/api/ai/chats?limit=50");
 
 			if (!response.ok) {
-				throw new Error('Failed to fetch chats');
+				throw new Error("Failed to fetch chats");
 			}
 
 			const data = await response.json();
@@ -60,53 +67,56 @@ export function useAiChatHistory(documentId?: string) {
 				timestamp: Date.now(),
 			};
 		} catch (err) {
-			console.error('Error fetching all chats:', err);
+			console.error("Error fetching all chats:", err);
 		} finally {
 			setIsLoadingChats(false);
 		}
 	}, []);
 
 	// Fetch chat history with caching
-	const fetchChatHistory = useCallback(async (force = false) => {
-		if (!documentId) {
-			return;
-		}
-
-		// Check cache first
-		if (!force) {
-			const cached = chatHistoryCache.get(documentId);
-			if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-				setChatHistory(cached.data);
+	const fetchChatHistory = useCallback(
+		async (force = false) => {
+			if (!documentId) {
 				return;
 			}
-		}
 
-		setIsLoading(true);
-		setError(null);
-
-		try {
-			const response = await fetch(
-				`/api/ai/chat-history?documentId=${documentId}`,
-			);
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch chat history");
+			// Check cache first
+			if (!force) {
+				const cached = chatHistoryCache.get(documentId);
+				if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+					setChatHistory(cached.data);
+					return;
+				}
 			}
 
-			const data = await response.json();
-			setChatHistory(data);
+			setIsLoading(true);
+			setError(null);
 
-			// Update cache
-			chatHistoryCache.set(documentId, {
-				data,
-				timestamp: Date.now(),
-			});
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Unknown error");
-		} finally {
-			setIsLoading(false);
-		}
-	}, [documentId]);
+			try {
+				const response = await fetch(
+					`/api/ai/chat-history?documentId=${documentId}`,
+				);
+
+				if (!response.ok) {
+					throw new Error("Failed to fetch chat history");
+				}
+
+				const data = await response.json();
+				setChatHistory(data);
+
+				// Update cache
+				chatHistoryCache.set(documentId, {
+					data,
+					timestamp: Date.now(),
+				});
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "Unknown error");
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[documentId],
+	);
 
 	// Save a message to chat history
 	const saveMessage = useCallback(
@@ -161,28 +171,31 @@ export function useAiChatHistory(documentId?: string) {
 
 			try {
 				// Save both user and AI messages in a single batch
-				const response = await fetch("/api/ai/chat-history/conversation", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
+				const response = await fetch(
+					"/api/ai/chat-history/conversation",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							documentId,
+							userMessage: {
+								role: "user",
+								content: userPrompt,
+								timestamp: new Date().toISOString(),
+								sources: options?.sources,
+								snippets: options?.snippets,
+							},
+							aiMessage: {
+								role: "assistant",
+								content: aiResponse,
+								timestamp: new Date().toISOString(),
+							},
+							title: options?.title,
+						}),
 					},
-					body: JSON.stringify({
-						documentId,
-						userMessage: {
-							role: "user",
-							content: userPrompt,
-							timestamp: new Date().toISOString(),
-							sources: options?.sources,
-							snippets: options?.snippets,
-						},
-						aiMessage: {
-							role: "assistant",
-							content: aiResponse,
-							timestamp: new Date().toISOString(),
-						},
-						title: options?.title,
-					}),
-				});
+				);
 
 				if (!response.ok) {
 					throw new Error("Failed to save conversation");
@@ -207,43 +220,46 @@ export function useAiChatHistory(documentId?: string) {
 	);
 
 	// Load a specific chat by documentId
-	const loadChatByDocumentId = useCallback(async (targetDocumentId: string) => {
-		// Check cache first
-		const cached = chatHistoryCache.get(targetDocumentId);
-		if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-			setChatHistory(cached.data);
-			return cached.data;
-		}
-
-		setIsLoading(true);
-		setError(null);
-
-		try {
-			const response = await fetch(
-				`/api/ai/chat-history?documentId=${targetDocumentId}`,
-			);
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch chat history");
+	const loadChatByDocumentId = useCallback(
+		async (targetDocumentId: string) => {
+			// Check cache first
+			const cached = chatHistoryCache.get(targetDocumentId);
+			if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+				setChatHistory(cached.data);
+				return cached.data;
 			}
 
-			const data = await response.json();
-			setChatHistory(data);
+			setIsLoading(true);
+			setError(null);
 
-			// Update cache
-			chatHistoryCache.set(targetDocumentId, {
-				data,
-				timestamp: Date.now(),
-			});
+			try {
+				const response = await fetch(
+					`/api/ai/chat-history?documentId=${targetDocumentId}`,
+				);
 
-			return data;
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Unknown error");
-			throw err;
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
+				if (!response.ok) {
+					throw new Error("Failed to fetch chat history");
+				}
+
+				const data = await response.json();
+				setChatHistory(data);
+
+				// Update cache
+				chatHistoryCache.set(targetDocumentId, {
+					data,
+					timestamp: Date.now(),
+				});
+
+				return data;
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "Unknown error");
+				throw err;
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[],
+	);
 
 	// Clear chat history
 	const clearHistory = useCallback(() => {

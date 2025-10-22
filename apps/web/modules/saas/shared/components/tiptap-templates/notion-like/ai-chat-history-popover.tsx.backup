@@ -16,16 +16,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@ui/components/dropdown-menu";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@ui/components/alert-dialog";
 import { Input } from "@ui/components/input";
 import {
 	Popover,
@@ -43,6 +33,8 @@ import {
 	Trash2,
 	X,
 	FileText,
+	Image as ImageIcon,
+	Link as LinkIcon,
 	File,
 } from "lucide-react";
 import * as React from "react";
@@ -61,36 +53,6 @@ interface ChatMessage {
 	isTyping?: boolean;
 	hasDocumentChange?: boolean;
 	changeContent?: string;
-}
-
-// Simple HTML sanitization utility
-// Allows safe HTML elements commonly used in rich text while removing scripts and dangerous attributes
-function sanitizeHtml(html: string): string {
-	if (typeof window === 'undefined') {
-		return html;
-	}
-
-	// Create a temporary div to parse HTML
-	const temp = document.createElement('div');
-	temp.innerHTML = html;
-
-	// Remove all script tags and event handlers
-	const scripts = temp.querySelectorAll('script');
-	for (const script of scripts) {
-		script.remove();
-	}
-
-	// Remove dangerous event handler attributes
-	const allElements = temp.querySelectorAll('*');
-	for (const el of allElements) {
-		for (const attr of Array.from(el.attributes)) {
-			if (attr.name.startsWith('on')) {
-				el.removeAttribute(attr.name);
-			}
-		}
-	}
-
-	return temp.innerHTML;
 }
 
 // Typing effect hook
@@ -212,7 +174,6 @@ function ChatMessageComponent({
 	message,
 	index,
 	onAcceptChange,
-	onDeclineChange,
 }: {
 	message: ChatMessage;
 	index: number;
@@ -220,7 +181,6 @@ function ChatMessageComponent({
 		content: string,
 		actionType: "insert" | "replace",
 	) => void;
-	onDeclineChange?: () => void;
 }) {
 	const { displayedText } = useTypingEffect(
 		message.content,
@@ -272,13 +232,13 @@ function ChatMessageComponent({
 									)}
 							</div>
 						) : (
-							// Assistant messages: rendered HTML (sanitized)
+							// Assistant messages: rendered HTML
 							<>
 								<div
 									className="text-sm leading-relaxed break-words prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:mt-4 prose-headings:mb-2"
-									// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized via sanitizeHtml function
+									// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
 									dangerouslySetInnerHTML={{
-										__html: sanitizeHtml(parsed.displayContent),
+										__html: parsed.displayContent,
 									}}
 								/>
 
@@ -299,9 +259,9 @@ function ChatMessageComponent({
 									</div>
 									<div
 										className="text-sm prose prose-sm dark:prose-invert max-w-none"
-										// biome-ignore lint/security/noDangerouslySetInnerHtml: HTML is sanitized via sanitizeHtml function
+										// biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
 										dangerouslySetInnerHTML={{
-											__html: sanitizeHtml(parsed.changeContent),
+											__html: parsed.changeContent,
 										}}
 									/>
 									<div className="flex gap-2 mt-3">
@@ -321,7 +281,6 @@ function ChatMessageComponent({
 										</Button>
 										<Button
 											data-style="ghost"
-											onClick={() => onDeclineChange?.()}
 											className="h-7 px-3 text-xs !text-red-600 hover:!text-red-700 hover:!bg-red-50 dark:hover:!bg-red-950/20"
 										>
 											Decline
@@ -375,7 +334,6 @@ export function AiChatHistoryPopover({
 	documentId,
 }: AiChatHistoryPopoverProps) {
 	const { editor } = React.useContext(EditorContext)!;
-	const { activeWorkspace } = useActiveWorkspace();
 	const {
 		chatHistory,
 		allChats,
@@ -392,25 +350,9 @@ export function AiChatHistoryPopover({
 	const [isAiResponding, setIsAiResponding] = React.useState(false);
 	const [chatTitle, setChatTitle] = React.useState("New Chat");
 	const [isOpen, setIsOpen] = React.useState(false);
-	const [selectedSources, setSelectedSources] = React.useState<any[]>([]);
-	const [selectedSnippets, setSelectedSnippets] = React.useState<any[]>([]);
-	const [showAttachmentMenu, setShowAttachmentMenu] = React.useState(false);
-	const [showClearDialog, setShowClearDialog] = React.useState(false);
 	const messagesEndRef = React.useRef<HTMLDivElement>(null);
 	const messagesContainerRef = React.useRef<HTMLDivElement>(null);
 	const inputRef = React.useRef<HTMLTextAreaElement>(null);
-	const attachmentMenuRef = React.useRef<HTMLDivElement>(null);
-
-	// Fetch sources and snippets
-	const { data: sourcesData } = useSourcesQuery(activeWorkspace?.id || "", {
-		enabled: !!activeWorkspace?.id,
-	});
-	const { data: snippetsData } = useSnippetsQuery(activeWorkspace?.id || "", {
-		enabled: !!activeWorkspace?.id,
-	});
-
-	const sources = sourcesData?.sources || [];
-	const snippets = snippetsData?.snippets || [];
 
 	// Sync local messages with chat history
 	React.useEffect(() => {
@@ -453,11 +395,12 @@ export function AiChatHistoryPopover({
 	}, [isOpen, scrollToBottom, localMessages.length]);
 
 	const handleClearHistory = () => {
-		clearHistory();
-		setLocalMessages([]);
-		setChatTitle("New Chat");
-		setShowClearDialog(false);
-		fetchAllChats(true); // Refresh chat list
+		if (confirm("Are you sure you want to clear all chat history?")) {
+			clearHistory();
+			setLocalMessages([]);
+			setChatTitle("New Chat");
+			fetchAllChats(true); // Refresh chat list
+		}
 	};
 
 	const handleNewChat = () => {
@@ -513,13 +456,11 @@ export function AiChatHistoryPopover({
 			setChatTitle(newChatTitle);
 		}
 
-		// 1. Add user message immediately with sources and snippets
+		// 1. Add user message immediately
 		const userMessage: ChatMessage = {
 			role: "user",
 			content: prompt,
 			timestamp: new Date().toISOString(),
-			sources: selectedSources.length > 0 ? selectedSources : undefined,
-			snippets: selectedSnippets.length > 0 ? selectedSnippets : undefined,
 		};
 
 		setLocalMessages((prev) => {
@@ -527,8 +468,6 @@ export function AiChatHistoryPopover({
 		});
 
 		setInputValue(""); // Clear input immediately
-		setSelectedSources([]); // Clear selected sources
-		setSelectedSnippets([]); // Clear selected snippets
 
 		// 2. Show AI loading state
 		setIsAiResponding(true);
@@ -544,8 +483,6 @@ export function AiChatHistoryPopover({
 					prompt,
 					documentId,
 					documentContext: editor?.getText() || "",
-					sources: selectedSources.length > 0 ? selectedSources : undefined,
-					snippets: selectedSnippets.length > 0 ? selectedSnippets : undefined,
 				}),
 			});
 
@@ -603,9 +540,6 @@ export function AiChatHistoryPopover({
 		documentId,
 		saveConversation,
 		generateChatTitle,
-		selectedSources,
-		selectedSnippets,
-		fetchAllChats,
 	]);
 
 	// Handle Enter key to send
@@ -653,12 +587,6 @@ export function AiChatHistoryPopover({
 		},
 		[editor],
 	);
-
-	// Handle declining a document change
-	const handleDeclineChange = React.useCallback(() => {
-		// Simply dismiss - the change won't be applied
-		// Could add a toast notification here if desired
-	}, []);
 
 	return (
 		<Popover onOpenChange={setIsOpen} open={isOpen}>
@@ -785,7 +713,7 @@ export function AiChatHistoryPopover({
 					{hasHistory && (
 						<Button
 							data-style="ghost"
-							onClick={() => setShowClearDialog(true)}
+							onClick={handleClearHistory}
 							title="Clear all history"
 							className="flex-shrink-0"
 						>
@@ -826,7 +754,6 @@ export function AiChatHistoryPopover({
 									message={message}
 									index={index}
 									onAcceptChange={handleAcceptChange}
-									onDeclineChange={handleDeclineChange}
 								/>
 							))}
 
@@ -852,123 +779,7 @@ export function AiChatHistoryPopover({
 
 				{/* Input Area - Fixed at Bottom */}
 				<div className="p-4 border-t bg-background flex-shrink-0">
-					{/* Selected attachments display */}
-					{(selectedSources.length > 0 || selectedSnippets.length > 0) && (
-						<div className="mb-3 flex flex-wrap gap-2">
-							{selectedSources.map((source) => (
-								<div
-									key={source.id}
-									className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md text-xs"
-								>
-									<FileText className="h-3 w-3" />
-									<span className="truncate max-w-[120px]">{source.title || source.name}</span>
-									<button
-										type="button"
-										onClick={() =>
-											setSelectedSources((prev) =>
-												prev.filter((s) => s.id !== source.id),
-											)
-										}
-										className="hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded"
-									>
-										<X className="h-3 w-3" />
-									</button>
-								</div>
-							))}
-							{selectedSnippets.map((snippet) => (
-								<div
-									key={snippet.id}
-									className="flex items-center gap-1 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-md text-xs"
-								>
-									<File className="h-3 w-3" />
-									<span className="truncate max-w-[120px]">{snippet.title || snippet.name}</span>
-									<button
-										type="button"
-										onClick={() =>
-											setSelectedSnippets((prev) =>
-												prev.filter((s) => s.id !== snippet.id),
-											)
-										}
-										className="hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded"
-									>
-										<X className="h-3 w-3" />
-									</button>
-								</div>
-							))}
-						</div>
-					)}
-
 					<div className="flex gap-2 items-end">
-						{/* Attachment button with dropdown */}
-						<DropdownMenu open={showAttachmentMenu} onOpenChange={setShowAttachmentMenu}>
-							<DropdownMenuTrigger asChild>
-								<Button
-									data-style="ghost"
-									className="h-[44px] px-3"
-									title="Attach sources or snippets"
-								>
-									<Plus className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="start" className="w-[300px]">
-								{/* Sources Section */}
-								{sources.length > 0 && (
-									<>
-										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-											SOURCES
-										</div>
-										<div className="max-h-[150px] overflow-y-auto">
-											{sources.map((source: any) => (
-												<DropdownMenuItem
-													key={source.id}
-													className="cursor-pointer"
-													onClick={() => {
-														if (!selectedSources.find((s) => s.id === source.id)) {
-															setSelectedSources((prev) => [...prev, source]);
-														}
-													}}
-												>
-													<FileText className="h-4 w-4 mr-2" />
-													<span className="truncate">{source.title || source.name}</span>
-												</DropdownMenuItem>
-											))}
-										</div>
-									</>
-								)}
-
-								{/* Snippets Section */}
-								{snippets.length > 0 && (
-									<>
-										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-2">
-											SNIPPETS
-										</div>
-										<div className="max-h-[150px] overflow-y-auto">
-											{snippets.map((snippet: any) => (
-												<DropdownMenuItem
-													key={snippet.id}
-													className="cursor-pointer"
-													onClick={() => {
-														if (!selectedSnippets.find((s) => s.id === snippet.id)) {
-															setSelectedSnippets((prev) => [...prev, snippet]);
-														}
-													}}
-												>
-													<File className="h-4 w-4 mr-2" />
-													<span className="truncate">{snippet.title || snippet.name}</span>
-												</DropdownMenuItem>
-											))}
-										</div>
-									</>
-								)}
-
-								{sources.length === 0 && snippets.length === 0 && (
-									<div className="px-2 py-4 text-xs text-muted-foreground text-center">
-										No sources or snippets available
-									</div>
-								)}
-							</DropdownMenuContent>
-						</DropdownMenu>
-
 						<Textarea
 							ref={inputRef}
 							value={inputValue}
@@ -990,24 +801,6 @@ export function AiChatHistoryPopover({
 					</div>
 				</div>
 			</PopoverContent>
-
-			{/* Clear History Confirmation Dialog */}
-			<AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Clear Chat History?</AlertDialogTitle>
-						<AlertDialogDescription>
-							This will permanently delete all messages in this conversation. This action cannot be undone.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={handleClearHistory} className="bg-red-600 hover:bg-red-700">
-							Clear History
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
 		</Popover>
 	);
 }
