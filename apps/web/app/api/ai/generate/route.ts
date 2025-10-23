@@ -2,9 +2,6 @@ import type { NextRequest } from "next/server";
 import { getSession } from '@saas/auth/lib/server';
 import { hasEnoughCredits, deductCredits } from '@repo/database/lib/credits';
 
-// Use Edge Runtime for fastest performance (no cold starts, runs close to users)
-export const runtime = "edge";
-
 // Enable maximum timeout for streaming
 export const maxDuration = 60;
 
