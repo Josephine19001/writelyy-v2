@@ -534,6 +534,21 @@ export function AiChatHistoryPopover({
 		setIsAiResponding(true);
 
 		try {
+			// Prepare sources with content extraction
+			const sourcesWithContent = selectedSources.map((source) => ({
+				id: source.id,
+				name: source.name || source.title,
+				type: source.type,
+				content: source.textContent || source.content || source.description || "",
+			}));
+
+			// Prepare snippets with content
+			const snippetsWithContent = selectedSnippets.map((snippet) => ({
+				id: snippet.id,
+				title: snippet.title || snippet.name,
+				content: snippet.content || "",
+			}));
+
 			// 3. Call AI API to get chat response
 			const response = await fetch("/api/ai/chat", {
 				method: "POST",
@@ -544,8 +559,8 @@ export function AiChatHistoryPopover({
 					prompt,
 					documentId,
 					documentContext: editor?.getText() || "",
-					sources: selectedSources.length > 0 ? selectedSources : undefined,
-					snippets: selectedSnippets.length > 0 ? selectedSnippets : undefined,
+					sources: sourcesWithContent.length > 0 ? sourcesWithContent : undefined,
+					snippets: snippetsWithContent.length > 0 ? snippetsWithContent : undefined,
 				}),
 			});
 
@@ -670,10 +685,8 @@ export function AiChatHistoryPopover({
 				sideOffset={10}
 			>
 				{/* Header with Chat History Dropdown */}
-				<div className="flex items-center justify-between p-3 border-b flex-shrink-0" style={{ background: 'linear-gradient(to right, var(--tt-brand-color-50), var(--tt-brand-color-100))' }}>
+				<div className="flex items-center justify-between p-3 border-b flex-shrink-0 bg-muted/30">
 					<div className="flex items-center gap-2 flex-1">
-						<Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'var(--tt-brand-color-500)' }} />
-
 						{/* Chat History Dropdown */}
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -899,20 +912,27 @@ export function AiChatHistoryPopover({
 					)}
 
 					<div className="flex gap-2 items-end">
-						{/* Attachment button with dropdown */}
-						<DropdownMenu open={showAttachmentMenu} onOpenChange={setShowAttachmentMenu}>
+						{/* Attachment button with dropdown - COMMENTED OUT FOR NOW */}
+						{/* <DropdownMenu open={showAttachmentMenu} onOpenChange={setShowAttachmentMenu} modal={false}>
 							<DropdownMenuTrigger asChild>
 								<Button
 									data-style="ghost"
 									className="h-[44px] px-3"
 									title="Attach sources or snippets"
+									onClick={(e) => {
+										e.stopPropagation();
+										setShowAttachmentMenu(!showAttachmentMenu);
+									}}
 								>
 									<Plus className="h-4 w-4" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="start" className="w-[300px]">
+							<DropdownMenuContent align="start" className="w-[300px]" onInteractOutside={(e) => {
+								// Prevent closing the parent popover when clicking inside dropdown
+								e.preventDefault();
+							}}>
 								{/* Sources Section */}
-								{sources.length > 0 && (
+								{/* {sources.length > 0 && (
 									<>
 										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
 											SOURCES
@@ -934,10 +954,10 @@ export function AiChatHistoryPopover({
 											))}
 										</div>
 									</>
-								)}
+								)} */}
 
 								{/* Snippets Section */}
-								{snippets.length > 0 && (
+								{/* {snippets.length > 0 && (
 									<>
 										<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-2">
 											SNIPPETS
@@ -959,15 +979,15 @@ export function AiChatHistoryPopover({
 											))}
 										</div>
 									</>
-								)}
+								)} */}
 
-								{sources.length === 0 && snippets.length === 0 && (
+								{/* {sources.length === 0 && snippets.length === 0 && (
 									<div className="px-2 py-4 text-xs text-muted-foreground text-center">
 										No sources or snippets available
 									</div>
 								)}
 							</DropdownMenuContent>
-						</DropdownMenu>
+						</DropdownMenu> */}
 
 						<Textarea
 							ref={inputRef}
