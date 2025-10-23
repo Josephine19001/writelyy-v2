@@ -17,6 +17,7 @@ interface EditorContentProps {
 		hasUnsavedChanges: boolean;
 	};
 	documentId?: string;
+	documentTitle?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export function EditorContent({
 	initialContent,
 	savingState,
 	documentId,
+	documentTitle,
 }: EditorContentProps) {
 	const { provider, ydoc } = useCollab();
 	const { aiToken } = useAi();
@@ -50,6 +52,7 @@ export function EditorContent({
 			initialContent={initialContent}
 			savingState={savingState}
 			documentId={documentId}
+			documentTitle={documentTitle}
 		/>
 	);
 }

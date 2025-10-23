@@ -11,6 +11,7 @@ export interface NotionEditorProps {
 		hasUnsavedChanges: boolean;
 	};
 	documentId?: string;
+	documentTitle?: string;
 }
 
 export interface EditorProviderProps {

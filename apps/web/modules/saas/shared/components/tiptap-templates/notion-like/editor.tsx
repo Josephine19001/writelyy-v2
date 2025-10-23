@@ -32,6 +32,7 @@ export function Editor({
 	initialContent,
 	savingState,
 	documentId,
+	documentTitle,
 }: NotionEditorProps) {
 	return (
 		<UserProvider>
@@ -43,6 +44,7 @@ export function Editor({
 						initialContent={initialContent}
 						savingState={savingState}
 						documentId={documentId}
+						documentTitle={documentTitle}
 					/>
 				</AiProvider>
 			</AppProvider>

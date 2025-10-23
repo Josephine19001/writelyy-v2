@@ -15,6 +15,7 @@ import {
 	handleImageUpload,
 	MAX_FILE_SIZE,
 } from "@shared/tiptap/lib/tiptap-utils";
+import { exportDocument } from "@shared/tiptap/lib/tiptap-export-utils";
 import {
 	getAiExtensionConfig,
 	getAiAgentConfig,
@@ -69,6 +70,7 @@ export interface EditorProviderProps {
 		hasUnsavedChanges: boolean;
 	};
 	documentId?: string;
+	documentTitle?: string;
 }
 
 /**
@@ -84,9 +86,27 @@ export function EditorProvider(props: EditorProviderProps) {
 		initialContent,
 		savingState,
 		documentId,
+		documentTitle,
 	} = props;
 
 	const { user } = useUser();
+
+	// Get user credits to determine plan (Pro or Free)
+	const [isPro, setIsPro] = React.useState(false);
+	React.useEffect(() => {
+		// Import at runtime to avoid circular dependency
+		import("@shared/lib/orpc-client").then(({ orpcClient }) => {
+			orpcClient.users
+				.getCredits({})
+				.then((credits) => {
+					setIsPro(credits.planId === "pro");
+				})
+				.catch(() => {
+					// If we can't get credits, assume free
+					setIsPro(false);
+				});
+		});
+	}, []);
 
 	// Custom table cell with backgroundColor support (exactly like the working example)
 	const CustomTableCell = React.useMemo(() => {
@@ -468,41 +488,23 @@ export function EditorProvider(props: EditorProviderProps) {
 	const handleExport = (format: string) => {
 		if (!editor) return;
 
-		// Export logic here
-		switch (format) {
-			case "json": {
-				const content = editor.getJSON();
-				const dataStr = JSON.stringify(content, null, 2);
-				const dataUri =
-					"data:application/json;charset=utf-8," +
-					encodeURIComponent(dataStr);
-				const exportFileDefaultName = "document.json";
-				const linkElement = document.createElement("a");
-				linkElement.setAttribute("href", dataUri);
-				linkElement.setAttribute("download", exportFileDefaultName);
-				linkElement.click();
-				break;
-			}
-			case "html": {
-				const html = editor.getHTML();
-				const htmlUri = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
-				const htmlLink = document.createElement("a");
-				htmlLink.setAttribute("href", htmlUri);
-				htmlLink.setAttribute("download", "document.html");
-				htmlLink.click();
-				break;
-			}
-			case "txt": {
-				const text = editor.getText();
-				const textUri = `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`;
-				const textLink = document.createElement("a");
-				textLink.setAttribute("href", textUri);
-				textLink.setAttribute("download", "document.txt");
-				textLink.click();
-				break;
-			}
-			default:
-				console.log(`Export format ${format} not yet implemented`);
+		try {
+			// Use document title or fallback to "document"
+			const filename = documentTitle || "document";
+
+			// Use the new export utility for all formats
+			exportDocument(
+				editor,
+				format as "pdf" | "docx" | "markdown" | "html" | "txt" | "json",
+				{
+					filename,
+					isPro,
+				},
+			);
+			toast.success(`Document exported as ${format.toUpperCase()}`);
+		} catch (error) {
+			console.error("Export failed:", error);
+			toast.error(`Failed to export as ${format.toUpperCase()}`);
 		}
 	};
 
