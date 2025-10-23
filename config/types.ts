@@ -62,6 +62,7 @@ export type Config = {
 				isFree?: boolean;
 				isEnterprise?: boolean;
 				recommended?: boolean;
+				monthlyCredits?: number;
 				prices?: Array<
 					{
 						productId: string;

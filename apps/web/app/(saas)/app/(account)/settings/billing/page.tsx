@@ -3,6 +3,7 @@ import { getSession } from "@saas/auth/lib/server";
 import { ActivePlan } from "@saas/payments/components/ActivePlan";
 import { ChangePlan } from "@saas/payments/components/ChangePlan";
 import { SettingsList } from "@saas/shared/components/SettingsList";
+import { CreditsDisplay } from "@saas/settings/components/CreditsDisplay";
 import { orpcClient } from "@shared/lib/orpc-client";
 import { orpc } from "@shared/lib/orpc-query-utils";
 import { getServerQueryClient } from "@shared/lib/server";
@@ -42,6 +43,7 @@ export default async function BillingSettingsPage() {
 
 	return (
 		<SettingsList>
+			<CreditsDisplay />
 			{activePlan && <ActivePlan />}
 			<ChangePlan
 				userId={session?.user.id}

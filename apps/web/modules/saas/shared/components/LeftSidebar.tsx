@@ -4,6 +4,7 @@ import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace"
 import { TopIconBar } from "./sidebar/TopIconBar";
 import { WorkspaceDropdown } from "./sidebar/WorkspaceDropdown";
 import { WorkspaceDocumentTree } from "./workspace/WorkspaceDocumentTree";
+import { CreditProgress } from "./CreditProgress";
 
 interface LeftSidebarProps {
 	onDocumentSelect?: (document: any) => void;
@@ -41,6 +42,7 @@ export function LeftSidebar({
 				</div>
 			</div>
 
+			<CreditProgress />
 			<WorkspaceDropdown />
 		</div>
 	);

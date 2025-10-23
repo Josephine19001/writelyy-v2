@@ -1,24 +1,22 @@
 "use client";
 
-import { FloatingAIButton } from "@saas/shared/components/FloatingAIButton";
+import { CreditWarningBanner } from "@saas/shared/components/CreditWarningBanner";
 import { LeftSidebar } from "@saas/shared/components/LeftSidebar";
-import { RightAIPanel } from "@saas/shared/components/RightAIPanel";
 import { TabProvider } from "@saas/shared/components/providers/TabProvider";
-import { SearchModal } from "./search/SearchModal";
-import { SearchProvider, useSearch } from "./search/SearchProvider";
-import { WorkspaceWelcome } from "./WorkspaceWelcome";
 import { useActiveWorkspace } from "@saas/workspaces/hooks/use-active-workspace";
 import { IconButton } from "@ui/components/icon-button";
-import { cn } from "@ui/lib";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
 	createContext,
+	type PropsWithChildren,
 	useContext,
 	useEffect,
 	useState,
-	type PropsWithChildren,
 } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { SearchModal } from "./search/SearchModal";
+import { SearchProvider, useSearch } from "./search/SearchProvider";
+import { WorkspaceWelcome } from "./WorkspaceWelcome";
 
 // Context for editor interactions
 interface EditorContextType {
@@ -232,8 +230,19 @@ function AppContent({ children }: PropsWithChildren) {
 						minSize={30}
 						id="main-panel"
 					>
-						<div className="h-full bg-card">
-							{!activeWorkspace ? <WorkspaceWelcome /> : children}
+						<div className="h-full bg-card flex flex-col">
+							{/* Credit Warning Banner */}
+							<div>
+								<CreditWarningBanner />
+							</div>
+							{/* Main Content */}
+							<div className="flex-1 overflow-auto">
+								{!activeWorkspace ? (
+									<WorkspaceWelcome />
+								) : (
+									children
+								)}
+							</div>
 						</div>
 					</Panel>
 

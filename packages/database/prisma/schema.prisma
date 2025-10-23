@@ -32,6 +32,12 @@ model User {
     paymentsCustomerId String?
     locale             String?
     twoFactorEnabled   Boolean?
+
+    // Credit system
+    credits            Int                 @default(1000)
+    creditsUsed        Int                 @default(0)
+    creditsResetAt     DateTime?
+
     sessions           Session[]
     accounts           Account[]
     passkeys           Passkey[]
@@ -40,7 +46,7 @@ model User {
     members            Member[]
     twofactors         TwoFactor[]
     aiChats            AiChat[]
-    
+
     // Document system relations
     createdFolders     Folder[]            @relation("FolderCreator")
     createdDocuments   Document[]          @relation("DocumentCreator")

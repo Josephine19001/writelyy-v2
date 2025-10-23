@@ -48,6 +48,7 @@ export function SnippetsPopover({
 	onInsertSnippet,
 }: SnippetsPopoverProps) {
 	const { activeWorkspace } = useActiveWorkspace();
+	const [isOpen, setIsOpen] = React.useState(false);
 	const [searchQuery, setSearchQuery] = React.useState("");
 	const [selectedCategory, setSelectedCategory] =
 		React.useState<string>("all");
@@ -55,7 +56,7 @@ export function SnippetsPopover({
 		null,
 	);
 
-	const { data: snippetsData, isLoading } = useSnippetsQuery(
+	const { data: snippetsData, isLoading, refetch } = useSnippetsQuery(
 		activeWorkspace?.id || "",
 		{
 			enabled: !!activeWorkspace?.id,
@@ -65,6 +66,13 @@ export function SnippetsPopover({
 	);
 
 	const snippets = snippetsData?.snippets || [];
+
+	// Refetch snippets when popover opens
+	React.useEffect(() => {
+		if (isOpen && activeWorkspace?.id) {
+			refetch();
+		}
+	}, [isOpen, activeWorkspace?.id, refetch]);
 
 	// Get unique categories for filtering
 	const categories = React.useMemo(() => {
@@ -87,7 +95,7 @@ export function SnippetsPopover({
 
 	return (
 		<>
-			<Popover>
+			<Popover open={isOpen} onOpenChange={setIsOpen}>
 				<PopoverTrigger asChild>{children}</PopoverTrigger>
 				<PopoverContent
 					className="w-[400px] p-4 max-h-[500px] overflow-auto"

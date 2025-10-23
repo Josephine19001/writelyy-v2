@@ -5,6 +5,7 @@ import { authClient } from "@repo/auth/client";
 import { config } from "@repo/config";
 import { useSession } from "@saas/auth/hooks/use-session";
 import { UserAvatar } from "@shared/components/UserAvatar";
+import { orpcClient } from "@shared/lib/orpc-client";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -33,6 +34,7 @@ import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { AccountSettingsModal } from "@saas/shared/components/AccountSettingsModal";
+import { useQuery } from "@tanstack/react-query";
 
 export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 	const t = useTranslations();
@@ -40,6 +42,20 @@ export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 	const { setTheme: setCurrentTheme, theme: currentTheme } = useTheme();
 	const [theme, setTheme] = useState<string>(currentTheme ?? "system");
 	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+	// Get user's plan
+	const { data: creditsData } = useQuery({
+		queryKey: ["user-credits"],
+		queryFn: () => orpcClient.users.getCredits({}),
+		enabled: !!user,
+		retry: (failureCount, error: any) => {
+			if (error?.message === "Unauthorized") {
+				return false;
+			}
+			return failureCount < 3;
+		},
+		throwOnError: false,
+	});
 
 	const colorModeOptions = [
 		{
@@ -77,6 +93,7 @@ export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 	}
 
 	const { name, email, image } = user;
+	const planId = creditsData?.planId ?? "free";
 
 	return (
 		<DropdownMenu modal={false}>
@@ -87,7 +104,12 @@ export function UserMenu({ showUserName }: { showUserName?: boolean }) {
 					aria-label="User menu"
 				>
 					<span className="flex items-center gap-2">
-						<UserAvatar name={name ?? ""} avatarUrl={image} />
+						<UserAvatar
+							name={name ?? ""}
+							avatarUrl={image}
+							planId={planId}
+							showBadge={true}
+						/>
 						{showUserName && (
 							<span className="text-left leading-tight">
 								<span className="font-medium text-sm">

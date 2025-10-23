@@ -12,7 +12,7 @@ export type TransactionIsolationLevel = z.infer<typeof TransactionIsolationLevel
 
 // File: UserScalarFieldEnum.schema.ts
 
-export const UserScalarFieldEnumSchema = z.enum(['id', 'name', 'email', 'emailVerified', 'image', 'createdAt', 'updatedAt', 'username', 'role', 'banned', 'banReason', 'banExpires', 'onboardingComplete', 'paymentsCustomerId', 'locale', 'twoFactorEnabled'])
+export const UserScalarFieldEnumSchema = z.enum(['id', 'name', 'email', 'emailVerified', 'image', 'createdAt', 'updatedAt', 'username', 'role', 'banned', 'banReason', 'banExpires', 'onboardingComplete', 'paymentsCustomerId', 'locale', 'twoFactorEnabled', 'credits', 'creditsUsed', 'creditsResetAt'])
 
 export type UserScalarFieldEnum = z.infer<typeof UserScalarFieldEnumSchema>;
 
@@ -191,6 +191,9 @@ export const UserSchema = z.object({
   paymentsCustomerId: z.string().nullish(),
   locale: z.string().nullish(),
   twoFactorEnabled: z.boolean().nullish(),
+  credits: z.number().int().default(1000),
+  creditsUsed: z.number().int(),
+  creditsResetAt: z.date().nullish(),
 });
 
 export type UserType = z.infer<typeof UserSchema>;

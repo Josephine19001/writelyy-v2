@@ -22,12 +22,7 @@ import {
 } from "@ui/components/sheet";
 import { cn } from "@ui/lib";
 import {
-	// ChevronDownIcon,
-	FileTextIcon,
-	Layers,
 	MenuIcon,
-	ShieldCheckIcon,
-	SparklesIcon,
 } from "lucide-react";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
@@ -64,33 +59,6 @@ export function NavBar() {
 	}, [localePathname]);
 
 	const isDocsPage = localePathname.startsWith("/docs");
-
-	const productTools = [
-		{
-			label: "Writing Assistant",
-			href: "/#writing-assistant",
-			icon: SparklesIcon,
-			description: "AI-powered writing tools built in",
-		},
-		{
-			label: "Snippets",
-			href: "/#snippets",
-			icon: FileTextIcon,
-			description: "Reusable text blocks for faster writing",
-		},
-		{
-			label: "Sources",
-			href: "/#sources",
-			icon: ShieldCheckIcon,
-			description: "Organize research and references",
-		},
-		{
-			label: "Document Tabs",
-			href: "/#tabs",
-			icon: Layers,
-			description: "Work on multiple docs at once",
-		},
-	];
 
 	const menuItems: {
 		label: string;
@@ -244,30 +212,6 @@ export function NavBar() {
 							<SheetContent className="w-[280px]" side="right">
 								<SheetTitle />
 								<div className="flex flex-col items-start justify-center">
-									{/* Product Tools Section */}
-									<div className="w-full px-3 py-2">
-										<div className="text-sm font-medium text-foreground/60 mb-2">
-											Product
-										</div>
-										{productTools.map((tool) => (
-											<LocaleLink
-												key={tool.href}
-												href={tool.href}
-												className="flex items-center gap-3 px-3 py-2 text-base text-foreground/80 hover:text-foreground"
-											>
-												<tool.icon className="h-5 w-5 text-primary" />
-												<div>
-													<div className="font-medium">
-														{tool.label}
-													</div>
-													<div className="text-sm text-foreground/60">
-														{tool.description}
-													</div>
-												</div>
-											</LocaleLink>
-										))}
-									</div>
-
 									{menuItems.map((menuItem) => (
 										<LocaleLink
 											key={menuItem.href}

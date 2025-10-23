@@ -34,7 +34,7 @@ export default async function WorkspaceLayout({
 		await queryClient.prefetchQuery(
 			orpc.payments.listPurchases.queryOptions({
 				input: {
-					workspaceId: workspace.id,
+					organizationId: workspace.id,
 				},
 			}),
 		);

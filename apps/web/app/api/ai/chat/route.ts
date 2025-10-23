@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession } from '@saas/auth/lib/server';
+import { hasEnoughCredits, deductCredits } from '@repo/database/lib/credits';
 
 interface SourceContext {
   id: string;
@@ -21,8 +23,33 @@ interface ChatRequest {
   documentContext?: string;
 }
 
+// Credit cost for AI chat (adjust as needed)
+const CHAT_CREDIT_COST = 15;
+
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Check if user has enough credits
+    const hasCredits = await hasEnoughCredits(session.user.id, CHAT_CREDIT_COST);
+    if (!hasCredits) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient credits',
+          message: 'You have run out of AI credits. Please upgrade your plan or wait for your monthly reset.',
+          upgradeUrl: '/app/settings/billing'
+        },
+        { status: 402 } // Payment Required
+      );
+    }
+
     const body: ChatRequest = await request.json();
     const { prompt, sources, snippets, documentContext } = body;
 
@@ -139,6 +166,9 @@ Examples:
 
     const data = await response.json();
     const aiResponse = data.choices[0]?.message?.content || 'I apologize, but I could not generate a response. Please try again.';
+
+    // Deduct credits after successful response
+    await deductCredits(session.user.id, CHAT_CREDIT_COST);
 
     return NextResponse.json({ response: aiResponse });
 

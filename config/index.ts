@@ -122,9 +122,11 @@ export const config = {
 			// The free plan is treated differently. It will automatically be assigned if the user has no other plan.
 			free: {
 				isFree: true,
+				monthlyCredits: 1000,
 			},
 			pro: {
 				recommended: true,
+				monthlyCredits: 100000,
 				prices: [
 					{
 						type: "recurring",

@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { getSession } from '@saas/auth/lib/server';
+import { hasEnoughCredits, deductCredits } from '@repo/database/lib/credits';
 
 // Use Edge Runtime for fastest performance (no cold starts, runs close to users)
 export const runtime = "edge";
@@ -26,9 +28,35 @@ interface GenerateRequest {
 	documentContext?: string; // Current document content for context awareness
 }
 
+// Credit cost for AI generation (higher than chat due to more tokens)
+const GENERATION_CREDIT_COST = 25;
+
 export async function POST(request: NextRequest) {
 	try {
 		console.log('🔵 [Generate API] Request received');
+
+		// Check authentication
+		const session = await getSession();
+		if (!session?.user?.id) {
+			return new Response(
+				JSON.stringify({ error: 'Unauthorized' }),
+				{ status: 401, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
+		// Check if user has enough credits
+		const hasCredits = await hasEnoughCredits(session.user.id, GENERATION_CREDIT_COST);
+		if (!hasCredits) {
+			return new Response(
+				JSON.stringify({
+					error: 'Insufficient credits',
+					message: 'You have run out of AI credits. Please upgrade your plan or wait for your monthly reset.',
+					upgradeUrl: '/app/settings/billing'
+				}),
+				{ status: 402, headers: { "Content-Type": "application/json" } }
+			);
+		}
+
 		const body: GenerateRequest = await request.json();
 		const { prompt, sources, snippets, documentContext } = body;
 		console.log('🔵 [Generate API] Request details:', {
@@ -177,6 +205,11 @@ CRITICAL INSTRUCTIONS:
 				},
 			);
 		}
+
+		// Deduct credits immediately (before streaming starts)
+		// This prevents abuse from cancelled streams
+		await deductCredits(session.user.id, GENERATION_CREDIT_COST);
+		console.log('✅ [Generate API] Credits deducted:', GENERATION_CREDIT_COST);
 
 		// Stream the response directly with optimized headers
 		return new Response(response.body, {

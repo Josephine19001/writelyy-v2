@@ -294,7 +294,8 @@ export function WorkspaceDocumentTree({
 							variant="ghost"
 							className="flex-1 justify-start h-auto p-2 text-[11px] hover:bg-transparent"
 							style={{ paddingLeft: `${0.5 + level * 1.5}rem` }}
-							onClick={() => {
+							onClick={(e) => {
+								e.stopPropagation();
 								toggleFolder(folder.id);
 								setSelectedFolderId(folder.id);
 							}}
@@ -315,7 +316,7 @@ export function WorkspaceDocumentTree({
 								)}
 							</div>
 						</Button>
-						<div className="opacity-0 group-hover:opacity-100 transition-opacity">
+						<div className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
 							<FolderContextMenu
 								folderId={folder.id}
 								level={level}

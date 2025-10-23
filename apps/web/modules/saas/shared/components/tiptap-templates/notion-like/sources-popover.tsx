@@ -55,7 +55,8 @@ export function SourcesPopover({
 	onUseAsAIContext,
 }: SourcesPopoverProps) {
 	const { activeWorkspace } = useActiveWorkspace();
-	const { data: sourcesData, isLoading } = useSourcesQuery(
+	const [isOpen, setIsOpen] = React.useState(false);
+	const { data: sourcesData, isLoading, refetch } = useSourcesQuery(
 		activeWorkspace?.id || "",
 		{
 			enabled: !!activeWorkspace?.id,
@@ -63,6 +64,13 @@ export function SourcesPopover({
 	);
 	const [activeFilter, setActiveFilter] = React.useState("all");
 	const [searchQuery, setSearchQuery] = React.useState("");
+
+	// Refetch sources when popover opens
+	React.useEffect(() => {
+		if (isOpen && activeWorkspace?.id) {
+			refetch();
+		}
+	}, [isOpen, activeWorkspace?.id, refetch]);
 
 	const sources = sourcesData?.sources || [];
 
@@ -93,7 +101,7 @@ export function SourcesPopover({
 	};
 
 	return (
-		<Popover>
+		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>{children}</PopoverTrigger>
 			<PopoverContent
 				className="w-[400px] p-4 max-h-[500px] overflow-auto"
