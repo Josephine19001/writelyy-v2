@@ -5,7 +5,7 @@ import { db } from "../index";
  * Get credit limit for a plan
  */
 export function getCreditLimitForPlan(planId: string): number {
-	const plan = config.payments.plans[planId];
+	const plan = config.payments.plans[planId as keyof typeof config.payments.plans];
 	return plan?.monthlyCredits ?? 1000; // Default to free tier
 }
 

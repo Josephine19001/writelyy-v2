@@ -3,6 +3,15 @@
 import { motion } from "framer-motion";
 import { FileText, Folder, Layers, Sparkles } from "lucide-react";
 import Image from "next/image";
+import feature1Dark from "../../../../public/images/feature-1-dark.png";
+import feature1Light from "../../../../public/images/feature-1-light.png";
+import feature2Dark from "../../../../public/images/feature-2-dark.png";
+import feature2Light from "../../../../public/images/feature-2-light.png";
+import feature3Dark from "../../../../public/images/feature-3-dark.png";
+import feature3Light from "../../../../public/images/feature-3-light.png";
+import feature4Dark from "../../../../public/images/feature-4-dark.png";
+import feature4Light from "../../../../public/images/feature-4-light.png";
+import heroDark from "../../../../public/images/hero-dark.svg";
 import heroImage from "../../../../public/images/hero.svg";
 
 const features = [
@@ -12,6 +21,8 @@ const features = [
 		description:
 			"Fix grammar, change tone, summarize, paraphrase—all built in. No switching apps, no copy-pasting. Just select text and let AI do its thing.",
 		image: heroImage,
+		lightImage: feature1Light,
+		darkImage: feature1Dark,
 		icon: Sparkles,
 		gradient: "from-purple-100 via-pink-100 to-blue-100 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950",
 	},
@@ -21,6 +32,8 @@ const features = [
 		description:
 			"Save email signatures, code blocks, common phrases—anything you use a lot. Insert them anywhere with a click. Your keyboard will thank you.",
 		image: heroImage,
+		lightImage: feature2Light,
+		darkImage: feature2Dark,
 		icon: FileText,
 		gradient: "from-blue-100 via-cyan-100 to-teal-100 dark:from-blue-950 dark:via-cyan-950 dark:to-teal-950",
 	},
@@ -30,6 +43,8 @@ const features = [
 		description:
 			"Save links, quotes, and notes in one place. No more hunting through 47 browser tabs. Everything you need, right where you're writing.",
 		image: heroImage,
+		lightImage: feature3Light,
+		darkImage: feature3Dark,
 		icon: Folder,
 		gradient: "from-green-100 via-emerald-100 to-cyan-100 dark:from-green-950 dark:via-emerald-950 dark:to-cyan-950",
 	},
@@ -39,6 +54,8 @@ const features = [
 		description:
 			"Work on multiple documents at once with tabs. Switch between your blog post, research paper, and meeting notes without losing your flow.",
 		image: heroImage,
+		lightImage: feature4Light,
+		darkImage: feature4Dark,
 		icon: Layers,
 		gradient: "from-orange-100 via-amber-100 to-yellow-100 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950",
 	},
@@ -107,6 +124,7 @@ function FeatureCard({
 							transition={{ duration: 0.3 }}
 						>
 							<div className="relative overflow-hidden rounded-2xl border-2 border-gray-300/50 dark:border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md shadow-2xl">
+								{/* Browser Chrome */}
 								<div className="flex items-center gap-2 px-6 py-4 border-b border-gray-300/50 dark:border-white/10 bg-gray-100/50 dark:bg-black/30">
 									<div className="flex gap-2">
 										<motion.div
@@ -127,11 +145,50 @@ function FeatureCard({
 									</div>
 								</div>
 
-								<Image
-									src={feature.image}
-									alt={feature.title}
-									className="w-full h-full object-cover"
-								/>
+								{/* Content Area */}
+								<div className="relative w-full aspect-[1875/1060]">
+									{/* Hero SVG as background - theme aware */}
+									<Image
+										src={heroImage}
+										alt=""
+										className="w-full h-full object-cover dark:hidden"
+									/>
+									<Image
+										src={heroDark}
+										alt=""
+										className="w-full h-full object-cover hidden dark:block"
+									/>
+
+									{/* Screenshot overlaid on SVG content area */}
+									{feature.lightImage && feature.darkImage && (
+										<>
+											<div className="absolute dark:hidden" style={{
+												left: '11.52%',
+												top: '5.94%',
+												width: '76.8%',
+												height: '84.91%'
+											}}>
+												<Image
+													src={feature.lightImage}
+													alt={feature.title}
+													className="w-full h-full object-cover rounded-sm"
+												/>
+											</div>
+											<div className="absolute hidden dark:block" style={{
+												left: '11.52%',
+												top: '5.94%',
+												width: '76.8%',
+												height: '84.91%'
+											}}>
+												<Image
+													src={feature.darkImage}
+													alt={feature.title}
+													className="w-full h-full object-cover rounded-sm"
+												/>
+											</div>
+										</>
+									)}
+								</div>
 							</div>
 						</motion.div>
 					</motion.div>
@@ -155,6 +212,7 @@ function FeatureCard({
 							transition={{ duration: 0.3 }}
 						>
 							<div className="relative overflow-hidden rounded-2xl border-2 border-gray-300/50 dark:border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md shadow-2xl">
+								{/* Browser Chrome */}
 								<div className="flex items-center gap-2 px-6 py-4 border-b border-gray-300/50 dark:border-white/10 bg-gray-100/50 dark:bg-black/30">
 									<div className="flex gap-2">
 										<motion.div
@@ -175,11 +233,50 @@ function FeatureCard({
 									</div>
 								</div>
 
-								<Image
-									src={feature.image}
-									alt={feature.title}
-									className="w-full h-full object-cover"
-								/>
+								{/* Content Area */}
+								<div className="relative w-full aspect-[1875/1060]">
+									{/* Hero SVG as background - theme aware */}
+									<Image
+										src={heroImage}
+										alt=""
+										className="w-full h-full object-cover dark:hidden"
+									/>
+									<Image
+										src={heroDark}
+										alt=""
+										className="w-full h-full object-cover hidden dark:block"
+									/>
+
+									{/* Screenshot overlaid on SVG content area */}
+									{feature.lightImage && feature.darkImage && (
+										<>
+											<div className="absolute dark:hidden" style={{
+												left: '11.52%',
+												top: '5.94%',
+												width: '76.8%',
+												height: '84.91%'
+											}}>
+												<Image
+													src={feature.lightImage}
+													alt={feature.title}
+													className="w-full h-full object-cover rounded-sm"
+												/>
+											</div>
+											<div className="absolute hidden dark:block" style={{
+												left: '11.52%',
+												top: '5.94%',
+												width: '76.8%',
+												height: '84.91%'
+											}}>
+												<Image
+													src={feature.darkImage}
+													alt={feature.title}
+													className="w-full h-full object-cover rounded-sm"
+												/>
+											</div>
+										</>
+									)}
+								</div>
 							</div>
 						</motion.div>
 					</motion.div>

@@ -44,7 +44,11 @@ import { useTiptapEditor } from "@shared/tiptap/hooks/use-tiptap-editor";
 import { useDropdownCoordination } from "@shared/tiptap/components/tiptap-ui/dropdown-coordination";
 import { NodeSelection } from "@tiptap/pm/state";
 import type { Editor } from "@tiptap/react";
-import type { Language, TextOptions, Tone } from "@shared/tiptap/types/ai-types";
+import type {
+	Language,
+	TextOptions,
+	Tone,
+} from "@shared/tiptap/types/ai-types";
 import * as React from "react";
 
 export interface ToneOption {
@@ -223,10 +227,10 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
-			const selectedText = editor.state.doc.textBetween(from, to, ' ');
+			const selectedText = editor.state.doc.textBetween(from, to, " ");
 
 			if (!selectedText) {
-				console.error('No text selected');
+				console.error("No text selected");
 				return;
 			}
 
@@ -268,20 +272,23 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 					includeDocumentContext: false, // Don't include document context for targeted edits
 				};
 
-				console.log('🎯 [Improve Dropdown] Calling bkAiTextPrompt with:', {
-					command: commandText,
-					selectedTextLength: selectedText.length,
-					selectedTextPreview: selectedText.slice(0, 100),
-					includeDocumentContext: false,
-				});
+				console.log(
+					"🎯 [Improve Dropdown] Calling bkAiTextPrompt with:",
+					{
+						command: commandText,
+						selectedTextLength: selectedText.length,
+						selectedTextPreview: selectedText.slice(0, 100),
+						includeDocumentContext: false,
+					},
+				);
 
 				if ((editor.commands as any).bkAiTextPrompt) {
 					(editor.commands as any).bkAiTextPrompt(commandOptions);
 				} else {
-					console.error('bkAiTextPrompt command not available');
+					console.error("bkAiTextPrompt command not available");
 				}
 			} catch (error) {
-				console.error('Error executing AI command:', error);
+				console.error("Error executing AI command:", error);
 			}
 		},
 		[editor, defaultOptions],
@@ -295,10 +302,10 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
-			const selectedText = editor.state.doc.textBetween(from, to, ' ');
+			const selectedText = editor.state.doc.textBetween(from, to, " ");
 
 			if (!selectedText) {
-				console.error('No text selected');
+				console.error("No text selected");
 				return;
 			}
 
@@ -316,10 +323,10 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 						includeDocumentContext: false, // Don't include document context for targeted edits
 					});
 				} else {
-					console.error('bkAiTextPrompt command not available');
+					console.error("bkAiTextPrompt command not available");
 				}
 			} catch (error) {
-				console.error('Error adjusting tone:', error);
+				console.error("Error adjusting tone:", error);
 			}
 		},
 		[editor, defaultOptions],
@@ -333,10 +340,10 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 
 			// Get selected text
 			const { from, to } = editor.state.selection;
-			const selectedText = editor.state.doc.textBetween(from, to, ' ');
+			const selectedText = editor.state.doc.textBetween(from, to, " ");
 
 			if (!selectedText) {
-				console.error('No text selected');
+				console.error("No text selected");
 				return;
 			}
 
@@ -353,10 +360,10 @@ function useAICommands(editor: Editor | null, textOptions?: TextOptions) {
 						includeDocumentContext: false, // Don't include document context for targeted edits
 					});
 				} else {
-					console.error('bkAiTextPrompt command not available');
+					console.error("bkAiTextPrompt command not available");
 				}
 			} catch (error) {
-				console.error('Error translating:', error);
+				console.error("Error translating:", error);
 			}
 		},
 		[editor, defaultOptions],
@@ -519,12 +526,12 @@ export function ImproveDropdown({
 					data-disabled={isDisabled}
 					role="button"
 					tabIndex={-1}
-					aria-label="Improve"
-					tooltip="Improve"
+					aria-label="AI Assist"
+					tooltip="AI Assist"
 					{...props}
 				>
 					<AiSparklesIcon className="tiptap-button-icon" />
-					<span className="tiptap-button-text">Improve</span>
+					<span className="tiptap-button-text">AI Assist</span>
 				</Button>
 			</DropdownMenuTrigger>
 

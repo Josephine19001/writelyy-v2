@@ -18,10 +18,10 @@ export function usePlanData() {
 			features: [
 				"5,000 AI credits per month",
 				"All core writing features",
-				"Snippets & sources",
+				"Limited Snippets & sources",
 				"Basic AI assistance",
 				"Community support",
-				"$1 = 1,000 credits (add-ons)",
+				// "$1 = 1,000 credits (add-ons)",
 			],
 		},
 		pro: {
@@ -33,8 +33,9 @@ export function usePlanData() {
 				"Unlimited snippets & sources",
 				"Advanced AI assistance",
 				"Priority support",
+				"No Writelyy watermarks in exports",
 				// "Document collaboration",
-				"$1 = 1,500 credits (25% discount)",
+				// "$1 = 1,500 credits (25% discount)",
 			],
 		},
 		// enterprise: {
